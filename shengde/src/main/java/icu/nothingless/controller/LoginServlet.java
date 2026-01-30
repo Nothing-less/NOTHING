@@ -11,14 +11,7 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        // 获取表单数据
-        String username = req.getParameter("username");
-        String password = req.getParameter("password");
-
-            req.getSession().setAttribute("token", username.hashCode() + ":" + System.currentTimeMillis());
-            String targetPage = "/WEB-INF/jsp/test.jsp";
-            req.getRequestDispatcher(targetPage).forward(req, resp);
-
+        super.doPost(req, resp);
     }
 
     @Override

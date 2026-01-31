@@ -47,10 +47,6 @@
             <input id="password" name="password" type="password" required/>
         </div>
 
-        <div class="form-row">
-            <label><input type="checkbox" name="remember" value="true"/> Remember me</label>
-        </div>
-
         <div class="actions">
             <button type="submit" class="btn">Log in</button>
         </div>
@@ -59,8 +55,7 @@
             <input type="hidden" name="redirect" value="${fn:escapeXml(param.redirect)}"/>
         </c:if>
     </form>
-
-    <div class="hint">If you forgot your password, contact your administrator.</div>
+    <%-- <div class="hint">If you forgot your password, contact your administrator.</div> --%>
 </div>
 </body>
 </html>
@@ -70,8 +65,20 @@
 (function(){
     var form = document.querySelector('form');
     if(!form) return;
+    var username = document.getElementById('username');
     var password = document.getElementById('password');
     var submit = form.querySelector('button[type="submit"]');
+    
+    [username, password].forEach(function(input) {
+        if(input) {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault(); // 防止重复提交
+                    form.submit();      // 触发表单提交
+                }
+            });
+        }
+    });
 
     form.addEventListener('submit', function(){
         if(submit) submit.disabled = true;

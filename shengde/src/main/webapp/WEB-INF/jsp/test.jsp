@@ -2,7 +2,7 @@
 <%
     String username = request.getParameter("username");
     String password = request.getParameter("password");
-    String token = (String) request.getSession().getAttribute("token");
+    String token = (String) request.getAttribute("token");
     out.println("用户名：" + username + "<br>");
     out.println("密码：" + password + "<br>");
     out.println("请求方法：" + request.getMethod()+ "<br>");

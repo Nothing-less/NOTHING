@@ -5,8 +5,8 @@ import java.io.IOException;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import icu.nothingless.tools.DBTools.DBPoolManager;
-import icu.nothingless.tools.DBTools.RedisPoolManager;
+import icu.nothingless.tools.DBPools.PDBPoolManager;
+import icu.nothingless.tools.DBPools.RedisPoolManager;
 
 /**
  * 基础设施初始化监听器
@@ -20,7 +20,7 @@ public class InfrastructureInitializer implements ServletContextListener {
 
         try {
             // 初始化 PostgreSQL 连接池
-            DBPoolManager.init("PostgreConfig.properties");
+            PDBPoolManager.init("PostgreConfig.properties");
 
             // 初始化 Redis 连接池
             RedisPoolManager.init("RedisConfig.properties");
@@ -35,7 +35,7 @@ public class InfrastructureInitializer implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("Shutting down Infrastructure...");
-        DBPoolManager.close();
+        PDBPoolManager.close();
         RedisPoolManager.close();
         System.out.println("Infrastructure shutdown complete.");
     }

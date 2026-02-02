@@ -1,4 +1,4 @@
-package icu.nothingless.tools.DBTools;
+package icu.nothingless.tools.DBPools;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +18,9 @@ import com.zaxxer.hikari.HikariDataSource;
  * PostgreSQL 连接池管理器
  * 使用 HikariCP 作为连接池实现
  */
-public final class DBPoolManager {
+public final class PDBPoolManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DBPoolManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PDBPoolManager.class);
 
     // 懒加载 + 线程安全
     private static class Holder {
@@ -77,7 +77,7 @@ public final class DBPoolManager {
     }
 
     /**
-     * 关闭连接池（应用关闭时调用）
+     * 关闭连接池
      */
     public static void close() {
         if (!Holder.INSTANCE.isClosed()) {
@@ -108,7 +108,7 @@ public final class DBPoolManager {
         var props = new Properties();
         var path = Objects.requireNonNull(configPath, "Config path not set, call init() first");
 
-        try (InputStream is = DBPoolManager.class.getClassLoader().getResourceAsStream(path)) {
+        try (InputStream is = PDBPoolManager.class.getClassLoader().getResourceAsStream(path)) {
             if (is == null) {
                 throw new IOException("Config file not found in classpath: " + path);
             }
@@ -211,6 +211,6 @@ public final class DBPoolManager {
     }
 
     // 防止实例化
-    private DBPoolManager() {
+    private PDBPoolManager() {
     }
 }

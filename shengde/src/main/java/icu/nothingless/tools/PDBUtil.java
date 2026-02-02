@@ -1,4 +1,4 @@
-package icu.nothingless.tools.DBTools;
+package icu.nothingless.tools;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,7 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DBUtil {
+import icu.nothingless.tools.DBPools.PDBPoolManager;
+
+public class PDBUtil {
     /**
      * 执行查询（返回 Map 列表，适用于简单查询）
      */
@@ -19,7 +21,7 @@ public class DBUtil {
             throws SQLException {
         List<Map<String, Object>> results = new ArrayList<>();
 
-        try (Connection conn = DBPoolManager.getConnection();
+        try (Connection conn = PDBPoolManager.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             setParameters(ps, params);
@@ -46,7 +48,7 @@ public class DBUtil {
      * @return 影响行数
      */
     public static int executeUpdate(String sql, Object... params) throws SQLException {
-        try (Connection conn = DBPoolManager.getConnection();
+        try (Connection conn = PDBPoolManager.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             setParameters(ps, params);
@@ -58,7 +60,7 @@ public class DBUtil {
      * 执行插入并返回自增 ID
      */
     public static Long executeInsert(String sql, Object... params) throws SQLException {
-        try (Connection conn = DBPoolManager.getConnection();
+        try (Connection conn = PDBPoolManager.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql,
                         Statement.RETURN_GENERATED_KEYS)) {
 
@@ -80,7 +82,7 @@ public class DBUtil {
     public static void executeTransaction(TransactionCallback callback) throws SQLException {
         Connection conn = null;
         try {
-            conn = DBPoolManager.getConnection();
+            conn = PDBPoolManager.getConnection();
             conn.setAutoCommit(false);
 
             callback.execute(conn);
@@ -111,7 +113,7 @@ public class DBUtil {
     @SuppressWarnings("unchecked")
     public static <T> T queryForObject(String sql, Class<T> requiredType, Object... params)
             throws SQLException {
-        try (Connection conn = DBPoolManager.getConnection();
+        try (Connection conn = PDBPoolManager.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             setParameters(ps, params);

@@ -1,7 +1,7 @@
 package icu.nothingless.listener;
 
-import javax.servlet.ServletRequestEvent;
-import javax.servlet.ServletRequestListener;
+import jakarta.servlet.ServletRequestEvent;
+import jakarta.servlet.ServletRequestListener;
 
 public class RequestListener implements ServletRequestListener {
     @Override

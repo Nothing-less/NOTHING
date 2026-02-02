@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import icu.nothingless.tools.DBPools.PDBPoolManager;
-
 public class PDBUtil {
     /**
      * 执行查询（返回 Map 列表，适用于简单查询）

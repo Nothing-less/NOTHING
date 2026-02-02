@@ -2,11 +2,10 @@ package icu.nothingless.listener;
 
 import java.io.IOException;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
-import icu.nothingless.tools.DBPools.PDBPoolManager;
-import icu.nothingless.tools.DBPools.RedisPoolManager;
+import icu.nothingless.tools.PDBPoolManager;
+import icu.nothingless.tools.RedisPoolManager;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 
 /**
  * 基础设施初始化监听器
@@ -20,7 +19,7 @@ public class InfrastructureInitializer implements ServletContextListener {
 
         try {
             // 初始化 PostgreSQL 连接池
-            PDBPoolManager.init("PostgreConfig.properties");
+            PDBPoolManager.init("PostrgeConfig.properties");
 
             // 初始化 Redis 连接池
             RedisPoolManager.init("RedisConfig.properties");

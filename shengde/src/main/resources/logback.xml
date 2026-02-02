@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <!-- 按天滚动的文件（生产环境） -->
+    <!-- 按天滚动的文件 -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/user-action.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">

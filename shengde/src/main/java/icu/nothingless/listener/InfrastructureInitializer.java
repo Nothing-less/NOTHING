@@ -27,7 +27,7 @@ public class InfrastructureInitializer implements ServletContextListener {
             System.out.println("Infrastructure initialized successfully.");
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to initialize infrastructure", e);
+            System.out.println("Failed to initialize infrastructure: " + e.getMessage());
         }
     }
 

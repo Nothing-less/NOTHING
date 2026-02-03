@@ -15,6 +15,7 @@ public class InfrastructureInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+
         System.out.println("Initializing Infrastructure...");
 
         try {

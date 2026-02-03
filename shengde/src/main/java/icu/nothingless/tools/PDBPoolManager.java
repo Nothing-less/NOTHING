@@ -76,6 +76,17 @@ public final class PDBPoolManager {
         return Holder.INSTANCE.getConnection();
     }
 
+    public static void closeConnection(Connection conn) {
+        try {
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Failed to close connection", e);
+        }
+
+    }
+
     /**
      * 关闭连接池
      */

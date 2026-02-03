@@ -1,14 +1,14 @@
 package icu.nothingless.pojo.engine;
 
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.sql.Connection;
 
 public abstract class BaseEngine<T> {
     // 当前操作的 Bean 类
     protected Class<T> beanClass;
-    
+
     // 表名
     protected String tableName;
 
@@ -22,9 +22,9 @@ public abstract class BaseEngine<T> {
     public abstract List<T> query(T bean);
 
     // 插入或更新
-    public abstract int save();
+    public abstract int save(T bean);
 
-    // 删除    status -> false
-    public abstract int delete();
+    // 删除 status -> false
+    public abstract int delete(T bean);
 
 }

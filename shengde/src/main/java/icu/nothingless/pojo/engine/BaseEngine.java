@@ -9,11 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import icu.nothingless.pojo.adapter.iSTAdapter;
 
 public abstract class BaseEngine<T extends iSTAdapter<T>, E> {
-    // 当前操作的 Bean 类
-    protected Class<T> beanClass;
-
-    // 表名
-    protected String tableName;
 
     // 参数映射
     protected Map<String, Object> params = new HashMap<>();

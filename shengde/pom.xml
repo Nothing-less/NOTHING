@@ -113,6 +113,7 @@
             <artifactId>logstash-logback-encoder</artifactId>
             <version>8.0</version>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -168,7 +169,6 @@
 
         <plugins>
             <plugin>
-                <?m2e execute onConfiguration?>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>

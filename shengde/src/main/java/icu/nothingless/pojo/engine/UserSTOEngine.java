@@ -3,9 +3,10 @@ package icu.nothingless.pojo.engine;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
+import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.tools.PDBUtil;
 
 public class UserSTOEngine extends BaseEngine<iUserSTOAdapter,UserSTOEngine> {
@@ -25,25 +26,15 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter,UserSTOEngine> {
     private static final String USERKEY4 = "USERKEY4";
     private static final String USERKEY5 = "USERKEY5";
     private static final String USERKEY6 = "USERKEY6";
+    /* ---------------------------------------------------------------------- */
+    private static final String TABLENAME = "USERS";
+
     @Override
     public int save(iUserSTOAdapter bean) {
-        String sql = null;
-        Map<String, Object> valueMap = toMap(bean);
-        try {
-            if (bean.getUserId() == null || bean.getUserId().isBlank()) {
-                // Insert
-                
-                
-            } else {
-                // Update
-                
-            }
-            PDBUtil.executeUpdate(sql);
-        } catch (SQLException e) {
-
-        }
-
-        return 0;
+        Map<String, Object> beanMap = toMap(bean);
+        return (bean.getUserId() == null || bean.getUserId().isBlank())
+            ? (insertOne(beanMap))
+            : (updateOne(beanMap));
     }
 
     @Override
@@ -57,9 +48,14 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter,UserSTOEngine> {
         return null;
     }
     private Map<String, Object> toMap(iUserSTOAdapter bean) {
-        if (bean == null) return Map.of();
-    
-        var map = new HashMap<String, Object>(16);
+        /**
+         * Initializes a new {@link LinkedHashMap} with an initial capacity of 16.
+         * At this point, the map contains no key-value mappings.
+         * Therefore, calling {@code map.isEmpty()} will return {@code true}.
+         */
+        var map = new LinkedHashMap<String, Object>(16);
+        if (bean == null) return map;
+
         String s;
         Object o;
         if ((s = bean.getUserId())             != null && !s.isBlank()) map.put(USERID, s);
@@ -79,6 +75,63 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter,UserSTOEngine> {
         if ((s = bean.getUserKey6())           != null && !s.isBlank()) map.put(USERKEY6, s);
         if ((o = bean.getStatus())             != null) map.put(STATUS, o);
         return map;
+    }
+
+    private int insertOne(Map<String, Object> bean) {
+        if(bean == null || bean.isEmpty()) {
+            return -44;
+        }
+        
+        StringBuffer sql = new StringBuffer();
+        sql.append("INSERT INTO ").append(TABLENAME).append(" (");
+        StringBuffer valuesPart = new StringBuffer("VALUES (");
+        for (String key : bean.keySet()) {
+            sql.append(key).append(", ");
+            valuesPart.append("?, ");
+        }
+        // 移除最後的逗號和空格
+        sql.setLength(sql.length() - 2);
+        valuesPart.setLength(valuesPart.length() - 2);
+        sql.append(") ").append(valuesPart).append(")");
+        try {
+            System.out.println("Executing SQL: \n" + sql.toString());
+            System.out.println("With values: " );
+            bean.values().forEach(v -> System.out.print(v + " | "));
+            // return PDBUtil.executeUpdate(sql.toString(), bean.values().toArray());
+        } catch (Exception e) {
+        }
+        return 0;
+    }
+
+    private int updateOne(Map<String, Object> bean) {
+        if(bean == null || bean.isEmpty()) {
+            return -22;
+        }
+        StringBuffer sql = new StringBuffer();
+        Object[] params = new Object[bean.size()];
+        sql.append("UPDATE ").append(TABLENAME).append(" SET ");
+        int i = 0;
+        for (String key : bean.keySet()) {
+            if (!key.equals(USERID)) { // 主键是 WHERE 条件
+                sql.append(key).append(" = ?, ");
+                params[i++] = bean.get(key).toString(); // 参数有序化
+            }
+        }
+        params[i] = bean.get(USERID).toString(); // 主键值放最后
+
+        // 移除最後的逗號和空格
+        sql.append("WHERE ").append(USERID).append(" = ? ");
+        try {
+            //  System.out.println("Executing SQL: \n" + sql.toString());
+            //  System.out.println("With values: " );
+            //     for (int j = 0; j < bean.size(); j++) {
+            //         System.out.print(params[j] + " | ");
+            //     }
+            return PDBUtil.executeUpdate(sql.toString(), params);
+        } catch (Exception e) {
+        }
+
+        return 0;
     }
 
 

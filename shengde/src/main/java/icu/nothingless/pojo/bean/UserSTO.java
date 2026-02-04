@@ -2,152 +2,106 @@ package icu.nothingless.pojo.bean;
 
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 
-public class UserSTO implements iUserSTOAdapter {
+public record UserSTO(
 
-    private String userId; /* Primary Key */
-    private String account; /* user login account */
-    private String pwdString; /* password */
-    private String nickname; /* user nickname */
-    private String infos; /* user additional information */
-    private String registerTime; /* registration DateTime */
-    private String lastLoginTime; /* last login DateTime */
-    private String lastLoginIpAddr; /* last login IP address */
-    private Boolean status; /* True for active; False for inactive */
-    private String roleId; /* user role ID */
-    private String userKey1; /* Alternate fields 1~6 */
-    private String userKey2;
-    private String userKey3;
-    private String userKey4;
-    private String userKey5;
-    private String userKey6;
+     String userId, /* Primary Key */
+     String account, /* user login account */
+     String pwdString, /* password */
+     String nickname, /* user nickname */
+     String infos, /* user additional information */
+     String registerTime, /* registration DateTime */
+     String lastLoginTime, /* last login DateTime */
+     String lastLoginIpAddr, /* last login IP address */
+     Boolean status, /* True for active, False for inactive */
+     String roleId, /* user role ID */
+     String userKey1, /* Alternate fields 1~6 */
+     String userKey2,
+     String userKey3,
+     String userKey4,
+     String userKey5,
+     String userKey6
+) implements iUserSTOAdapter {
+     
 
-    // Getters and Setters
-    public String getUserId() {
-        return userId;
-    }
+     @Override
+     public String getUserId() {
+          return this.userId;
+     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+     @Override
+     public String getAccount() {
+          return this.account;
+     }
 
-    public String getAccount() {
-        return account;
-    }
+     @Override
+     public String getPwdString() {
+          return this.pwdString;
+     }
 
-    public void setAccount(String account) {
-        this.account = account;
-    }
+     @Override
+     public String getNickname() {
+          return this.nickname;
+     }
 
-    public String getPwdString() {
-        return pwdString;
-    }
 
-    public void setPwdString(String pwdString) {
-        this.pwdString = pwdString;
-    }
+     @Override
+     public String getInfos() {
+          return this.infos;
+     }
 
-    public String getNickname() {
-        return nickname;
-    }
+     @Override
+     public String getRegisterTime() {
+          return this.registerTime;
+     }
 
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
+     @Override
+     public String getLastLoginTime() {
+          return this.lastLoginTime;
+     }
 
-    public String getInfos() {
-        return infos;
-    }
+     @Override
+     public String getLastLoginIpAddr() {
+          return this.lastLoginIpAddr;
+     }
 
-    public void setInfos(String infos) {
-        this.infos = infos;
-    }
+     @Override
+     public Boolean getStatus() {
+          return this.status;
+     }
 
-    public String getRegisterTime() {
-        return registerTime;
-    }
 
-    public void setRegisterTime(String registerTime) {
-        this.registerTime = registerTime;
-    }
+     @Override
+     public String getRoleId() {
+          return this.roleId;
+     }
 
-    public String getLastLoginTime() {
-        return lastLoginTime;
-    }
+     @Override
+     public String getUserKey1() {
+          return this.userKey1;
+     }
 
-    public void setLastLoginTime(String lastLoginTime) {
-        this.lastLoginTime = lastLoginTime;
-    }
+     @Override
+     public String getUserKey2() {
+          return this.userKey2;
+     }
 
-    public String getLastLoginIpAddr() {
-        return lastLoginIpAddr;
-    }
+     @Override
+     public String getUserKey3() {
+          return this.userKey3;
+     }
 
-    public void setLastLoginIpAddr(String lastLoginIpAddr) {
-        this.lastLoginIpAddr = lastLoginIpAddr;
-    }
+     @Override
+     public String getUserKey4() {
+          return this.userKey4;
+     }
 
-    public Boolean getStatus() {
-        return status;
-    }
+     @Override
+     public String getUserKey5() {
+          return this.userKey5;
+     }
 
-    public void setStatus(Boolean status) {
-        this.status = status;
-    }
-
-    public String getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(String roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getUserKey1() {
-        return userKey1;
-    }
-
-    public void setUserKey1(String userKey1) {
-        this.userKey1 = userKey1;
-    }
-
-    public String getUserKey2() {
-        return userKey2;
-    }
-
-    public void setUserKey2(String userKey2) {
-        this.userKey2 = userKey2;
-    }
-
-    public String getUserKey3() {
-        return userKey3;
-    }
-
-    public void setUserKey3(String userKey3) {
-        this.userKey3 = userKey3;
-    }
-
-    public String getUserKey4() {
-        return userKey4;
-    }
-
-    public void setUserKey4(String userKey4) {
-        this.userKey4 = userKey4;
-    }
-
-    public String getUserKey5() {
-        return userKey5;
-    }
-
-    public void setUserKey5(String userKey5) {
-        this.userKey5 = userKey5;
-    }
-
-    public String getUserKey6() {
-        return userKey6;
-    }
-
-    public void setUserKey6(String userKey6) {
-        this.userKey6 = userKey6;
-    }
-
+     @Override
+     public String getUserKey6() {
+          return this.userKey6;
+     }
 }

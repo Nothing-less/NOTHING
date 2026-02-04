@@ -6,6 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import icu.nothingless.dao.impl.LoginDaoImpl.LoginDaoImpl;
+import icu.nothingless.pojo.adapter.iUserSTOAdapter;
+import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -27,8 +29,8 @@ public class LoginServlet extends HttpServlet {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String text = now.format(fmt);
         String token = "Testing token" + text;
-        LoginDaoImpl impl = new LoginDaoImpl();
-        impl.findByUsername(username);
+        iUserSTOAdapter bean = new UserSTO(username, token, token, token, token, token, token, token, null, token, token, token, username, password, text, token);
+        bean.query();
 
         ViewUtil.render(req, resp, "test", Map.of("token", token));
 

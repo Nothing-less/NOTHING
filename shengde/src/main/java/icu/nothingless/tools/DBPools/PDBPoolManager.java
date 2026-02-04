@@ -1,4 +1,4 @@
-package icu.nothingless.tools;
+package icu.nothingless.tools.DBPools;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,6 +76,9 @@ public final class PDBPoolManager {
         return Holder.INSTANCE.getConnection();
     }
 
+    /**
+     * 关闭数据库连接
+     */
     public static void closeConnection(Connection conn) {
         try {
             if (conn != null && !conn.isClosed()) {

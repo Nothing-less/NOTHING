@@ -8,14 +8,12 @@ import icu.nothingless.pojo.engine.UserSTOEngine;
 public interface iUserSTOAdapter extends iSTAdapter<iUserSTOAdapter> {
     @Override
     default int save() {
-        BaseEngine.getInstance(UserSTOEngine.class).save(this);
-        return 0;
+        return BaseEngine.getInstance(UserSTOEngine.class).save(this);
     }
 
     @Override
     default int delete() {
-        BaseEngine.getInstance(UserSTOEngine.class).delete(this);
-        return 0;
+        return BaseEngine.getInstance(UserSTOEngine.class).delete(this);
     }
 
     @Override

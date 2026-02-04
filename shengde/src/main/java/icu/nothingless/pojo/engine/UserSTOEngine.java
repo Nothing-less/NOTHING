@@ -124,12 +124,12 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             logger.error("SQL: {}", sql.toString());
             logger.error("Parameters: {}", bean.values());
         }
-        return 0;
+        return -45;
     }
 
     private int updateOne(Map<String, Object> bean) {
         if (bean == null || bean.isEmpty()) {
-            return -22;
+            return -24;
         }
         StringBuilder sql = new StringBuilder();
         Object[] params = new Object[bean.size()];
@@ -158,7 +158,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             logger.error("Parameters: {}", java.util.Arrays.toString(params));
         }
 
-        return 0;
+        return -25;
     }
 
     // /*------------------------------- Singleton Pattern

@@ -28,8 +28,14 @@ public class LoginServlet extends HttpServlet {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String text = now.format(fmt);
         String token = "Testing token" + text;
-        iUserSTOAdapter bean = new UserSTO(username, token, token, token, token, token, token, token, null, token, token, token, username, password, text, token);
-        bean.query();
+        iUserSTOAdapter bean = new UserSTO();
+        bean.setAccount(username);
+        bean.setPwdString(password);
+        bean.setRegisterTime(text);
+        bean.setLastLoginIpAddr("127.0.0.1");
+        bean.setRoleId("Admin");
+        
+        bean.save();
 
         ViewUtil.render(req, resp, "test", Map.of("token", token));
 

@@ -1,5 +1,7 @@
 package icu.nothingless.listener;
 
+import java.io.IOException;
+
 import icu.nothingless.tools.DBPools.PDBPoolManager;
 import icu.nothingless.tools.DBPools.RedisPoolManager;
 import jakarta.servlet.ServletContextEvent;
@@ -16,18 +18,18 @@ public class InfrastructureInitializer implements ServletContextListener {
 
         System.out.println("Initializing Infrastructure...");
 
-        // try {
-        //     // 初始化 PostgreSQL 连接池
-        //     PDBPoolManager.init("PostrgeConfig.properties");
+        try {
+            // 初始化 PostgreSQL 连接池
+            PDBPoolManager.init("PostrgeConfig.properties");
 
-        //     // 初始化 Redis 连接池
-        //     RedisPoolManager.init("RedisConfig.properties");
+            // 初始化 Redis 连接池
+            RedisPoolManager.init("RedisConfig.properties");
 
-                 System.out.println("Infrastructure initialized successfully.");
+            System.out.println("Infrastructure initialized successfully.");
 
-        // } catch (IOException e) {
-        //     System.out.println("Failed to initialize infrastructure: " + e.getMessage());
-        // }
+        } catch (IOException e) {
+            System.out.println("Failed to initialize infrastructure: " + e.getMessage());
+        }
     }
 
     @Override

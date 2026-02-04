@@ -5,14 +5,14 @@ import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 public class UserSTO implements iUserSTOAdapter {
 
      private String userId; /* Primary Key */
-     private String account; /* user login account */
-     private String pwdString; /* password */
+     private String userAccount; /* user login account */
+     private String userPasswd; /* password */
      private String nickname; /* user nickname */
-     private String infos; /* user additional information */
+     private String userInfos; /* user additional information */
      private String registerTime; /* registration DateTime */
      private String lastLoginTime; /* last login DateTime */
      private String lastLoginIpAddr; /* last login IP address */
-     private Boolean status; /* True for active; False for inactive */
+     private Boolean userStatus; /* True for active; False for inactive */
      private String roleId; /* user role ID */
      private String userKey1; /* Alternate fields 1~6 */
      private String userKey2;
@@ -23,82 +23,7 @@ public class UserSTO implements iUserSTOAdapter {
 
      @Override
      public String getUserId() {
-          return this.userId;
-     }
-
-     @Override
-     public String getAccount() {
-          return this.account;
-     }
-
-     @Override
-     public String getPwdString() {
-          return this.pwdString;
-     }
-
-     @Override
-     public String getNickname() {
-          return this.nickname;
-     }
-
-     @Override
-     public String getInfos() {
-          return this.infos;
-     }
-
-     @Override
-     public String getRegisterTime() {
-          return this.registerTime;
-     }
-
-     @Override
-     public String getLastLoginTime() {
-          return this.lastLoginTime;
-     }
-
-     @Override
-     public String getLastLoginIpAddr() {
-          return this.lastLoginIpAddr;
-     }
-
-     @Override
-     public Boolean getStatus() {
-          return this.status;
-     }
-
-     @Override
-     public String getRoleId() {
-          return this.roleId;
-     }
-
-     @Override
-     public String getUserKey1() {
-          return this.userKey1;
-     }
-
-     @Override
-     public String getUserKey2() {
-          return this.userKey2;
-     }
-
-     @Override
-     public String getUserKey3() {
-          return this.userKey3;
-     }
-
-     @Override
-     public String getUserKey4() {
-          return this.userKey4;
-     }
-
-     @Override
-     public String getUserKey5() {
-          return this.userKey5;
-     }
-
-     @Override
-     public String getUserKey6() {
-          return this.userKey6;
+          return userId;
      }
 
      @Override
@@ -107,13 +32,28 @@ public class UserSTO implements iUserSTOAdapter {
      }
 
      @Override
-     public void setAccount(String account) {
-          this.account = account;
+     public String getUserAccount() {
+          return userAccount;
      }
 
      @Override
-     public void setPwdString(String pwdString) {
-          this.pwdString = pwdString;
+     public void setUserAccount(String userAccount) {
+          this.userAccount = userAccount;
+     }
+
+     @Override
+     public String getUserPasswd() {
+          return userPasswd;
+     }
+
+     @Override
+     public void setUserPasswd(String userPasswd) {
+          this.userPasswd = userPasswd;
+     }
+
+     @Override
+     public String getNickname() {
+          return nickname;
      }
 
      @Override
@@ -122,8 +62,18 @@ public class UserSTO implements iUserSTOAdapter {
      }
 
      @Override
-     public void setInfos(String infos) {
-          this.infos = infos;
+     public String getUserInfos() {
+          return userInfos;
+     }
+
+     @Override
+     public void setUserInfos(String userInfos) {
+          this.userInfos = userInfos;
+     }
+
+     @Override
+     public String getRegisterTime() {
+          return registerTime;
      }
 
      @Override
@@ -132,8 +82,18 @@ public class UserSTO implements iUserSTOAdapter {
      }
 
      @Override
+     public String getLastLoginTime() {
+          return lastLoginTime;
+     }
+
+     @Override
      public void setLastLoginTime(String lastLoginTime) {
           this.lastLoginTime = lastLoginTime;
+     }
+
+     @Override
+     public String getLastLoginIpAddr() {
+          return lastLoginIpAddr;
      }
 
      @Override
@@ -142,8 +102,18 @@ public class UserSTO implements iUserSTOAdapter {
      }
 
      @Override
-     public void setStatus(Boolean status) {
-          this.status = status;
+     public Boolean getUserStatus() {
+          return userStatus;
+     }
+
+     @Override
+     public void setUserStatus(Boolean userStatus) {
+          this.userStatus = userStatus;
+     }
+
+     @Override
+     public String getRoleId() {
+          return roleId;
      }
 
      @Override
@@ -152,8 +122,18 @@ public class UserSTO implements iUserSTOAdapter {
      }
 
      @Override
+     public String getUserKey1() {
+          return userKey1;
+     }
+
+     @Override
      public void setUserKey1(String userKey1) {
           this.userKey1 = userKey1;
+     }
+
+     @Override
+     public String getUserKey2() {
+          return userKey2;
      }
 
      @Override
@@ -162,14 +142,28 @@ public class UserSTO implements iUserSTOAdapter {
      }
 
      @Override
+     public String getUserKey3() {
+          return userKey3;
+     }
+
+     @Override
      public void setUserKey3(String userKey3) {
           this.userKey3 = userKey3;
      }
 
      @Override
+     public String getUserKey4() {
+          return userKey4;
+     }
+
+     @Override
      public void setUserKey4(String userKey4) {
           this.userKey4 = userKey4;
-          throw new UnsupportedOperationException("Unimplemented method 'setUserKey4'");
+     }
+
+     @Override
+     public String getUserKey5() {
+          return userKey5;
      }
 
      @Override
@@ -178,7 +172,13 @@ public class UserSTO implements iUserSTOAdapter {
      }
 
      @Override
+     public String getUserKey6() {
+          return userKey6;
+     }
+
+     @Override
      public void setUserKey6(String userKey6) {
           this.userKey6 = userKey6;
      }
+
 }

@@ -29,14 +29,15 @@ public class LoginServlet extends HttpServlet {
         String text = now.format(fmt);
         String token = "Testing token" + text;
         iUserSTOAdapter bean = new UserSTO();
-        bean.setAccount(username);
-        bean.setPwdString(password);
+        bean.setUserAccount(username);
+        bean.setUserPasswd(password);
         bean.setRegisterTime(text);
         bean.setLastLoginIpAddr("127.0.0.1");
+        bean.setLastLoginTime(text);
         bean.setRoleId("Admin");
-        
-        bean.save();
 
+        int t = bean.save();
+        System.err.println("Save result: " + t);
         ViewUtil.render(req, resp, "test", Map.of("token", token));
 
     }

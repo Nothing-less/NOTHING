@@ -12,22 +12,22 @@ import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.tools.PDBUtil;
 
 public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
-    private static final String USERID = "USERID";
-    private static final String ACCOUNT = "ACCOUNT";
-    private static final String PWDSTRING = "PWDSTRING";
+    private static final String USERID = "USER_ID";
+    private static final String USERACCOUNT = "USERACCOUNT";
+    private static final String USERPASSWD = "USERPASSWD";
     private static final String NICKNAME = "NICKNAME";
-    private static final String INFOS = "INFOS";
-    private static final String REGISTERTIME = "REGISTERTIME";
-    private static final String LASTLOGINTIME = "LASTLOGINTIME";
-    private static final String LASTLOGINIPADDR = "LASTLOGINIPADDR";
-    private static final String STATUS = "STATUS";
-    private static final String ROLEID = "ROLEID";
-    private static final String USERKEY1 = "USERKEY1";
-    private static final String USERKEY2 = "USERKEY2";
-    private static final String USERKEY3 = "USERKEY3";
-    private static final String USERKEY4 = "USERKEY4";
-    private static final String USERKEY5 = "USERKEY5";
-    private static final String USERKEY6 = "USERKEY6";
+    private static final String USER_INFOS = "USER_INFOS";
+    private static final String REGISTER_TIME = "REGISTER_TIME";
+    private static final String LAST_LOGIN_TIME = "LAST_LOGIN_TIME";
+    private static final String LAST_LOGIN_IP_ADDR = "LAST_LOGIN_IP_ADDR";
+    private static final String USER_STATUS = "USER_STATUS";
+    private static final String ROLEID = "ROLE_ID";
+    private static final String USERKEY1 = "USER_KEY1";
+    private static final String USERKEY2 = "USER_KEY2";
+    private static final String USERKEY3 = "USER_KEY3";
+    private static final String USERKEY4 = "USER_KEY4";
+    private static final String USERKEY5 = "USER_KEY5";
+    private static final String USERKEY6 = "USER_KEY6";
     /* ---------------------------------------------------------------------- */
     private static final String TABLENAME = "USERS";
     private static final Logger logger = LoggerFactory.getLogger(UserSTOEngine.class);
@@ -65,20 +65,20 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         Object o;
         if ((s = bean.getUserId()) != null && !s.isBlank())
             map.put(USERID, s);
-        if ((s = bean.getAccount()) != null && !s.isBlank())
-            map.put(ACCOUNT, s);
-        if ((s = bean.getPwdString()) != null && !s.isBlank())
-            map.put(PWDSTRING, s);
+        if ((s = bean.getUserAccount()) != null && !s.isBlank())
+            map.put(USERACCOUNT, s);
+        if ((s = bean.getUserPasswd()) != null && !s.isBlank())
+            map.put(USERPASSWD, s);
         if ((s = bean.getNickname()) != null && !s.isBlank())
             map.put(NICKNAME, s);
-        if ((s = bean.getInfos()) != null && !s.isBlank())
-            map.put(INFOS, s);
+        if ((s = bean.getUserInfos()) != null && !s.isBlank())
+            map.put(USER_INFOS, s);
         if ((s = bean.getRegisterTime()) != null && !s.isBlank())
-            map.put(REGISTERTIME, s);
+            map.put(REGISTER_TIME, s);
         if ((s = bean.getLastLoginTime()) != null && !s.isBlank())
-            map.put(LASTLOGINTIME, s);
+            map.put(LAST_LOGIN_TIME, s);
         if ((s = bean.getLastLoginIpAddr()) != null && !s.isBlank())
-            map.put(LASTLOGINIPADDR, s);
+            map.put(LAST_LOGIN_IP_ADDR, s);
         if ((s = bean.getRoleId()) != null && !s.isBlank())
             map.put(ROLEID, s);
         if ((s = bean.getUserKey1()) != null && !s.isBlank())
@@ -93,8 +93,8 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             map.put(USERKEY5, s);
         if ((s = bean.getUserKey6()) != null && !s.isBlank())
             map.put(USERKEY6, s);
-        if ((o = bean.getStatus()) != null)
-            map.put(STATUS, o);
+        if ((o = bean.getUserStatus()) != null)
+            map.put(USER_STATUS, o);
         return map;
     }
 

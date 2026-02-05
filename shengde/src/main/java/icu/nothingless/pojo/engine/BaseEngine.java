@@ -21,10 +21,10 @@ public abstract class BaseEngine<T extends iSTAdapter<T>, E> {
     public abstract List<T> query(T bean);
 
     // 插入或更新
-    public abstract int save(T bean);
+    public abstract Long save(T bean);
 
     // 删除 status -> false
-    public abstract int delete(T bean);
+    public abstract Long delete(T bean);
 
     // 线程安全的实例注册表
     private static final ConcurrentHashMap<Class<?>, BaseEngine<?, ?>> INSTANCES = new ConcurrentHashMap<>();

@@ -68,12 +68,10 @@ public class PDBUtil {
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getLong(1);
-                }
+                // 加非空判断更健壮
+                return (rs.next() && !rs.wasNull())? rs.getLong(1) : null;
             }
         }
-        return null;
     }
 
     /**

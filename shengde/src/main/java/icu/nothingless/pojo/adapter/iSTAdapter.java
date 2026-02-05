@@ -8,8 +8,8 @@ public interface iSTAdapter<T> {
     List<T> query();
 
     // 插入或更新
-    int save();
+    Long save();
 
     // 删除 status -> false
-    int delete();
+    Long delete();
 }

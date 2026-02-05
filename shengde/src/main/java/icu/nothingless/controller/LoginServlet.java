@@ -36,7 +36,7 @@ public class LoginServlet extends HttpServlet {
         bean.setLastLoginTime(text);
         bean.setRoleId("Admin");
 
-        int t = bean.save();
+        Long t = bean.save();
         System.err.println("Save result: " + t);
         ViewUtil.render(req, resp, "test", Map.of("token", token));
 

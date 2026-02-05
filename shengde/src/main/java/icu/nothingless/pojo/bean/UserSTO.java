@@ -181,4 +181,26 @@ public class UserSTO implements iUserSTOAdapter {
           this.userKey6 = userKey6;
      }
 
+     @Override
+     public String toString() {
+          return "UserSTO{" +
+                    "userId='" + userId + '\'' +
+                    ", userAccount='" + userAccount + '\'' +
+                    ", userPasswd='" + userPasswd + '\'' +
+                    ", nickname='" + nickname + '\'' +
+                    ", userInfos='" + userInfos + '\'' +
+                    ", registerTime='" + registerTime + '\'' +
+                    ", lastLoginTime='" + lastLoginTime + '\'' +
+                    ", lastLoginIpAddr='" + lastLoginIpAddr + '\'' +
+                    ", userStatus=" + userStatus +
+                    ", roleId='" + roleId + '\'' +
+                    ", userKey1='" + userKey1 + '\'' +
+                    ", userKey2='" + userKey2 + '\'' +
+                    ", userKey3='" + userKey3 + '\'' +
+                    ", userKey4='" + userKey4 + '\'' +
+                    ", userKey5='" + userKey5 + '\'' +
+                    ", userKey6='" + userKey6 + '\'' +
+                    '}';
+     }
+
 }

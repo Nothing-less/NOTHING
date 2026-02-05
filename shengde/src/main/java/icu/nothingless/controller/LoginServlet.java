@@ -3,11 +3,10 @@ package icu.nothingless.controller;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
+import java.util.List;
 
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
-import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,15 +30,15 @@ public class LoginServlet extends HttpServlet {
         iUserSTOAdapter bean = new UserSTO();
         bean.setUserAccount(username);
         bean.setUserPasswd(password);
-        bean.setRegisterTime(text);
-        bean.setLastLoginIpAddr("127.0.0.1");
-        bean.setLastLoginTime(text);
-        bean.setRoleId("Admin");
+        // bean.setRegisterTime(text);
+        // bean.setLastLoginIpAddr("127.0.0.1");
+        // bean.setLastLoginTime(text);
+        // bean.setRoleId("Admin");
 
-        Long t = bean.save();
-        System.err.println("Save result: " + t);
-        ViewUtil.render(req, resp, "test", Map.of("token", token));
-
+        List<iUserSTOAdapter> result = bean.query();
+        if (!result.isEmpty()) {
+            result.forEach(System.out::println);
+        }
     }
 
 }

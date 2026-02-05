@@ -45,7 +45,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
     @Override
     public Long delete(iUserSTOAdapter bean) {
         Map<String, Object> beanMap = toMap(bean);
-        if( beanMap.isEmpty() || !beanMap.containsKey(USERID)) {
+        if (beanMap.isEmpty() || !beanMap.containsKey(USERID)) {
             return -64L;
         }
         StringBuilder sql = new StringBuilder();
@@ -75,17 +75,16 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         // 模糊查找
         // 登录 or 注册查找
 
-
-        
-        return null;
+        return fuzzyQuery(bean);
     }
+
     private iUserSTOAdapter toBean(Map<String, Object> map) {
         if (map == null || map.isEmpty())
             return null;
         iUserSTOAdapter bean = new UserSTO();
         Object o;
         String s;
-        if ((s = (String) map.get(USERID)) != null)
+        if (s = String.value(map.get(USERID)) != null)
             bean.setUserId(s);
         if ((s = (String) map.get(USERACCOUNT)) != null)
             bean.setUserAccount(s);

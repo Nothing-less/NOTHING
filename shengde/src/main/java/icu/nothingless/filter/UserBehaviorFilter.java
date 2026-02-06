@@ -52,7 +52,7 @@ public class UserBehaviorFilter {
             }
         });
 
-        System.out.println("UserBehavior AOP Filter initialized");
+        logger.info("UserBehavior AOP Filter initialized");
     }
 
     public void doFilter(ServletRequest request, ServletResponse response,
@@ -79,7 +79,7 @@ public class UserBehaviorFilter {
             // AOP 后置通知：记录请求耗时（可选）
             long duration = System.currentTimeMillis() - startTime;
             if (duration > 1000) { // 慢查询监控
-                System.out.printf("[SLOW REQUEST] %s took %dms%n", uri, duration);
+                logger.info("[SLOW REQUEST] %s took %dms%n", uri, duration);
             }
         }
     }
@@ -102,7 +102,7 @@ public class UserBehaviorFilter {
 
         // 放入异步队列（非阻塞）
         if (!LOG_QUEUE.offer(action)) {
-            System.err.println("Monitor queue full, dropping log");
+            logger.error("Monitor queue full, dropping log");
         }
 
         // 立即返回 204 No Content，不影响前端

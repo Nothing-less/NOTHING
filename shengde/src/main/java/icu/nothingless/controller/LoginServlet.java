@@ -5,15 +5,19 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.slf4j.Logger;
+
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
-import icu.nothingless.pojo.engine.UserSTOEngine;
+import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class LoginServlet extends HttpServlet {
+    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LoginServlet.class);
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         doPost(req, resp);
@@ -31,16 +35,16 @@ public class LoginServlet extends HttpServlet {
         iUserSTOAdapter bean = new UserSTO();
         bean.setUserAccount(username);
         bean.setUserPasswd(password);
-        // bean.setRegisterTime(text);
-        // bean.setLastLoginIpAddr("127.0.0.1");
-        // bean.setLastLoginTime(text);
-        // bean.setRoleId("Admin");
+        bean.setLastLoginIpAddr("127.0.0.1");
+        bean.setRoleId("Admin");
 
-        // List<iUserSTOAdapter> result = bean.query();
-        // if (!result.isEmpty()) {
-        //     result.forEach(System.out::println);
-        // }
-        new UserSTOEngine().test();
+        List<iUserSTOAdapter> result = bean.query();
+        logger.error("results:------------------------------------------");
+        logger.error("Number of results: " + result.size());
+        if (!result.isEmpty()) {
+            result.forEach(v -> logger.info("Login successful for user: " + v.toString()));
+        }
+        ViewUtil.render(req, resp, "example/index");
     }
 
 }

@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
+<configuration debug="true">
+    <property name="LOG_HOME" value="F:/GitRepo/NOTHING/shengde/logs"/>
     <!-- 控制台输出 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - Ciallo～ %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- 文件日志 - 按天滚动，同时限制单个文件大小 -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!-- 当前活动日志文件路径 -->
-        <file>logs/user-action.log</file>
-        
+        <file>${LOG_HOME}/user-action.log</file>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} Ciallo~(∠・ω＜)⌒★: %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - Ciallo～ %msg%n</pattern>
         </encoder>
-        
+
         <!-- 使用 SizeAndTimeBasedRollingPolicy 同时支持时间和大小滚动 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- 日志文件名模式：%i 表示文件序号，当文件超过 maxFileSize 时递增 -->
             <fileNamePattern>logs/user-action.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            
+
             <!-- 单个文件最大大小 -->
             <maxFileSize>10MB</maxFileSize>
-            
+
             <!-- 保留历史日志文件总大小上限 -->
             <totalSizeCap>1GB</totalSizeCap>
-            
+
             <!-- 最多保留30天的历史日志 -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
@@ -43,21 +43,21 @@
 
     <!-- JSON 格式 Appender（可选） -->
     <appender name="JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/user-action-json.log</file>
-        
+        <file>${LOG_HOME}/user-action-json.log</file>
+
         <!-- 使用 logstash encoder 输出 JSON -->
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdcKeyName>userId</includeMdcKeyName>
             <includeMdcKeyName>action</includeMdcKeyName>
         </encoder>
-        
+
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>logs/user-action-json.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>10MB</maxFileSize>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
     </appender>
-    
+
     <!-- JSON 的异步包装 -->
     <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="JSON"/>

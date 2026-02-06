@@ -15,22 +15,22 @@ import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.tools.PDBUtil;
 
 public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
-    private static final String USERID = "USER_ID";
-    private static final String USERACCOUNT = "USERACCOUNT";
-    private static final String USERPASSWD = "USERPASSWD";
-    private static final String NICKNAME = "NICKNAME";
-    private static final String USER_INFOS = "USER_INFOS";
-    private static final String REGISTER_TIME = "REGISTER_TIME";
-    private static final String LAST_LOGIN_TIME = "LAST_LOGIN_TIME";
-    private static final String LAST_LOGIN_IP_ADDR = "LAST_LOGIN_IP_ADDR";
-    private static final String USER_STATUS = "USER_STATUS";
-    private static final String ROLEID = "ROLE_ID";
-    private static final String USERKEY1 = "USER_KEY1";
-    private static final String USERKEY2 = "USER_KEY2";
-    private static final String USERKEY3 = "USER_KEY3";
-    private static final String USERKEY4 = "USER_KEY4";
-    private static final String USERKEY5 = "USER_KEY5";
-    private static final String USERKEY6 = "USER_KEY6";
+    private static final String USERID = "user_id";
+    private static final String USERACCOUNT = "useraccount";
+    private static final String USERPASSWD = "userpasswd";
+    private static final String NICKNAME = "nickname";
+    private static final String USER_INFOS = "user_infos";
+    private static final String REGISTER_TIME = "register_time";
+    private static final String LAST_LOGIN_TIME = "last_login_time";
+    private static final String LAST_LOGIN_IP_ADDR = "last_login_ip_addr";
+    private static final String USER_STATUS = "user_status";
+    private static final String ROLEID = "role_id";
+    private static final String USERKEY1 = "user_key1";
+    private static final String USERKEY2 = "user_key2";
+    private static final String USERKEY3 = "user_key3";
+    private static final String USERKEY4 = "user_key4";
+    private static final String USERKEY5 = "user_key5";
+    private static final String USERKEY6 = "user_key6";
     /* ---------------------------------------------------------------------- */
     private static final String TABLENAME = "USERS";
     private static final Logger logger = LoggerFactory.getLogger(UserSTOEngine.class);
@@ -42,13 +42,15 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
                 ? (insertOne(beanMap))
                 : (updateOne(beanMap));
     }
-    public void test(){
+
+    public void test() {
         iUserSTOAdapter bean1 = new UserSTO();
         bean1.setUserAccount("testuser");
         bean1.setUserPasswd("testpass");
         iUserSTOAdapter bean2 = toBean(toMap(bean1));
         logger.error(bean2.getUserAccount());
         logger.error(bean2.getUserPasswd());
+        logger.error("Are they equal? ::" + (bean1 == bean2));
 
     }
 
@@ -92,70 +94,24 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         if (map == null || map.isEmpty())
             return null;
         iUserSTOAdapter bean = new UserSTO();
-        Object o;
-        String s;
-        Optional.ofNullable(map.get(USERID))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserId);
 
-        Optional.ofNullable(map.get(USERACCOUNT))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserAccount);
-                
-        Optional.ofNullable(map.get(USERPASSWD))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserPasswd);
+        Optional.ofNullable(map.get(USERID)).ifPresent(v -> bean.setUserId(String.valueOf(v)));
+        Optional.ofNullable(map.get(USERACCOUNT)).ifPresent(v -> bean.setUserAccount(String.valueOf(v)));
+        Optional.ofNullable(map.get(USERPASSWD)).ifPresent(v -> bean.setUserPasswd(String.valueOf(v)));
+        Optional.ofNullable(map.get(NICKNAME)).ifPresent(v -> bean.setNickname(String.valueOf(v)));
+        Optional.ofNullable(map.get(USER_INFOS)).ifPresent(v -> bean.setUserInfos(String.valueOf(v)));
+        Optional.ofNullable(map.get(REGISTER_TIME)).ifPresent(v -> bean.setRegisterTime(String.valueOf(v)));
+        Optional.ofNullable(map.get(LAST_LOGIN_TIME)).ifPresent(v -> bean.setLastLoginTime(String.valueOf(v)));
+        Optional.ofNullable(map.get(LAST_LOGIN_IP_ADDR)).ifPresent(v -> bean.setLastLoginIpAddr(String.valueOf(v)));
+        Optional.ofNullable(map.get(ROLEID)).ifPresent(v -> bean.setRoleId(String.valueOf(v)));
+        Optional.ofNullable(map.get(USERKEY1)).ifPresent(v -> bean.setUserKey1(String.valueOf(v)));
+        Optional.ofNullable(map.get(USERKEY2)).ifPresent(v -> bean.setUserKey2(String.valueOf(v)));
+        Optional.ofNullable(map.get(USERKEY3)).ifPresent(v -> bean.setUserKey3(String.valueOf(v)));
+        Optional.ofNullable(map.get(USERKEY4)).ifPresent(v -> bean.setUserKey4(String.valueOf(v)));
+        Optional.ofNullable(map.get(USERKEY5)).ifPresent(v -> bean.setUserKey5(String.valueOf(v)));
+        Optional.ofNullable(map.get(USERKEY6)).ifPresent(v -> bean.setUserKey6(String.valueOf(v)));
+        Optional.ofNullable(map.get(USER_STATUS)).ifPresent(v -> bean.setUserStatus(Boolean.valueOf(String.valueOf(v))));
 
-        Optional.ofNullable(map.get(NICKNAME))
-                .map(String::valueOf)
-                .ifPresent(bean::setNickname);
-
-        Optional.ofNullable(map.get(USER_INFOS))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserInfos);
-
-        Optional.ofNullable(map.get(REGISTER_TIME))
-                .map(String::valueOf)
-                .ifPresent(bean::setRegisterTime);
-
-        Optional.ofNullable(map.get(LAST_LOGIN_TIME))
-                .map(String::valueOf)
-                .ifPresent(bean::setLastLoginTime);
-
-        Optional.ofNullable(map.get(LAST_LOGIN_IP_ADDR))
-                .map(String::valueOf)
-                .ifPresent(bean::setLastLoginIpAddr);
-
-        Optional.ofNullable(map.get(ROLEID))
-                .map(String::valueOf)
-                .ifPresent(bean::setRoleId);
-
-        Optional.ofNullable(map.get(USERKEY1))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserKey1);
-
-        Optional.ofNullable(map.get(USERKEY2))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserKey2);
-
-        Optional.ofNullable(map.get(USERKEY3))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserKey3);
-
-        Optional.ofNullable(map.get(USERKEY4))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserKey4);
-
-        Optional.ofNullable(map.get(USERKEY5))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserKey5);
-
-        Optional.ofNullable(map.get(USERKEY6))
-                .map(String::valueOf)
-                .ifPresent(bean::setUserKey6);
-        Optional.ofNullable(map.get(USER_STATUS))
-                .map(v -> v instanceof Boolean ? (Boolean) v : Boolean.valueOf(String.valueOf(v)))
-                .ifPresent(bean::setUserStatus);
         return bean;
     }
 

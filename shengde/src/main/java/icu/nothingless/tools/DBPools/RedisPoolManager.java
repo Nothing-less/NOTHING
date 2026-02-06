@@ -4,12 +4,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisPoolManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(RedisPoolManager.class);
     private static volatile JedisPool jedisPool;
     private static final Object lock = new Object();
 
@@ -50,7 +54,7 @@ public class RedisPoolManager {
             // 测试连接
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.ping();
-                System.out.println("Redis Pool initialized: " + host + ":" + port);
+                logger.info("Redis Pool initialized: " + host + ":" + port);
             }
         }
     }
@@ -71,7 +75,7 @@ public class RedisPoolManager {
     public static void close() {
         if (jedisPool != null && !jedisPool.isClosed()) {
             jedisPool.close();
-            System.out.println("Redis Pool closed.");
+            logger.info("Redis Pool closed.");
         }
     }
 }

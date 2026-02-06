@@ -20,20 +20,20 @@ public class InfrastructureInitializer implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
 
-        System.out.println("Initializing Infrastructure...");
+        logger.info("Initializing Infrastructure...");
 
         try {
             // 初始化 PostgreSQL 连接池
-            //PDBPoolManager.init("PostrgeConfig.properties");
+            PDBPoolManager.init("PostrgeConfig.properties");
             logger.info("PostgreSQL connection pool initialized.");
 
             // 初始化 Redis 连接池
-            //RedisPoolManager.init("RedisConfig.properties");
+            RedisPoolManager.init("RedisConfig.properties");
             logger.info("Redis connection pool initialized.");
 
             logger.info("Infrastructure initialized successfully.");
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("Failed to initialize infrastructure: " + e.getMessage());
         }
     }

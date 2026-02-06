@@ -124,7 +124,7 @@
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
                     <version>1.0.0</version>
-                    <configuration>
+                    <!-- <configuration>
                         <lifecycleMappingMetadata>
                             <pluginExecutions>
                                 <pluginExecution>
@@ -145,56 +145,71 @@
                                 </pluginExecution>
                             </pluginExecutions>
                         </lifecycleMappingMetadata>
-                    </configuration>
+                    </configuration> -->
                 </plugin>
 
                 <!-- 统一插件版本管理 -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>                    <!-- 升级版本 -->
+                    <version>3.11.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
-                    <version>3.4.0</version>                    <!-- 升级版本 -->
+                    <version>3.4.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.6.1</version>                    <!-- 升级版本，解决兼容性问题 -->
+                    <version>3.6.1</version>
+                </plugin>
+
+                <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.2.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
 
         <plugins>
+            <!-- 编译插件 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
                 <configuration>
                     <source>25</source>
                     <target>25</target>
                     <encoding>UTF-8</encoding>
-                    <compilerArguments>
-                        <endorseddirs>${endorsed.dir}</endorseddirs>
-                    </compilerArguments>
                 </configuration>
             </plugin>
 
+            <!-- WAR 打包插件 - 必须正确生成 war 文件 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
 
+            <!-- 安装插件 - 显式配置确保能安装 war -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
+
+            <!-- 依赖复制插件 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.1</version>
                 <executions>
                     <execution>
-                        <id>copy-endorsed</id>                        <!-- 添加ID，避免重复执行警告 -->
+                        <id>copy-endorsed</id>
                         <phase>validate</phase>
                         <goals>
                             <goal>copy</goal>
@@ -215,6 +230,7 @@
                 </executions>
             </plugin>
         </plugins>
+        
     </build>
 
 </project>

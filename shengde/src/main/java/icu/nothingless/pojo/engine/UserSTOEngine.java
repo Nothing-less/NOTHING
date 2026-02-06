@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,15 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         return (bean.getUserId() == null || bean.getUserId().isBlank())
                 ? (insertOne(beanMap))
                 : (updateOne(beanMap));
+    }
+    public void test(){
+        iUserSTOAdapter bean1 = new UserSTO();
+        bean1.setUserAccount("testuser");
+        bean1.setUserPasswd("testpass");
+        iUserSTOAdapter bean2 = toBean(toMap(bean1));
+        logger.error(bean2.getUserAccount());
+        logger.error(bean2.getUserPasswd());
+
     }
 
     @Override
@@ -84,38 +94,68 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         iUserSTOAdapter bean = new UserSTO();
         Object o;
         String s;
-        if (s = String.value(map.get(USERID)) != null)
-            bean.setUserId(s);
-        if ((s = (String) map.get(USERACCOUNT)) != null)
-            bean.setUserAccount(s);
-        if ((s = (String) map.get(USERPASSWD)) != null)
-            bean.setUserPasswd(s);
-        if ((s = (String) map.get(NICKNAME)) != null)
-            bean.setNickname(s);
-        if ((s = (String) map.get(USER_INFOS)) != null)
-            bean.setUserInfos(s);
-        if ((s = (String) map.get(REGISTER_TIME)) != null)
-            bean.setRegisterTime(s);
-        if ((s = (String) map.get(LAST_LOGIN_TIME)) != null)
-            bean.setLastLoginTime(s);
-        if ((s = (String) map.get(LAST_LOGIN_IP_ADDR)) != null)
-            bean.setLastLoginIpAddr(s);
-        if ((s = (String) map.get(ROLEID)) != null)
-            bean.setRoleId(s);
-        if ((s = (String) map.get(USERKEY1)) != null)
-            bean.setUserKey1(s);
-        if ((s = (String) map.get(USERKEY2)) != null)
-            bean.setUserKey2(s);
-        if ((s = (String) map.get(USERKEY3)) != null)
-            bean.setUserKey3(s);
-        if ((s = (String) map.get(USERKEY4)) != null)
-            bean.setUserKey4(s);
-        if ((s = (String) map.get(USERKEY5)) != null)
-            bean.setUserKey5(s);
-        if ((s = (String) map.get(USERKEY6)) != null)
-            bean.setUserKey6(s);
-        if ((o = map.get(USER_STATUS)) != null)
-            bean.setUserStatus((Boolean) o);
+        Optional.ofNullable(map.get(USERID))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserId);
+
+        Optional.ofNullable(map.get(USERACCOUNT))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserAccount);
+                
+        Optional.ofNullable(map.get(USERPASSWD))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserPasswd);
+
+        Optional.ofNullable(map.get(NICKNAME))
+                .map(String::valueOf)
+                .ifPresent(bean::setNickname);
+
+        Optional.ofNullable(map.get(USER_INFOS))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserInfos);
+
+        Optional.ofNullable(map.get(REGISTER_TIME))
+                .map(String::valueOf)
+                .ifPresent(bean::setRegisterTime);
+
+        Optional.ofNullable(map.get(LAST_LOGIN_TIME))
+                .map(String::valueOf)
+                .ifPresent(bean::setLastLoginTime);
+
+        Optional.ofNullable(map.get(LAST_LOGIN_IP_ADDR))
+                .map(String::valueOf)
+                .ifPresent(bean::setLastLoginIpAddr);
+
+        Optional.ofNullable(map.get(ROLEID))
+                .map(String::valueOf)
+                .ifPresent(bean::setRoleId);
+
+        Optional.ofNullable(map.get(USERKEY1))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserKey1);
+
+        Optional.ofNullable(map.get(USERKEY2))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserKey2);
+
+        Optional.ofNullable(map.get(USERKEY3))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserKey3);
+
+        Optional.ofNullable(map.get(USERKEY4))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserKey4);
+
+        Optional.ofNullable(map.get(USERKEY5))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserKey5);
+
+        Optional.ofNullable(map.get(USERKEY6))
+                .map(String::valueOf)
+                .ifPresent(bean::setUserKey6);
+        Optional.ofNullable(map.get(USER_STATUS))
+                .map(v -> v instanceof Boolean ? (Boolean) v : Boolean.valueOf(String.valueOf(v)))
+                .ifPresent(bean::setUserStatus);
         return bean;
     }
 

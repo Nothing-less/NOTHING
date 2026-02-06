@@ -7,6 +7,7 @@ import java.util.List;
 
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
+import icu.nothingless.pojo.engine.UserSTOEngine;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,10 +36,11 @@ public class LoginServlet extends HttpServlet {
         // bean.setLastLoginTime(text);
         // bean.setRoleId("Admin");
 
-        List<iUserSTOAdapter> result = bean.query();
-        if (!result.isEmpty()) {
-            result.forEach(System.out::println);
-        }
+        // List<iUserSTOAdapter> result = bean.query();
+        // if (!result.isEmpty()) {
+        //     result.forEach(System.out::println);
+        // }
+        new UserSTOEngine().test();
     }
 
 }

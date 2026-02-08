@@ -3,7 +3,6 @@ package icu.nothingless.controller;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import org.slf4j.Logger;
 
@@ -35,15 +34,12 @@ public class LoginServlet extends HttpServlet {
         iUserSTOAdapter bean = new UserSTO();
         bean.setUserAccount(username);
         bean.setUserPasswd(password);
-        bean.setLastLoginIpAddr("127.0.0.1");
+        bean.setLastLoginIpAddr("114.51.4.2");
         bean.setRoleId("Admin");
+        bean.setUserId("7");
+        bean.setUserStatus(false);
+        bean.save();
 
-        List<iUserSTOAdapter> result = bean.query();
-        logger.error("results:------------------------------------------");
-        logger.error("Number of results: " + result.size());
-        if (!result.isEmpty()) {
-            result.forEach(v -> logger.info("Login successful for user: " + v.toString()));
-        }
         ViewUtil.render(req, resp, "example/index");
     }
 

@@ -43,21 +43,11 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
                 : (updateOne(beanMap));
     }
 
-    public void test() {
-        iUserSTOAdapter bean1 = new UserSTO();
-        bean1.setUserAccount("testuser");
-        bean1.setUserPasswd("testpass");
-        iUserSTOAdapter bean2 = toBean(toMap(bean1));
-        logger.error(bean2.getUserAccount());
-        logger.error(bean2.getUserPasswd());
-        logger.error("Are they equal? ::" + (bean1 == bean2));
-
-    }
-
     @Override
     public Long delete(iUserSTOAdapter bean) {
         Map<String, Object> beanMap = toMap(bean);
         if (beanMap.isEmpty() || !beanMap.containsKey(USERID)) {
+            logger.error("delete方法传入值为null");
             return -64L;
         }
         StringBuilder sql = new StringBuilder();
@@ -67,11 +57,6 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         params[0] = false;
         params[1] = beanMap.get(USERID).toString();
         try {
-            // System.out.println("Executing SQL: \n" + sql.toString());
-            // System.out.println("With values: " );
-            // for (int j = 0; j < params.length; j++) {
-            // System.out.print(params[j] + " | ");
-            // }
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
             logger.error("Error executing delete (soft): ", e);
@@ -83,16 +68,19 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
 
     @Override
     public List<iUserSTOAdapter> query(iUserSTOAdapter bean) {
-
-        // 模糊查找
-        // 登录 or 注册查找
-
+        if(bean == null){
+            logger.error("query方法传入值为null");
+            return null;
+        }
         return fuzzyQuery(bean);
     }
 
     private iUserSTOAdapter toBean(Map<String, Object> map) {
-        if (map == null || map.isEmpty())
+        if (map == null || map.isEmpty()){
+            logger.error("toBean方法传入值为null");
             return null;
+        }
+
         iUserSTOAdapter bean = new UserSTO();
 
         Optional.ofNullable(map.get(USERID)).ifPresent(v -> bean.setUserId(String.valueOf(v)));
@@ -122,9 +110,10 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
          * Therefore, calling {@code map.isEmpty()} will return {@code true}.
          */
         var map = new LinkedHashMap<String, Object>(16);
-        if (bean == null)
+        if (bean == null){
+            logger.error("toMap方法传入值为null");
             return map;
-
+        }
         String s;
         Object o;
         if ((s = bean.getUserId()) != null && !s.isBlank())
@@ -164,9 +153,11 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
 
     private long insertOne(Map<String, Object> bean) {
         if (bean == null || bean.isEmpty()) {
+            logger.error("insertOne方法传入值为null");
             return -44L;
         }
-        bean.remove(USERID); // 自增主键
+        bean.remove(USERID); // 自增主键, 无需手动设值
+        bean.put(USER_STATUS,true);
 
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO ").append(TABLENAME).append(" (");
@@ -192,43 +183,53 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         return -45L;
     }
 
-    private int updateOne(Map<String, Object> bean) {
+    private long updateOne(Map<String, Object> bean) {
         if (bean == null || bean.isEmpty()) {
-            return -24;
+            logger.error("updateOne方法传入值为null/没有主键");
+            return -24L;
         }
+
+        bean.remove(USER_STATUS);
+
         StringBuilder sql = new StringBuilder();
         Object[] params = new Object[bean.size()];
         sql.append("UPDATE ").append(TABLENAME).append(" SET ");
         int i = 0;
+        boolean firstField = true;
         for (String key : bean.keySet()) {
             if (!key.equals(USERID)) { // 主键是 WHERE 条件
-                sql.append(key).append(" = ?, ");
+                if (!firstField) {
+                sql.append(", ");   // 先加逗号，除了第一个字段
+            }
+                sql.append(key).append(" = ? ");
                 params[i++] = bean.get(key).toString(); // 参数有序化
+                firstField = false;
             }
         }
-        params[i] = bean.get(USERID).toString();
+        params[i] =Long.valueOf( String.valueOf(bean.get(USERID)));
 
         sql.append("WHERE ").append(USERID).append(" = ? ");
         try {
             // System.out.println("Executing SQL: \n" + sql.toString());
             // System.out.println("With values: " );
             // for (int j = 0; j < bean.size(); j++) {
-            // System.out.print(params[j] + " | ");
+            //     System.out.print(params[j] + " | ");
             // }
-            return PDBUtil.executeUpdate(sql.toString(), params);
+            return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
             logger.error("Error executing update: ", e);
             logger.error("SQL: {}", sql.toString());
             logger.error("Parameters: {}", java.util.Arrays.toString(params));
         }
 
-        return -25;
+        return -25L;
     }
 
     private List<iUserSTOAdapter> fuzzyQuery(iUserSTOAdapter bean) {
         Map<String, Object> beanMap = toMap(bean);
         List<iUserSTOAdapter> results = new ArrayList<>();
         if (bean == null || beanMap.isEmpty()) {
+            logger.error("fuzzyQuery方法传入值为null");
             return null;
         }
         beanMap.remove(USER_STATUS); // 不參與模糊查詢條件
@@ -255,6 +256,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         }
         return results;
     }
+
 
     // /*------------------------------- Singleton Pattern
     // -------------------------------*/

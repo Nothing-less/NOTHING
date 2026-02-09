@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
+import icu.nothingless.service.impl.UserServiceImpl;
+import icu.nothingless.service.interfaces.iUserService;
 import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -16,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class LoginServlet extends HttpServlet {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LoginServlet.class);
+    private static final iUserService<iUserSTOAdapter> userService = new UserServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

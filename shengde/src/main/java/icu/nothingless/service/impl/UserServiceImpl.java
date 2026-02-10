@@ -3,6 +3,8 @@ package icu.nothingless.service.impl;
 import java.util.List;
 import java.util.Objects;
 
+import icu.nothingless.dao.impl.LoginDaoImpl.UserDaoImpl;
+import icu.nothingless.dao.interfaces.iUserDao;
 import icu.nothingless.pojo.adapter.iSTAdapter;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
@@ -12,16 +14,17 @@ import icu.nothingless.pojo.engine.UserSTOEngine;
 import icu.nothingless.service.interfaces.iUserService;
 
 public class UserServiceImpl implements iUserService<iUserSTOAdapter>{
+    private static final iUserDao userDao = new UserDaoImpl();
 
     @Override
     public RespEntity<iUserSTOAdapter> doLogin(iUserSTOAdapter target) {
         /**
          * 
          * 默认传入的target对象有以下属性：
-         *  UserAccount
-         *  Password
-         *  LastLoginTime
-         *  LastLoginIpAddr
+         *  UserAccount 账号
+         *  Password    密码
+         *  LastLoginTime   登录时间
+         *  LastLoginIpAddr 登录地址
         */
         
         if(target == null || Objects.isNull(target.getUserAccount()) || Objects.isNull(target.getUserAccount()) ){
@@ -29,21 +32,27 @@ public class UserServiceImpl implements iUserService<iUserSTOAdapter>{
             return RespEntity.badRequest("illegal target");
         }
 
-        iUserSTOAdapter result = queryOne(target.getUserAccount());
+        iUserSTOAdapter result = userDao.findByUsername(target.getUserAccount());
         if(result == null){
             // 未找到对应账号
-            return RespEntity.unauthorized("your account or assword are not correct");
+            return RespEntity.unauthorized("your account or password are not correct");
         }
         if(!Objects.equals(target.getUserPasswd(),result.getUserPasswd())){
             // 密码不一致
-            return RespEntity.unauthorized("your account or assword are not correct");
+            return RespEntity.unauthorized("your account or password are not correct");
         }else{// 密码一致
-            // 更新登录信息
-            target.setUserId(result.getUserId()); // 主键
-            // 删除其他不应该更新的信息
-            target.setUserPasswd(null); 
-            target.save();
-            return RespEntity.success(result);
+
+            // 更新登录信息（通过主键更新登录时间和登录地址）
+            target.setUserId(result.getUserId());
+            // 隐藏密码
+            target.setUserPasswd(null);
+            result.setUserPasswd(null);
+
+            if(userDao.save(target)){
+                return RespEntity.success(result);
+            }else{
+                return RespEntity.error("Login failed");
+            }
         }
     }
 
@@ -53,16 +62,4 @@ public class UserServiceImpl implements iUserService<iUserSTOAdapter>{
         throw new UnsupportedOperationException("Unimplemented method 'doRegister'");
     }
 
-    private iUserSTOAdapter queryOne(String userAccount){
-        iUserSTOAdapter tmp = new UserSTO();
-        tmp.setUserAccount(userAccount);
-        List<iUserSTOAdapter> results = tmp.query();
-        if (results == null || results.isEmpty()) {
-            return null;
-        }
-        return results.stream()
-                .filter(v -> v != null && userAccount.equals(v.getUserAccount())) // 精确匹配
-                .findFirst()
-                .orElse(null);
-    }
 }

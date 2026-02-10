@@ -15,22 +15,22 @@ import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.tools.PDBUtil;
 
 public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
-    private static final String USERID = "user_id";
-    private static final String USERACCOUNT = "useraccount";
-    private static final String USERPASSWD = "userpasswd";
-    private static final String NICKNAME = "nickname";
-    private static final String USER_INFOS = "user_infos";
-    private static final String REGISTER_TIME = "register_time";
-    private static final String LAST_LOGIN_TIME = "last_login_time";
-    private static final String LAST_LOGIN_IP_ADDR = "last_login_ip_addr";
-    private static final String USER_STATUS = "user_status";
-    private static final String ROLEID = "role_id";
-    private static final String USERKEY1 = "user_key1";
-    private static final String USERKEY2 = "user_key2";
-    private static final String USERKEY3 = "user_key3";
-    private static final String USERKEY4 = "user_key4";
-    private static final String USERKEY5 = "user_key5";
-    private static final String USERKEY6 = "user_key6";
+    private static final String USERID = "USER_ID";
+    private static final String USERACCOUNT = "USERACCOUNT";
+    private static final String USERPASSWD = "USERPASSWD";
+    private static final String NICKNAME = "NICKNAME";
+    private static final String USER_INFOS = "USER_INFOS";
+    private static final String REGISTER_TIME = "REGISTER_TIME";
+    private static final String LAST_LOGIN_TIME = "LAST_LOGIN_TIME";
+    private static final String LAST_LOGIN_IP_ADDR = "LAST_LOGIN_IP_ADDR";
+    private static final String USER_STATUS = "USER_STATUS";
+    private static final String ROLEID = "ROLE_ID";
+    private static final String USERKEY1 = "USER_KEY1";
+    private static final String USERKEY2 = "USER_KEY2";
+    private static final String USERKEY3 = "USER_KEY3";
+    private static final String USERKEY4 = "USER_KEY4";
+    private static final String USERKEY5 = "USER_KEY5";
+    private static final String USERKEY6 = "USER_KEY6";
     /* ---------------------------------------------------------------------- */
     private static final String TABLENAME = "USERS";
     private static final Logger logger = LoggerFactory.getLogger(UserSTOEngine.class);
@@ -47,7 +47,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
     public Long delete(iUserSTOAdapter bean) {
         Map<String, Object> beanMap = toMap(bean);
         if (beanMap.isEmpty() || !beanMap.containsKey(USERID)) {
-            logger.error("delete方法传入值为null");
+            logger.error("delete function entering is null");
             return -64L;
         }
         StringBuilder sql = new StringBuilder();
@@ -57,12 +57,15 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         params[0] = false;
         params[1] = beanMap.get(USERID).toString();
         try {
+            logger.info("SQL: {}", sql.toString());
+            logger.info("Parameters: {}", java.util.Arrays.toString(params));
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
-            logger.error("Error executing delete (soft): ", e);
+            logger.error("Error occurred while executing delete function: ", e);
             logger.error("SQL: {}", sql.toString());
             logger.error("Parameters: {}", java.util.Arrays.toString(params));
         }
+        logger.error("Failed to execute delete function");
         return -65L;
     }
 
@@ -82,25 +85,30 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         }
 
         iUserSTOAdapter bean = new UserSTO();
+        try {
+            Optional.ofNullable(map.get(USERID)).ifPresent(v -> bean.setUserId(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERACCOUNT)).ifPresent(v -> bean.setUserAccount(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERPASSWD)).ifPresent(v -> bean.setUserPasswd(String.valueOf(v)));
+            Optional.ofNullable(map.get(NICKNAME)).ifPresent(v -> bean.setNickname(String.valueOf(v)));
+            Optional.ofNullable(map.get(USER_INFOS)).ifPresent(v -> bean.setUserInfos(String.valueOf(v)));
+            Optional.ofNullable(map.get(REGISTER_TIME)).ifPresent(v -> bean.setRegisterTime(String.valueOf(v)));
+            Optional.ofNullable(map.get(LAST_LOGIN_TIME)).ifPresent(v -> bean.setLastLoginTime(String.valueOf(v)));
+            Optional.ofNullable(map.get(LAST_LOGIN_IP_ADDR)).ifPresent(v -> bean.setLastLoginIpAddr(String.valueOf(v)));
+            Optional.ofNullable(map.get(ROLEID)).ifPresent(v -> bean.setRoleId(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY1)).ifPresent(v -> bean.setUserKey1(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY2)).ifPresent(v -> bean.setUserKey2(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY3)).ifPresent(v -> bean.setUserKey3(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY4)).ifPresent(v -> bean.setUserKey4(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY5)).ifPresent(v -> bean.setUserKey5(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY6)).ifPresent(v -> bean.setUserKey6(String.valueOf(v)));
+            Optional.ofNullable(map.get(USER_STATUS)).ifPresent(v -> bean.setUserStatus(Boolean.valueOf(String.valueOf(v))));  
 
-        Optional.ofNullable(map.get(USERID)).ifPresent(v -> bean.setUserId(String.valueOf(v)));
-        Optional.ofNullable(map.get(USERACCOUNT)).ifPresent(v -> bean.setUserAccount(String.valueOf(v)));
-        Optional.ofNullable(map.get(USERPASSWD)).ifPresent(v -> bean.setUserPasswd(String.valueOf(v)));
-        Optional.ofNullable(map.get(NICKNAME)).ifPresent(v -> bean.setNickname(String.valueOf(v)));
-        Optional.ofNullable(map.get(USER_INFOS)).ifPresent(v -> bean.setUserInfos(String.valueOf(v)));
-        Optional.ofNullable(map.get(REGISTER_TIME)).ifPresent(v -> bean.setRegisterTime(String.valueOf(v)));
-        Optional.ofNullable(map.get(LAST_LOGIN_TIME)).ifPresent(v -> bean.setLastLoginTime(String.valueOf(v)));
-        Optional.ofNullable(map.get(LAST_LOGIN_IP_ADDR)).ifPresent(v -> bean.setLastLoginIpAddr(String.valueOf(v)));
-        Optional.ofNullable(map.get(ROLEID)).ifPresent(v -> bean.setRoleId(String.valueOf(v)));
-        Optional.ofNullable(map.get(USERKEY1)).ifPresent(v -> bean.setUserKey1(String.valueOf(v)));
-        Optional.ofNullable(map.get(USERKEY2)).ifPresent(v -> bean.setUserKey2(String.valueOf(v)));
-        Optional.ofNullable(map.get(USERKEY3)).ifPresent(v -> bean.setUserKey3(String.valueOf(v)));
-        Optional.ofNullable(map.get(USERKEY4)).ifPresent(v -> bean.setUserKey4(String.valueOf(v)));
-        Optional.ofNullable(map.get(USERKEY5)).ifPresent(v -> bean.setUserKey5(String.valueOf(v)));
-        Optional.ofNullable(map.get(USERKEY6)).ifPresent(v -> bean.setUserKey6(String.valueOf(v)));
-        Optional.ofNullable(map.get(USER_STATUS)).ifPresent(v -> bean.setUserStatus(Boolean.valueOf(String.valueOf(v))));
-
-        return bean;
+            return bean;
+        } catch (Exception e) {
+            logger.error("Error occurred while executing toBean function",e);
+            
+        }
+        return null;
     }
 
     private Map<String, Object> toMap(iUserSTOAdapter bean) {
@@ -112,43 +120,50 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         var map = new LinkedHashMap<String, Object>(16);
         if (bean == null){
             logger.error("toMap方法传入值为null");
-            return map;
+            return null;
         }
         String s;
         Object o;
-        if ((s = bean.getUserId()) != null && !s.isBlank())
-            map.put(USERID, s);
-        if ((s = bean.getUserAccount()) != null && !s.isBlank())
-            map.put(USERACCOUNT, s);
-        if ((s = bean.getUserPasswd()) != null && !s.isBlank())
-            map.put(USERPASSWD, s);
-        if ((s = bean.getNickname()) != null && !s.isBlank())
-            map.put(NICKNAME, s);
-        if ((s = bean.getUserInfos()) != null && !s.isBlank())
-            map.put(USER_INFOS, s);
-        if ((s = bean.getRegisterTime()) != null && !s.isBlank())
-            map.put(REGISTER_TIME, s);
-        if ((s = bean.getLastLoginTime()) != null && !s.isBlank())
-            map.put(LAST_LOGIN_TIME, s);
-        if ((s = bean.getLastLoginIpAddr()) != null && !s.isBlank())
-            map.put(LAST_LOGIN_IP_ADDR, s);
-        if ((s = bean.getRoleId()) != null && !s.isBlank())
-            map.put(ROLEID, s);
-        if ((s = bean.getUserKey1()) != null && !s.isBlank())
-            map.put(USERKEY1, s);
-        if ((s = bean.getUserKey2()) != null && !s.isBlank())
-            map.put(USERKEY2, s);
-        if ((s = bean.getUserKey3()) != null && !s.isBlank())
-            map.put(USERKEY3, s);
-        if ((s = bean.getUserKey4()) != null && !s.isBlank())
-            map.put(USERKEY4, s);
-        if ((s = bean.getUserKey5()) != null && !s.isBlank())
-            map.put(USERKEY5, s);
-        if ((s = bean.getUserKey6()) != null && !s.isBlank())
-            map.put(USERKEY6, s);
-        if ((o = bean.getUserStatus()) != null)
-            map.put(USER_STATUS, o);
-        return map;
+        try {
+            if ((s = bean.getUserId()) != null && !s.isBlank())
+                map.put(USERID, s);
+            if ((s = bean.getUserAccount()) != null && !s.isBlank())
+                map.put(USERACCOUNT, s);
+            if ((s = bean.getUserPasswd()) != null && !s.isBlank())
+                map.put(USERPASSWD, s);
+            if ((s = bean.getNickname()) != null && !s.isBlank())
+                map.put(NICKNAME, s);
+            if ((s = bean.getUserInfos()) != null && !s.isBlank())
+                map.put(USER_INFOS, s);
+            if ((s = bean.getRegisterTime()) != null && !s.isBlank())
+                map.put(REGISTER_TIME, s);
+            if ((s = bean.getLastLoginTime()) != null && !s.isBlank())
+                map.put(LAST_LOGIN_TIME, s);
+            if ((s = bean.getLastLoginIpAddr()) != null && !s.isBlank())
+                map.put(LAST_LOGIN_IP_ADDR, s);
+            if ((s = bean.getRoleId()) != null && !s.isBlank())
+                map.put(ROLEID, s);
+            if ((s = bean.getUserKey1()) != null && !s.isBlank())
+                map.put(USERKEY1, s);
+            if ((s = bean.getUserKey2()) != null && !s.isBlank())
+                map.put(USERKEY2, s);
+            if ((s = bean.getUserKey3()) != null && !s.isBlank())
+                map.put(USERKEY3, s);
+            if ((s = bean.getUserKey4()) != null && !s.isBlank())
+                map.put(USERKEY4, s);
+            if ((s = bean.getUserKey5()) != null && !s.isBlank())
+                map.put(USERKEY5, s);
+            if ((s = bean.getUserKey6()) != null && !s.isBlank())
+                map.put(USERKEY6, s);
+            if ((o = bean.getUserStatus()) != null)
+                map.put(USER_STATUS, o);
+            
+            return map; 
+        }catch (Exception e) {
+            logger.error("Error occurred while executing toMap function",e);
+        }
+
+        return null;
     }
 
     private long insertOne(Map<String, Object> bean) {
@@ -171,15 +186,15 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         valuesPart.setLength(valuesPart.length() - 2);
         sql.append(") ").append(valuesPart).append(")");
         try {
-            // System.out.println("Executing SQL: \n" + sql.toString());
-            // System.out.println("With values: ");
-            // bean.values().forEach(v -> System.out.print(v + " | "));
+            logger.info("SQL: {}", sql.toString());
+            logger.info("Parameters: {}", bean.values());
             return PDBUtil.executeInsert(sql.toString(), bean.values().toArray());
         } catch (SQLException e) {
-            logger.error("Error executing insert: ", e);
+            logger.error("Error occurred while executing insertOne function: ", e);
             logger.error("SQL: {}", sql.toString());
             logger.error("Parameters: {}", bean.values());
         }
+        logger.error("Failed to execute insertOne function");
         return -45L;
     }
 
@@ -210,18 +225,15 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
 
         sql.append("WHERE ").append(USERID).append(" = ? ");
         try {
-            // System.out.println("Executing SQL: \n" + sql.toString());
-            // System.out.println("With values: " );
-            // for (int j = 0; j < bean.size(); j++) {
-            //     System.out.print(params[j] + " | ");
-            // }
+            logger.info("SQL: {}", sql.toString());
+            logger.info("Parameters: {}", java.util.Arrays.toString(params));
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
             logger.error("Error executing update: ", e);
             logger.error("SQL: {}", sql.toString());
             logger.error("Parameters: {}", java.util.Arrays.toString(params));
         }
-
+        logger.error("Failed to execute updateOne function");
         return -25L;
     }
 
@@ -242,6 +254,8 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             Object[] params = beanMap.values().stream()
                     .map(v -> v == null ? null : "%" + v.toString() + "%")
                     .toArray();
+            logger.info("SQL: {}", sql.toString());
+            logger.info("Parameters: {}", java.util.Arrays.asList(params));
             List<Map<String, Object>> queryResults = PDBUtil.executeQuery(sql.toString(), params);
             queryResults.forEach(row -> {
                 iUserSTOAdapter resultBean = toBean(row);
@@ -249,12 +263,14 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
                     results.add(resultBean);
                 }
             });
+            return results;
         } catch (SQLException e) {
             logger.error("Error executing fuzzy query: ", e);
             logger.error("SQL: {}", sql.toString());
             logger.error("Parameters: {}", java.util.Arrays.asList(params));
         }
-        return results;
+        logger.error("Failed to execute fuzzyQuery function");
+        return null;
     }
 
 

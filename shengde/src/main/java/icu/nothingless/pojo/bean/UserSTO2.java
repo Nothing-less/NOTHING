@@ -1,9 +1,12 @@
 package icu.nothingless.pojo.bean;
 
+import java.util.List;
+
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter2;
+import icu.nothingless.pojo.core.QueryCondition;
 
-public class UserSTO implements iUserSTOAdapter{
+public class UserSTO2 implements iUserSTOAdapter2{
 
      private String userId; /* Primary Key */
      private String userAccount; /* user login account */
@@ -203,5 +206,4 @@ public class UserSTO implements iUserSTOAdapter{
                     ", userKey6='" + userKey6 + '\'' +
                     '}';
      }
-
 }

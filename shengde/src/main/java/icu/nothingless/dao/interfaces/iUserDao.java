@@ -11,13 +11,14 @@ public interface iUserDao {
     // 查询用户名
     <T> T findByUsername(String username);
 
-    // 注册用户
-    boolean save(iUserSTOAdapter login);
+    // 登录
+    Boolean doLogin(iUserSTOAdapter login);
 
-    // 验证登录密码
-    boolean validateLogin(iUserSTOAdapter login);
+    // 注册
+    Boolean doRegister(iUserSTOAdapter register);
 
     // 更新密码
-    boolean updatePassword(String username, String newPassword);
+    Boolean updatePwd(String username, String newPassword);
+
 
 }

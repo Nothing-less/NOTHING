@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.dao.interfaces.iUserDao;
+import icu.nothingless.pojo.adapter.iSTAdapter;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.tools.PDBUtil;
@@ -17,14 +18,7 @@ public class UserDaoImpl implements iUserDao {
     private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
 
     @Override
-    public boolean validateLogin(iUserSTOAdapter loginBean) {
-
-        return true;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public iUserSTOAdapter findByUsername(String username) {
+    public <T> T findByUsername(String username) {
 
         if (username == null || username.trim().isEmpty()) {
             logger.error("username is empty");
@@ -41,7 +35,7 @@ public class UserDaoImpl implements iUserDao {
         for (iUserSTOAdapter one : results) {
             if (one != null && username.equals(one.getUserAccount())) {
                 logger.info("successfully found the user account");
-                return one;  // 找到
+                return (T) one;
             }
         }
         logger.info("user not found : "+username);
@@ -49,7 +43,7 @@ public class UserDaoImpl implements iUserDao {
     }
 
     @Override
-    public boolean save(iUserSTOAdapter login) {
+    public Boolean doLogin(iUserSTOAdapter login) {
         if(login == null) return false;
         if(login.getUserId() == null || Objects.equals("", login.getUserId())){
             logger.error("user ID is empty");
@@ -80,7 +74,13 @@ public class UserDaoImpl implements iUserDao {
     }
 
     @Override
-    public boolean updatePassword(String username, String newPassword) {
+    public Boolean doRegister(iUserSTOAdapter register) {
+        
+        return false;
+    }
+
+    @Override
+    public Boolean updatePwd(String username, String newPassword) {
 
         throw new UnsupportedOperationException("Unimplemented method 'updatePassword'");
     }

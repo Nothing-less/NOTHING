@@ -6,6 +6,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import icu.nothingless.tools.DBPools.RedisPoolManager;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -14,6 +17,8 @@ import redis.clients.jedis.params.SetParams;
 
 public class RedisUtil {
 
+    private static Logger logger = LoggerFactory.getLogger(RedisUtil.class);
+    
     // =================== String 操作 ===================
 
     public static void set(String key, String value) {

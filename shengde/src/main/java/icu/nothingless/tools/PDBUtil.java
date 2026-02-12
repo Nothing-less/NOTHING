@@ -11,9 +11,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import icu.nothingless.tools.DBPools.PDBPoolManager;
 
 public class PDBUtil {
+
+    private static Logger logger = LoggerFactory.getLogger(PDBUtil.class);
     /**
      * 执行查询（返回 Map 列表，适用于简单查询）
      */
@@ -24,6 +29,8 @@ public class PDBUtil {
         try (Connection conn = PDBPoolManager.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("SQL: {}", sql);
+            logger.info("Parameters: {}", java.util.Arrays.toString(params));
             setParameters(ps, params);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -51,6 +58,9 @@ public class PDBUtil {
         try (Connection conn = PDBPoolManager.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("SQL: {}", sql);
+            logger.info("Parameters: {}", java.util.Arrays.toString(params));
+
             setParameters(ps, params);
             return ps.executeUpdate();
         }
@@ -63,6 +73,9 @@ public class PDBUtil {
         try (Connection conn = PDBPoolManager.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql,
                         Statement.RETURN_GENERATED_KEYS)) {
+            
+            logger.info("SQL: {}", sql);
+            logger.info("Parameters: {}", java.util.Arrays.toString(params));
 
             setParameters(ps, params);
             ps.executeUpdate();
@@ -108,12 +121,13 @@ public class PDBUtil {
     /**
      * 查询单个值（如 COUNT(*)
      */
-    @SuppressWarnings("unchecked")
     public static <T> T queryForObject(String sql, Class<T> requiredType, Object... params)
             throws SQLException {
         try (Connection conn = PDBPoolManager.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("SQL: {}", sql);
+            logger.info("Parameters: {}", java.util.Arrays.toString(params));
             setParameters(ps, params);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -134,6 +148,7 @@ public class PDBUtil {
     private static void setParameters(PreparedStatement ps, Object... params)
             throws SQLException {
         if (params != null) {
+            logger.info("Parameters: {}", java.util.Arrays.toString(params));
             for (int i = 0; i < params.length; i++) {
                 ps.setObject(i + 1, params[i]);
             }

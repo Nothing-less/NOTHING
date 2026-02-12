@@ -366,7 +366,6 @@ public class GenericEngine<T extends iSTAdapter2<T>> implements iEngine<T> {
         return 0;
     }
     
-    @SuppressWarnings("unchecked")
     private T createInstance(Class<T> adapterClass) throws Exception {
         if (adapterClass == null) {
             // 尝试从注册表获取

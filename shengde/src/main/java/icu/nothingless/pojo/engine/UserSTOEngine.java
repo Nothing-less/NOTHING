@@ -34,7 +34,6 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
     private static final String USERKEY6 = "USER_KEY6";
     /* ---------------------------------------------------------------------- */
     private static final String TABLENAME = "USERS";
-    private static final Logger logger = LoggerFactory.getLogger(UserSTOEngine.class);
 
     @Override
     public Long save(iUserSTOAdapter bean) throws Exception{
@@ -57,8 +56,6 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         params[0] = false;
         params[1] = beanMap.get(USERID).toString();
         try {
-            logger.info("SQL: {}", sql.toString());
-            logger.info("Parameters: {}", java.util.Arrays.toString(params));
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
             throw new MyException("Error occurred while executing function <delete> : ", e);
@@ -174,8 +171,6 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         valuesPart.setLength(valuesPart.length() - 2);
         sql.append(") ").append(valuesPart).append(")");
         try {
-            logger.info("SQL: {}", sql.toString());
-            logger.info("Parameters: {}", bean.values());
             return PDBUtil.executeInsert(sql.toString(), bean.values().toArray());
         } catch (SQLException e) {
             throw new MyException("Error occurred while executing function <insertOne> : ", e);
@@ -208,8 +203,6 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
 
         sql.append("WHERE ").append(USERID).append(" = ? ");
         try {
-            logger.info("SQL: {}", sql.toString());
-            logger.info("Parameters: {}", java.util.Arrays.toString(params));
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
             throw new MyException("Error occurred while executing function <updateOne> : ", e);
@@ -232,15 +225,13 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             Object[] params = beanMap.values().stream()
                     .map(v -> v == null ? null : "%" + v.toString() + "%")
                     .toArray();
-            logger.info("SQL: {}", sql.toString());
-            logger.info("Parameters: {}", java.util.Arrays.asList(params));
             List<Map<String, Object>> queryResults = PDBUtil.executeQuery(sql.toString(), params);
             queryResults.forEach(row -> {
                 iUserSTOAdapter resultBean;
                 try {
                     resultBean = toBean(row);
                 }catch(Exception e){
-                    logger.error("Error occurred while executing function <toBean> in function <fuzzyQuery>: ",e);
+                    LoggerFactory.getLogger(UserSTOEngine.class).error("Error occurred while executing function <toBean> in function <fuzzyQuery>: ", e);
                 }
             });
             return results;

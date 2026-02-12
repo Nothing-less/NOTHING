@@ -18,13 +18,13 @@ public abstract class BaseEngine<T extends iSTAdapter<T>, E> {
     protected Connection connection;
 
     // 查询
-    public abstract List<T> query(T bean);
+    public abstract List<T> query(T bean) throws Exception;
 
     // 插入或更新
-    public abstract Long save(T bean);
+    public abstract Long save(T bean) throws Exception;
 
     // 删除 status -> false
-    public abstract Long delete(T bean);
+    public abstract Long delete(T bean) throws Exception;
 
     // 线程安全的实例注册表
     private static final ConcurrentHashMap<Class<?>, BaseEngine<?, ?>> INSTANCES = new ConcurrentHashMap<>();
@@ -36,7 +36,6 @@ public abstract class BaseEngine<T extends iSTAdapter<T>, E> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static <E extends BaseEngine<?, E>> E getInstance(Class<E> clazz) {
         return (E) INSTANCES.computeIfAbsent(clazz, k -> {
             try {

@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class LoginServlet extends HttpServlet {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LoginServlet.class);
-    private static final iUserService<iUserSTOAdapter> userService = new UserServiceImpl();
+    private static final iUserService userService = new UserServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -41,7 +41,11 @@ public class LoginServlet extends HttpServlet {
         bean.setRoleId("Admin");
         bean.setUserId("7");
         bean.setUserStatus(false);
-        bean.save();
+        try {
+            bean.save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         ViewUtil.render(req, resp, "example/index");
     }

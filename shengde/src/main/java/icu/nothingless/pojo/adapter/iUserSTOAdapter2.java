@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * 用户模块接口 - 纯接口定义，无任何实现代码
  */
-public interface iUserSTOAdapter2 extends iSTAdapter2<iUserSTOAdapter2> {
+public interface iUserSTOAdapter2 extends icu.nothingless.pojo.adapter.iSTAdapter2<iUserSTOAdapter2> {
     
     // 业务字段定义
     String getUserId();

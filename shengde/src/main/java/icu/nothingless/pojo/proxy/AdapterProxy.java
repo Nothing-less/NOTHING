@@ -27,14 +27,14 @@ public class AdapterProxy<T extends iSTAdapter2<T>> implements InvocationHandler
      */
     public static <T extends iSTAdapter2<T>> T create(Class<iUserSTOAdapter2> interfaceClass, 
                                                      Class<UserSTO2> implClass,
-                                                     iEngine<iUserSTOAdapter2> engine2) {
+                                                     iEngine<T> engine2) {
         try {
-            T instance = implClass.getDeclaredConstructor().newInstance();
+            T instance = (T) implClass.getDeclaredConstructor().newInstance();
             AdapterProxy<T> proxy = new AdapterProxy<>(instance, engine2);
             
             return (T) Proxy.newProxyInstance(
                 interfaceClass.getClassLoader(),
-                new Class<?>[]{class1},
+                null,
                 proxy
             );
         } catch (Exception e) {

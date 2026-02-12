@@ -206,4 +206,172 @@ public class UserSTO2 implements iUserSTOAdapter2{
                     ", userKey6='" + userKey6 + '\'' +
                     '}';
      }
+
+     @Override
+     public Class<iUserSTOAdapter2> getAdapterClass() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'getAdapterClass'");
+     }
+
+     @Override
+     public Long save() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'save'");
+     }
+
+     @Override
+     public Long delete() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'delete'");
+     }
+
+     @Override
+     public Long deletePhysical() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'deletePhysical'");
+     }
+
+     @Override
+     public List<iUserSTOAdapter2> query() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'query'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 queryOne() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'queryOne'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 queryById(Object id) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'queryById'");
+     }
+
+     @Override
+     public List<iUserSTOAdapter2> queryAll() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'queryAll'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 eq(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'eq'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 neq(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'neq'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 gt(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'gt'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 gte(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'gte'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 lt(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'lt'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 lte(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'lte'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 like(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'like'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 leftLike(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'leftLike'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 rightLike(String field, Object value) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'rightLike'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 in(String field, List<?> values) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'in'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 isNull(String field) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'isNull'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 isNotNull(String field) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'isNotNull'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 or() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'or'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 orderBy(String field, boolean asc) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'orderBy'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 limit(int limit) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'limit'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 offset(int offset) {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'offset'");
+     }
+
+     @Override
+     public List<iUserSTOAdapter2> execute() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'execute'");
+     }
+
+     @Override
+     public iUserSTOAdapter2 executeOne() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'executeOne'");
+     }
+
+     @Override
+     public QueryCondition getQueryCondition() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'getQueryCondition'");
+     }
+
+     @Override
+     public void clearCondition() {
+          // TODO Auto-generated method stub
+          throw new UnsupportedOperationException("Unimplemented method 'clearCondition'");
+     }
 }

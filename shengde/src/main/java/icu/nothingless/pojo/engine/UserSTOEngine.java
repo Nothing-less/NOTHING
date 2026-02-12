@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import icu.nothingless.exceptions.MyException;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.tools.PDBUtil;
@@ -36,7 +37,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
     private static final Logger logger = LoggerFactory.getLogger(UserSTOEngine.class);
 
     @Override
-    public Long save(iUserSTOAdapter bean) {
+    public Long save(iUserSTOAdapter bean) throws Exception{
         Map<String, Object> beanMap = toMap(bean);
         return (bean.getUserId() == null || bean.getUserId().isBlank())
                 ? (insertOne(beanMap))
@@ -44,11 +45,10 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
     }
 
     @Override
-    public Long delete(iUserSTOAdapter bean) {
+    public Long delete(iUserSTOAdapter bean) throws Exception{
         Map<String, Object> beanMap = toMap(bean);
         if (beanMap.isEmpty() || !beanMap.containsKey(USERID)) {
-            logger.error("delete function entering is null");
-            return -64L;
+            throw new MyException("Function <delete> entering null");
         }
         StringBuilder sql = new StringBuilder();
         Object[] params = new Object[2];
@@ -61,27 +61,21 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             logger.info("Parameters: {}", java.util.Arrays.toString(params));
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
-            logger.error("Error occurred while executing delete function: ", e);
-            logger.error("SQL: {}", sql.toString());
-            logger.error("Parameters: {}", java.util.Arrays.toString(params));
+            throw new MyException("Error occurred while executing function <delete> : ", e);
         }
-        logger.error("Failed to execute delete function");
-        return -65L;
     }
 
     @Override
-    public List<iUserSTOAdapter> query(iUserSTOAdapter bean) {
+    public List<iUserSTOAdapter> query(iUserSTOAdapter bean) throws Exception {
         if(bean == null){
-            logger.error("query方法传入值为null");
-            return null;
+            throw new MyException("Function <query> entering null");
         }
         return fuzzyQuery(bean);
     }
 
-    private iUserSTOAdapter toBean(Map<String, Object> map) {
+    private iUserSTOAdapter toBean(Map<String, Object> map) throws Exception {
         if (map == null || map.isEmpty()){
-            logger.error("toBean方法传入值为null");
-            return null;
+            throw new MyException("Function <toBean> entering null");
         }
 
         iUserSTOAdapter bean = new UserSTO();
@@ -102,16 +96,14 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             Optional.ofNullable(map.get(USERKEY5)).ifPresent(v -> bean.setUserKey5(String.valueOf(v)));
             Optional.ofNullable(map.get(USERKEY6)).ifPresent(v -> bean.setUserKey6(String.valueOf(v)));
             Optional.ofNullable(map.get(USER_STATUS)).ifPresent(v -> bean.setUserStatus(Boolean.valueOf(String.valueOf(v))));  
-
             return bean;
         } catch (Exception e) {
-            logger.error("Error occurred while executing toBean function",e);
-            
+            throw new MyException("Error occurred while executing function <toBean> : ",e);
         }
-        return null;
+
     }
 
-    private Map<String, Object> toMap(iUserSTOAdapter bean) {
+    private Map<String, Object> toMap(iUserSTOAdapter bean) throws Exception {
         /**
          * Initializes a new {@link LinkedHashMap} with an initial capacity of 16.
          * At this point, the map contains no key-value mappings.
@@ -119,8 +111,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
          */
         var map = new LinkedHashMap<String, Object>(16);
         if (bean == null){
-            logger.error("toMap方法传入值为null");
-            return null;
+            throw new MyException("Function <toMap> entering null");
         }
         String s;
         Object o;
@@ -160,16 +151,13 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             
             return map; 
         }catch (Exception e) {
-            logger.error("Error occurred while executing toMap function",e);
+            throw new MyException("Error occurred while executing function <toMap> : ",e);
         }
-
-        return null;
     }
 
-    private long insertOne(Map<String, Object> bean) {
+    private long insertOne(Map<String, Object> bean) throws Exception {
         if (bean == null || bean.isEmpty()) {
-            logger.error("insertOne方法传入值为null");
-            return -44L;
+            throw new MyException("Function <insertOne> entering null");
         }
         bean.remove(USERID); // 自增主键, 无需手动设值
         bean.put(USER_STATUS,true);
@@ -190,18 +178,13 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             logger.info("Parameters: {}", bean.values());
             return PDBUtil.executeInsert(sql.toString(), bean.values().toArray());
         } catch (SQLException e) {
-            logger.error("Error occurred while executing insertOne function: ", e);
-            logger.error("SQL: {}", sql.toString());
-            logger.error("Parameters: {}", bean.values());
+            throw new MyException("Error occurred while executing function <insertOne> : ", e);
         }
-        logger.error("Failed to execute insertOne function");
-        return -45L;
     }
 
-    private long updateOne(Map<String, Object> bean) {
+    private long updateOne(Map<String, Object> bean) throws Exception{
         if (bean == null || bean.isEmpty()) {
-            logger.error("updateOne方法传入值为null/没有主键");
-            return -24L;
+            throw new MyException("Function <updateOne> entering null");
         }
 
         bean.remove(USER_STATUS);
@@ -229,20 +212,15 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             logger.info("Parameters: {}", java.util.Arrays.toString(params));
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
-            logger.error("Error executing update: ", e);
-            logger.error("SQL: {}", sql.toString());
-            logger.error("Parameters: {}", java.util.Arrays.toString(params));
+            throw new MyException("Error occurred while executing function <updateOne> : ", e);
         }
-        logger.error("Failed to execute updateOne function");
-        return -25L;
     }
 
-    private List<iUserSTOAdapter> fuzzyQuery(iUserSTOAdapter bean) {
+    private List<iUserSTOAdapter> fuzzyQuery(iUserSTOAdapter bean) throws Exception {
         Map<String, Object> beanMap = toMap(bean);
         List<iUserSTOAdapter> results = new ArrayList<>();
         if (bean == null || beanMap.isEmpty()) {
-            logger.error("fuzzyQuery方法传入值为null");
-            return null;
+            throw new MyException("Function <fuzzyQuery> entering null");
         }
         beanMap.remove(USER_STATUS); // 不參與模糊查詢條件
         StringBuilder sql = new StringBuilder();
@@ -258,19 +236,17 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             logger.info("Parameters: {}", java.util.Arrays.asList(params));
             List<Map<String, Object>> queryResults = PDBUtil.executeQuery(sql.toString(), params);
             queryResults.forEach(row -> {
-                iUserSTOAdapter resultBean = toBean(row);
-                if (resultBean != null) {
-                    results.add(resultBean);
+                iUserSTOAdapter resultBean;
+                try {
+                    resultBean = toBean(row);
+                }catch(Exception e){
+                    logger.error("Error occurred while executing function <toBean> in function <fuzzyQuery>: ",e);
                 }
             });
             return results;
-        } catch (SQLException e) {
-            logger.error("Error executing fuzzy query: ", e);
-            logger.error("SQL: {}", sql.toString());
-            logger.error("Parameters: {}", java.util.Arrays.asList(params));
+        } catch (Exception e) {
+            throw new MyException("Error occurred while executing function <fuzzyQuery> : ", e);
         }
-        logger.error("Failed to execute fuzzyQuery function");
-        return null;
     }
 
 

@@ -1,11 +1,7 @@
 package icu.nothingless.dao.interfaces;
 
 import java.util.Map;
-import java.util.Optional;
-
-import icu.nothingless.pojo.adapter.iSTAdapter;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
-import icu.nothingless.pojo.bean.UserSTO;
 
 public interface iUserDao {
 

@@ -68,6 +68,7 @@ public class UserSTOFactory implements iAdapterFactory<iUserSTOAdapter2> {
         registry.registerColumnMapping(iUserSTOAdapter2.class, columnMapping);
     }
     
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private iEngine<iUserSTOAdapter2> createEngine() {
         GenericEngine engine = new GenericEngine();
         engine.setTableName("USERS");

@@ -121,6 +121,7 @@ public class PDBUtil {
     /**
      * 查询单个值（如 COUNT(*)
      */
+    @SuppressWarnings("unchecked")
     public static <T> T queryForObject(String sql, Class<T> requiredType, Object... params)
             throws SQLException {
         try (Connection conn = PDBPoolManager.getConnection();

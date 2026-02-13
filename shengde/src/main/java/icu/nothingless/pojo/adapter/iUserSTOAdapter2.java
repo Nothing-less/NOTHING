@@ -1,7 +1,5 @@
 package icu.nothingless.pojo.adapter;
 
-import java.util.List;
-
 /**
  * 用户模块接口 - 纯接口定义，无任何实现代码
  */

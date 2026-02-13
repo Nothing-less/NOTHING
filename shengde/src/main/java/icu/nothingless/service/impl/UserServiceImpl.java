@@ -1,7 +1,6 @@
 package icu.nothingless.service.impl;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -11,9 +10,7 @@ import org.slf4j.LoggerFactory;
 import icu.nothingless.dao.impl.LoginDaoImpl.UserDaoImpl;
 import icu.nothingless.dao.interfaces.iUserDao;
 import icu.nothingless.dto.UserDTO;
-import icu.nothingless.pojo.adapter.iSTAdapter;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
-import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.pojo.commons.RespEntity;
 import icu.nothingless.service.interfaces.iUserService;
 /**
@@ -29,7 +26,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
-    public RespEntity doLogin(UserDTO target) {
+    public RespEntity doLogin(final UserDTO target) {
         
         if(target == null || Objects.isNull(target.getUserAccount()) 
                           || Objects.isNull(target.getUserPasswd()) 
@@ -40,7 +37,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
 
         iUserSTOAdapter result;
         try {
-            result = userDao.findByUsername(target.getUserAccount());
+            result = UserServiceImpl.userDao.findByUsername(target.getUserAccount());
 
             if(result == null){
                 // 未找到对应账号
@@ -54,19 +51,19 @@ public class UserServiceImpl implements iUserService<UserDTO>{
             
             /* *------------------------ 密码一致 ------------------------* */ 
             // 更新登录信息(通过主键更新登录时间和登录地址)
-            Boolean b_result = userDao.doLogin(result);
+            final Boolean b_result = UserServiceImpl.userDao.doLogin(result);
             if(Boolean.TRUE.equals(b_result)){
-                UserDTO ret = bean_to_dto(result);
+                final UserDTO ret = this.bean_to_dto(result);
                 return RespEntity.success(ret);
             }
-        } catch (Exception e) {
-            logger.error("Error occurred in iUserService.doLogin :",e);
+        } catch (final Exception e) {
+            UserServiceImpl.logger.error("Error occurred in iUserService.doLogin :",e);
         }
         return RespEntity.error("Login Failed 〒▽〒");
     }
 
     @Override
-    public RespEntity doRegister(UserDTO target) {
+    public RespEntity doRegister(final UserDTO target) {
         if(target == null 
             || Objects.isNull(target.getUserAccount()) 
             || Objects.isNull(target.getUserPasswd())
@@ -76,28 +73,32 @@ public class UserServiceImpl implements iUserService<UserDTO>{
         }
         iUserSTOAdapter result;
         try {
-            result = userDao.findByUsername(target.getUserAccount());
+            result = UserServiceImpl.userDao.findByUsername(target.getUserAccount());
 
             if(result != null){
                 // 当前账号已被注册
                 return RespEntity.badRequest("The current username is already in use");
             }
-            Map<String,String> params = new HashMap<>(){{
-                put("username", target.getUserAccount());
-                put("password",target.getUserPasswd());
-                put("last_login_time",target.getLastLoginTime());
-                put("last_login_ip",target.getLastLoginIpAddr());
+            final Map<String,String> params = new HashMap<>(){{
+                this.put("username", target.getUserAccount());
+                this.put("password",target.getUserPasswd());
+                this.put("last_login_time",target.getLastLoginTime());
+                this.put("last_login_ip",target.getLastLoginIpAddr());
             }};
-            userDao.doRegister(params);
-        } catch (Exception e) {
-            logger.error("Error occurred in iUserService.doRegister :",e);
+            Boolean ret = UserServiceImpl.userDao.doRegister(params);
+            if(Boolean.TRUE.equals(ret)){
+                // TODO 
+            }
+
+        } catch (final Exception e) {
+            UserServiceImpl.logger.error("Error occurred in iUserService.doRegister :",e);
         }
 
         return RespEntity.error("Register Failed 〒▽〒");
     }
 
 
-    private UserDTO bean_to_dto(iUserSTOAdapter bean){
+    private UserDTO bean_to_dto(final iUserSTOAdapter bean){
         return UserDTO.builder()
                                 .userId(bean.getUserId())
                                 .userAccount(bean.getUserAccount())

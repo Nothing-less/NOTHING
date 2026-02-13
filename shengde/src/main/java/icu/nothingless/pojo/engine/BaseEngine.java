@@ -36,6 +36,7 @@ public abstract class BaseEngine<T extends iSTAdapter<T>, E> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <E extends BaseEngine<?, E>> E getInstance(Class<E> clazz) {
         return (E) INSTANCES.computeIfAbsent(clazz, k -> {
             try {

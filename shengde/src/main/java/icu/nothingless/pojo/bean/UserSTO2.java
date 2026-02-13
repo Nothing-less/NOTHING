@@ -2,7 +2,6 @@ package icu.nothingless.pojo.bean;
 
 import java.util.List;
 
-import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter2;
 import icu.nothingless.pojo.core.QueryCondition;
 

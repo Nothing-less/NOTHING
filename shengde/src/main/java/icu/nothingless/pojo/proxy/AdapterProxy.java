@@ -25,6 +25,7 @@ public class AdapterProxy<T extends iSTAdapter2<T>> implements InvocationHandler
     /**
      * 创建代理实例（核心工厂方法）
      */
+    @SuppressWarnings("unchecked")
     public static <T extends iSTAdapter2<T>> T create(Class<iUserSTOAdapter2> interfaceClass, 
                                                      Class<UserSTO2> implClass,
                                                      iEngine<T> engine2) {
@@ -47,6 +48,7 @@ public class AdapterProxy<T extends iSTAdapter2<T>> implements InvocationHandler
         this.engine = engine;
     }
     
+    @SuppressWarnings("unchecked")
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();

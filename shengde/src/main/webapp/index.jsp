@@ -7,6 +7,7 @@
     <meta charset="UTF-8"/>
     <title>Login</title>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <script src="${pageContext.request.contextPath}/static/js/SHA256Util.js"></script>
     <style>
         body { font-family: Arial, sans-serif; background:#f5f5f5; }
         .login-wrap { width: 320px; margin: 8% auto; padding: 24px; background: #fff; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
@@ -61,6 +62,7 @@
 </html>
 <noscript><div class="error">JavaScript is disabled — some features may not work.</div></noscript>
 
+
 <script>
 (function(){
     var form = document.querySelector('form');
@@ -73,6 +75,7 @@
         if(input) {
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter' || e.keyCode === 13) {
+                    password = SHA256Util.encrypt(password);
                     e.preventDefault(); // 防止重复提交
                     form.submit();      // 触发表单提交
                 }

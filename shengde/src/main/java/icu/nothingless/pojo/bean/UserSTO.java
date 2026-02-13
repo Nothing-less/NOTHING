@@ -1,7 +1,6 @@
 package icu.nothingless.pojo.bean;
 
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
-import icu.nothingless.pojo.adapter.iUserSTOAdapter2;
 
 public class UserSTO implements iUserSTOAdapter{
 

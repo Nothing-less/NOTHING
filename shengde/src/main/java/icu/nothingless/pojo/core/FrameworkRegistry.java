@@ -14,12 +14,15 @@ public class FrameworkRegistry {
     private static final FrameworkRegistry INSTANCE = new FrameworkRegistry();
     
     // 存储接口类 -> 工厂的映射
+    @SuppressWarnings("rawtypes")
     private final Map<Class<? extends iSTAdapter2>, iAdapterFactory> factories = new ConcurrentHashMap<>();
     
     // 存储接口类 -> 表名的映射
+    @SuppressWarnings("rawtypes")
     private final Map<Class<? extends iSTAdapter2>, String> tableNames = new ConcurrentHashMap<>();
     
     // 存储字段映射（Java字段名 -> 数据库列名）
+    @SuppressWarnings("rawtypes")
     private final Map<Class<? extends iSTAdapter2>, Map<String, String>> columnMappings = new ConcurrentHashMap<>();
     
     private FrameworkRegistry() {}
@@ -54,6 +57,7 @@ public class FrameworkRegistry {
      * 获取工厂
      */
     public <T extends iSTAdapter2<T>> iAdapterFactory<T> getFactory(Class<T> adapterClass) {
+        @SuppressWarnings("unchecked")
         iAdapterFactory<T> factory = (iAdapterFactory<T>) factories.get(adapterClass);
         if (factory == null) {
             throw new IllegalStateException("No factory registered for " + adapterClass.getName());
@@ -90,13 +94,14 @@ public class FrameworkRegistry {
     /**
      * 检查是否已注册
      */
-    public boolean isRegistered(Class<? extends iSTAdapter2> adapterClass) {
+    public boolean isRegistered(@SuppressWarnings("rawtypes") Class<? extends iSTAdapter2> adapterClass) {
         return factories.containsKey(adapterClass);
     }
     
     /**
      * 获取所有已注册的适配器类型
      */
+    @SuppressWarnings("rawtypes")
     public Map<Class<? extends iSTAdapter2>, iAdapterFactory> getAllFactories() {
         return new ConcurrentHashMap<>(factories);
     }

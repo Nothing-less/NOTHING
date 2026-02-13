@@ -1,6 +1,5 @@
 package icu.nothingless.dao.impl.LoginDaoImpl;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,14 +10,13 @@ import org.slf4j.LoggerFactory;
 
 import icu.nothingless.dao.interfaces.iUserDao;
 import icu.nothingless.exceptions.UserSTOException;
-import icu.nothingless.pojo.adapter.iSTAdapter;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
-import icu.nothingless.tools.PDBUtil;
 
 public class UserDaoImpl implements iUserDao {
     private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
 
+    @SuppressWarnings("unchecked")
     @Override
     public iUserSTOAdapter findByUsername(String username) throws Exception{
 

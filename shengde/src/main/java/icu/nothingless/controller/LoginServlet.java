@@ -3,10 +3,12 @@ package icu.nothingless.controller;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import org.slf4j.Logger;
 
 import icu.nothingless.dto.UserDTO;
+import icu.nothingless.pojo.commons.RespEntity;
 import icu.nothingless.service.impl.UserServiceImpl;
 import icu.nothingless.service.interfaces.iUserService;
 import icu.nothingless.tools.ViewUtil;
@@ -41,12 +43,14 @@ public class LoginServlet extends HttpServlet {
         bean.setRoleId("Admin");
         bean.setUserId("7");
         bean.setUserStatus(false);
-        var loginResult = userService.doLogin(bean);
-        if(loginResult.isSuccess()){
-            ViewUtil.render(req, resp, "example/index");
-        }
+        // var loginResult = userService.doLogin(bean);
+        // if(loginResult.isSuccess()){
+        //     ViewUtil.render(req, resp, "example/index");
+        // }else{
+            
+        // }
 
-
+        ViewUtil.render(req, resp, "error_page",Map.of("resp",RespEntity.error("错误错误！登录失败！无法登录！系统网络异常！")));
         
     }
 

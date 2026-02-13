@@ -1,23 +1,37 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.yourcompany.RespEntity" %>
-<%@ page import="com.yourcompany.web.RespViewHelper" %>
+<%@ page import="icu.nothingless.pojo.commons.RespEntity" %>
 <%@ page import="java.util.Map" %>
 
 <%
-    RespEntity<Object> resp = RespViewHelper.retrieveAndClear(request);
-    if (resp == null) {
-        resp = RespEntity.success("操作已完成");
-    }
-    Map<String, String> meta = RespViewHelper.getStatusMeta(resp.getCode());
-    String backUrl = RespViewHelper.getRefererAndClear(request);
+    RespEntity<Object> respEntity = (RespEntity<Object>)request.getAttribute("resp");
+    String backUrl = "";
 %>
 
 <!DOCTYPE html>
 <html lang="zh-CN">
+<body>
+    <div class="card">
+        <div class="failed-icon"> X </div>
+        <h1><%= respEntity.getMessage() %></h1>
+        <div class="message">
+            出现问题: <%= respEntity.getData() != null ? "，相关数据如下" : "" %>
+        </div>
+        
+        <% if (respEntity.getData() != null) { %>
+        <div class="data-preview">
+            <%= respEntity.getData().toString() %>
+        </div>
+        <% } %>
+        
+        <a href="<%= backUrl != null ? backUrl : request.getContextPath() + "/" %>" class="btn">
+            ← 返回
+        </a>
+    </div>
+</body>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>操作成功</title>
+    <title>Error Occurred!</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -43,7 +57,7 @@
             from { opacity: 0; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1); }
         }
-        .success-icon {
+        .failed-icon {
             width: 80px;
             height: 80px;
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -93,23 +107,5 @@
         }
     </style>
 </head>
-<body>
-    <div class="card">
-        <div class="success-icon">✓</div>
-        <h1><%= resp.getMessage() %></h1>
-        <div class="message">
-            操作已成功完成<%= resp.getData() != null ? "，相关数据如下" : "" %>
-        </div>
-        
-        <% if (resp.getData() != null) { %>
-        <div class="data-preview">
-            <%= resp.getData().toString() %>
-        </div>
-        <% } %>
-        
-        <a href="<%= backUrl != null ? backUrl : request.getContextPath() + "/" %>" class="btn">
-            ← 返回
-        </a>
-    </div>
-</body>
+
 </html>

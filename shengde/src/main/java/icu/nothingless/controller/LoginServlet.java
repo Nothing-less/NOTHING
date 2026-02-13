@@ -41,8 +41,13 @@ public class LoginServlet extends HttpServlet {
         bean.setRoleId("Admin");
         bean.setUserId("7");
         bean.setUserStatus(false);
-        userService.doLogin(bean);
-        ViewUtil.render(req, resp, "example/index");
+        var loginResult = userService.doLogin(bean);
+        if(loginResult.isSuccess()){
+            ViewUtil.render(req, resp, "example/index");
+        }
+
+
+        
     }
 
 }

@@ -13,9 +13,9 @@
     </filter-mapping>
 
     <!-- 监听器配置 -->
-    <listener>
+    <!-- <listener>
         <listener-class>icu.nothingless.listener.InfrastructureInitializer</listener-class>
-    </listener>
+    </listener> -->
     <!-- Session 配置 -->
     <session-config>
         <session-timeout>30</session-timeout>        <!-- 分钟 -->
@@ -27,7 +27,7 @@
 
     <!-- 配置欢迎页列表 -->
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>index_2.jsp</welcome-file>
     </welcome-file-list>
 
     <servlet>

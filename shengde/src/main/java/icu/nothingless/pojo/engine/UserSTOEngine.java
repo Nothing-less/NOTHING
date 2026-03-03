@@ -226,7 +226,6 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
                     .toArray();
             List<Map<String, Object>> queryResults = PDBUtil.executeQuery(sql.toString(), params);
             queryResults.forEach(row -> {
-                @SuppressWarnings("unused")
                 iUserSTOAdapter resultBean;
                 try {
                     resultBean = toBean(row);

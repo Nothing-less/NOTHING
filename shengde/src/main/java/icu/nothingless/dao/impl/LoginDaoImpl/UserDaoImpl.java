@@ -16,7 +16,6 @@ import icu.nothingless.pojo.bean.UserSTO;
 public class UserDaoImpl implements iUserDao {
     private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
 
-    @SuppressWarnings("unchecked")
     @Override
     public iUserSTOAdapter findByUsername(String username) throws Exception{
 

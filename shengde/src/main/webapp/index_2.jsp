@@ -110,26 +110,30 @@
                         e.preventDefault();
                         if(password.value) {
                             pwd_entrypted = SHA256Util.encrypt(password.value);
+                            e.preventDefault();
+                            submitForm();
                         }
-                        submitForm();
                     }
                 });
             }
         });
 
         function submitForm() {
+
+            if(password.value && !password.value.match(/^[a-f0-9]{64}$/i)) {
+                pwd_entrypted.value = SHA256Util.encrypt(password.value);
+            }
+
             if(submit) {
                 submit.disabled = true;
                 submit.classList.add('loading');
             }
+
             form.submit();
         }
 
         form.addEventListener('submit', function(e){
             e.preventDefault();
-            if(password.value && !password.value.match(/^[a-f0-9]{64}$/i)) {
-                pwd_entrypted = SHA256Util.encrypt(password.value);
-            }
             submitForm();
         });
 
@@ -196,9 +200,9 @@
     <meta charset="UTF-8"/>
     <title>Hello</title>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <script src="${pageContext.request.contextPath}/static/js/SHA256Util.js"></script>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/liquidGlass.css">
-    <script src="${pageContext.request.contextPath}/static/js/liquidGlass.js"></script>
+    <script src="./static/js/SHA256Util.js"></script>
+    <link rel="stylesheet" href="./static/css/liquidGlass.css">
+    <script src="./static/js/liquidGlass.js"></script>
     
     <style>
         * {

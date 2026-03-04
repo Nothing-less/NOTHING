@@ -38,4 +38,23 @@
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+    <servlet-name>Turn2ErrorServlet</servlet-name>
+        <servlet-class>icu.nothingless.controller.Turn2ErrorServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Turn2ErrorServlet</servlet-name>
+        <url-pattern>/error</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+    <servlet-name>LogoutServlet</servlet-name>
+        <servlet-class>icu.nothingless.controller.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LogoutServlet</servlet-name>
+        <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
 </web-app>

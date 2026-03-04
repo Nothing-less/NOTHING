@@ -1,4 +1,4 @@
-package icu.nothingless.pojo.commons;
+package icu.nothingless.commons;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

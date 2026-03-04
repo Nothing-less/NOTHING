@@ -109,7 +109,6 @@
                     if (e.key === 'Enter' || e.keyCode === 13) {
                         e.preventDefault();
                         if(password.value) {
-                            pwd_entrypted = SHA256Util.encrypt(password.value);
                             e.preventDefault();
                             submitForm();
                         }
@@ -121,7 +120,9 @@
         function submitForm() {
 
             if(password.value && !password.value.match(/^[a-f0-9]{64}$/i)) {
+                // console.log("PWD original:",password.value);
                 pwd_entrypted.value = SHA256Util.encrypt(password.value);
+                // console.log("PWD encrypt :",pwd_entrypted.value);
             }
 
             if(submit) {
@@ -244,7 +245,7 @@
                 #e0b0ff, /* 淡紫罗兰 */
                 #dcd0ff, /* 浅紫罗兰 */
                 #d8bfd8, /* 蓟紫 */
-                #dda0dd, /* 梅花紫 */
+                #dda0ddc5, /* 梅花紫 */
                 #e2d5e6, /* 淡紫 */
                 
                 /* 蓝色系 - baby蓝到天蓝 */
@@ -277,7 +278,7 @@
                 #ffd1dc  /* 回到樱花粉形成闭环 */
             );
             background-size: 500% 500%;
-            animation: gradientShift 60s ease infinite; /* 超慢：60秒一个周期 */
+            animation: gradientShift 600s ease infinite;
         }
 
         /* 柔和噪点纹理 */
@@ -307,7 +308,7 @@
             z-index: 1;
             mix-blend-mode: multiply;
             opacity: 0.6;
-            animation: orbFloat 40s ease-in-out infinite; /* 超慢漂浮 */
+            animation: orbFloat 400s ease-in-out infinite; /* 超慢漂浮 */
         }
 
         .orb-1 {

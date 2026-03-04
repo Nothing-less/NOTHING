@@ -1,6 +1,6 @@
 package icu.nothingless.service.interfaces;
 
-import icu.nothingless.pojo.commons.RespEntity;
+import icu.nothingless.commons.RespEntity;
 
 public interface iUserService<T> {
     

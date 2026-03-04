@@ -46,7 +46,7 @@ public class ViewUtil {
         resp.setContentType("text/html;charset=UTF-8");
 
         if (data != null) {
-            data.forEach(req::setAttribute);
+            data.forEach(req.getSession()::setAttribute);
         }
 
         // 构建完整路径

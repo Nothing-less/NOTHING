@@ -1,9 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="icu.nothingless.pojo.commons.RespEntity" %>
+<%@ page import="icu.nothingless.commons.RespEntity" %>
 <%@ page import="java.util.Map" %>
 
 <%
-    RespEntity<Object> respEntity = (RespEntity<Object>)request.getAttribute("resp");
+    RespEntity<Object> respEntity = (RespEntity<Object>)request.getAttribute("respEntity");
     String backUrl = "";
 %>
 
@@ -22,7 +22,7 @@
                 <%= respEntity.getData().toString() %>
             </div>
         <% } %>
-        <button onclick="history.back()" class="btn-back">← 返回</button>
+        <button onclick="history.back()" class="btn-back">返回</button>
         <%-- <a href='request.getContextPath() + "/"' class="btn">
         
             ← 返回

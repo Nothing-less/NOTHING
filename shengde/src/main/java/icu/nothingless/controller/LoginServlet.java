@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 
-import icu.nothingless.commons.RespEntity;
 import icu.nothingless.dto.UserDTO;
 import icu.nothingless.service.impl.UserServiceImpl;
 import icu.nothingless.service.interfaces.iUserService;

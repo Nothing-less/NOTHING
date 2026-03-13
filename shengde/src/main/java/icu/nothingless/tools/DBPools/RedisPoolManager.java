@@ -64,7 +64,8 @@ public class RedisPoolManager {
      */
     public static Jedis getJedis() {
         if (jedisPool == null) {
-            throw new IllegalStateException("RedisPool not initialized");
+            logger.error("Jedis getJedis failed", new IllegalStateException("RedisPool not initialized"));
+            return null;
         }
         return jedisPool.getResource();
     }

@@ -5,18 +5,42 @@
 }
 
 :root {
+  /* 字体颜色 */
+  --text-primary: #E8E8F0;      /* 主要文字 - 淡白 */
+  --text-secondary: #A0A0B8;    /* 次要文字 - 灰蓝 */
+  --text-muted: #6B6B80;        /* 弱化文字 - 深灰 */
+  --text-accent: #60A5FA;       /* 强调色 - 淡蓝 */
+  --text-light: #E8E8F0;
+  
+  /* 功能色 */
+  --text-success: #34D399;      /* 成功 - 薄荷绿 */
+  --text-warning: #FBBF24;      /* 警告 - 琥珀黄 */
+  --text-danger: #F87171;       /* 危险 - 柔和红 */
+  
+  /* 背景色 */
+  --bg-primary: #1a1a2e;        /* 深蓝紫背景 */
+  --bg-secondary: #16213e;      /* 次级背景 */
+  --bg-card: rgba(255,255,255,0.05); /* 卡片背景 */
+}
+
+:root {
     --sidebar-width: 260px;
     --sidebar-collapsed: 60px;
     --primary-color: #6366f1;
     --primary-dark: #4f46e5;
     --bg-dark: #1e1b4b;
     --bg-darker: #0f0e2e;
-    --text-light: #e0e7ff;
-    --text-muted: #818cf8;
+    /* --text-light: #e0e7ff;
+    --text-muted: #818cf8; */
     --glass-bg: rgba(30, 27, 75, 0.85);
     --glass-border: rgba(99, 102, 241, 0.2);
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* 防止双滚动条 */
+}
 body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: linear-gradient(135deg, #0f0e2e 0%, #1e1b4b 50%, #312e81 100%);
@@ -69,14 +93,26 @@ body {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 触发区域（鼠标感应区） */
+/* 触发区域（鼠标感应区） 
 .sidebar-trigger {
     position: absolute;
     left: 0;
     top: 0;
-    width: 20px;
+    width: 1px;
     height: 100%;
     z-index: 999;
+    cursor: pointer;
+}
+*/
+
+.sidebar-trigger {
+    position: absolute;
+    right: -4px; /* 向右偏移一半，居中在边缘 */
+    top: 0;
+    width: 8px; /* 触发区域宽度 */
+    height: 100%;
+    z-index: 1001; /* 更高层级 */
+    cursor: pointer;
 }
 
 /* 侧边栏主体 */
@@ -88,7 +124,7 @@ body {
     border-right: 1px solid var(--glass-border);
     padding: 20px;
     transform: translateX(calc(-100% + var(--sidebar-collapsed)));
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     box-shadow: 10px 0 40px rgba(0,0,0,0.3);
@@ -266,6 +302,7 @@ body {
     z-index: 10;
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 
 .sidebar-container:hover ~ .main-content,
@@ -330,6 +367,9 @@ body {
     flex: 1;
     position: relative;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .content-iframe {
@@ -337,6 +377,8 @@ body {
     height: 100%;
     border: none;
     background: transparent;
+    flex: 1;
+    overflow: hidden;
 }
 
 /* 内容卡片 - 保留供子页面使用 */
@@ -490,3 +532,100 @@ body {
     opacity: 1;
     pointer-events: all;
 }
+/*----------------------------------Only for Home.JSP--------------------------------------------*/
+        :root {
+            --sidebar-width: 250px;
+            --transition-duration: 0.3s;
+        }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin-left: var(--sidebar-width);
+            transition: margin-left var(--transition-duration) ease;
+        }
+        
+        .content-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0);
+        }
+        
+        .content-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: transparent;
+        }
+        
+        .menu-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        
+        .menu-loading,
+        .menu-error,
+        .menu-empty {
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .menu-loading { color: var(--text-muted); }
+        .menu-error { color: #ff6b6b; }
+        .menu-empty { color: var(--text-muted); }
+        
+        .iframe-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0);
+            z-index: 10;
+        }
+        
+        .iframe-loading.active {
+            display: flex;
+        }
+        
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color, #4a6cf7);
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(74, 108, 247, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .fab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(74, 108, 247, 0.4);
+        }
+
+/*------------------------------------------------------------------------------*/

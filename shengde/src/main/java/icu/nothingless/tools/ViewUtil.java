@@ -8,6 +8,7 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 public class ViewUtil {
 
@@ -46,7 +47,8 @@ public class ViewUtil {
         resp.setContentType("text/html;charset=UTF-8");
 
         if (data != null) {
-            data.forEach(req.getSession()::setAttribute);
+            HttpSession session = req.getSession();
+            data.forEach(session::setAttribute);
         }
 
         // 构建完整路径

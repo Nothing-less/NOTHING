@@ -13,6 +13,7 @@ import icu.nothingless.dao.interfaces.iUserDao;
 import icu.nothingless.dto.UserDTO;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.service.interfaces.iUserService;
+import icu.nothingless.tools.ServiceFactory;
 /**
  * 
  * 默认传入的UserDTO对象有以下属性：
@@ -22,9 +23,10 @@ import icu.nothingless.service.interfaces.iUserService;
  *  LastLoginIpAddr 登录地址
 */
 public class UserServiceImpl implements iUserService<UserDTO>{
-    private static final iUserDao userDao = new UserDaoImpl();
+    private static final iUserDao userDao = ServiceFactory.createInstance(iUserDao.class);
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public RespEntity doLogin(final UserDTO target) {
         
@@ -62,6 +64,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
         return RespEntity.error("Login Failed 〒▽〒");
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public RespEntity doRegister(final UserDTO target) {
         if(target == null 
@@ -117,6 +120,5 @@ public class UserServiceImpl implements iUserService<UserDTO>{
                                 .userKey6(bean.getUserKey6())
                                 .build();
     }
-
 
 }

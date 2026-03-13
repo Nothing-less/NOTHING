@@ -229,6 +229,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
                 iUserSTOAdapter resultBean;
                 try {
                     resultBean = toBean(row);
+                    results.add(resultBean);
                 }catch(Exception e){
                     LoggerFactory.getLogger(UserSTOEngine.class).error("Error occurred while executing function <toBean> in function <fuzzyQuery>: ", e);
                 }

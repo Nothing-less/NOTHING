@@ -1,0 +1,449 @@
+/* ==================== 液态玻璃风格表格样式 ==================== */
+
+/* 基础表格容器 */
+.table-container {
+    position: relative;
+    padding: 1.5rem;
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.03);
+    box-shadow: 
+        inset 1px 1px 2px 0px rgba(255, 255, 255, 0.87),
+        inset -1px -2px 3px 1px rgba(49, 49, 49, 0.30),
+        0px 0px 6px 1px rgba(0, 0, 0, 0.38);
+    backdrop-filter: blur(3px);
+    overflow: hidden;
+}
+
+/* 表格容器伪元素 - 玻璃高光效果 */
+.table-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0.9rem;
+    pointer-events: none;
+    z-index: -1;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.05) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+}
+
+/* 基础表格样式 - 关键修复：使用 fixed 布局确保列对齐 */
+.liquid-table {
+    width: 100%;
+    border-collapse: collapse; /* 改为 collapse 避免间距问题 */
+    color: white;
+    font-size: 0.95em;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    position: relative;
+    z-index: 1;
+    table-layout: fixed; /* 关键：固定布局确保列宽一致 */
+}
+
+/* 表头样式 */
+.liquid-table thead {
+    position: relative;
+}
+
+.liquid-table thead::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.5) 20%,
+        rgba(255, 255, 255, 0.5) 80%,
+        transparent 100%
+    );
+}
+
+.liquid-table th {
+    padding: 1rem 1.2rem;
+    text-align: left;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle; /* 确保垂直居中 */
+}
+
+/* 表头玻璃反光效果 */
+.liquid-table th::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    pointer-events: none;
+    border-radius: 0.3rem 0.3rem 0 0;
+}
+
+/* 表格单元格 - 关键修复：与表头保持相同的 padding 和垂直对齐 */
+.liquid-table td {
+    padding: 1rem 1.2rem; /* 必须与 th 的 padding 完全一致 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 200ms ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle; /* 确保垂直居中，与 th 一致 */
+}
+
+/* 表格行悬停效果 */
+.liquid-table tbody tr {
+    transition: all 200ms ease;
+    position: relative;
+}
+
+.liquid-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.liquid-table tbody tr:hover td {
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+/* 表格行玻璃光泽效果 */
+.liquid-table tbody tr::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.03) 50%,
+        transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 300ms ease;
+    pointer-events: none;
+}
+
+.liquid-table tbody tr:hover::before {
+    opacity: 1;
+}
+
+/* 斑马纹效果 */
+.liquid-table.striped tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.liquid-table.striped tbody tr:nth-child(even):hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* 列宽定义 - 关键：确保每列宽度固定 */
+.liquid-table th:nth-child(1),
+.liquid-table td:nth-child(1) {
+    width: 50px; /* checkbox 列固定宽度 */
+    text-align: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.liquid-table th:nth-child(2),
+.liquid-table td:nth-child(2) {
+    width: 120px; /* 订单号列 */
+}
+
+.liquid-table th:nth-child(3),
+.liquid-table td:nth-child(3) {
+    width: auto; /* 客户名称自适应 */
+}
+
+.liquid-table th:nth-child(4),
+.liquid-table td:nth-child(4) {
+    width: 120px; /* 金额列 */
+    text-align: right;
+}
+
+.liquid-table th:nth-child(5),
+.liquid-table td:nth-child(5) {
+    width: 100px; /* 状态列 */
+    text-align: center;
+}
+
+.liquid-table th:nth-child(6),
+.liquid-table td:nth-child(6) {
+    width: 150px; /* 操作列固定宽度 */
+    text-align: center;
+    white-space: nowrap; /* 防止按钮换行导致高度变化 */
+}
+
+/* 状态标签样式 */
+.liquid-table .tag {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 1rem;
+    font-size: 0.85em;
+    font-weight: 500;
+    text-shadow: none;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+}
+
+.liquid-table .tag-success {
+    background: rgba(76, 175, 80, 0.25);
+    color: #a5d6a7;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+}
+
+.liquid-table .tag-warning {
+    background: rgba(255, 152, 0, 0.25);
+    color: #ffcc80;
+    box-shadow: 0 0 8px rgba(255, 152, 0, 0.3);
+}
+
+.liquid-table .tag-danger {
+    background: rgba(244, 67, 54, 0.25);
+    color: #ef9a9a;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.3);
+}
+
+.liquid-table .tag-info {
+    background: rgba(33, 150, 243, 0.25);
+    color: #90caf9;
+    box-shadow: 0 0 8px rgba(33, 150, 243, 0.3);
+}
+
+/* 操作按钮 - 修复：确保不换行且垂直居中 */
+.liquid-table .action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+    font-size: 0.9em;
+    backdrop-filter: blur(3px);
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    display: inline-block; /* 确保按钮在同一行 */
+    margin: 0 0.2rem; /* 按钮间距 */
+    vertical-align: middle;
+}
+
+.liquid-table .action-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 排序图标 */
+.liquid-table .sort-icon {
+    display: inline-block;
+    margin-left: 0.5rem;
+    opacity: 0.6;
+    transition: all 200ms ease;
+    font-size: 0.8em;
+}
+
+.liquid-table th:hover .sort-icon {
+    opacity: 1;
+}
+
+/* 复选框样式 - 修复：确保居中且不撑开高度 */
+.liquid-table .checkbox-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+.liquid-table input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+    margin: 0;
+}
+
+.liquid-table .checkbox-custom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 18px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 0.3rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+    box-sizing: border-box;
+}
+
+.liquid-table input[type="checkbox"]:checked + .checkbox-custom {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.liquid-table .checkbox-custom::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    color: white;
+    font-size: 12px;
+    line-height: 1;
+    transition: all 150ms ease;
+}
+
+.liquid-table input[type="checkbox"]:checked + .checkbox-custom::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* 分页样式 */
+.table-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1.5rem;
+    gap: 0.5rem;
+}
+
+.table-pagination button {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+    backdrop-filter: blur(3px);
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.table-pagination button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.table-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.table-pagination button.active {
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.table-pagination .page-info {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 1rem;
+    font-size: 0.9em;
+}
+
+/* 浅色模式适配 */
+.table-light-mode {
+    color: #333;
+    text-shadow: none;
+}
+
+.table-light-mode .liquid-table {
+    color: #333;
+    text-shadow: none;
+}
+
+.table-light-mode .liquid-table th {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.table-light-mode .liquid-table td {
+    border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+.table-light-mode .liquid-table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.table-light-mode .tag {
+    text-shadow: none;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .table-container {
+        padding: 0.8rem;
+        overflow-x: auto;
+    }
+    
+    .liquid-table {
+        min-width: 700px; /* 确保最小宽度 */
+    }
+    
+    .liquid-table th,
+    .liquid-table td {
+        padding: 0.8rem;
+        font-size: 0.9em;
+    }
+}
+
+/* 加载动画 */
+.table-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.table-loading::after {
+    content: "";
+    width: 30px;
+    height: 30px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-top-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 空数据提示 */
+.table-empty {
+    text-align: center;
+    padding: 3rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+.table-empty::before {
+    content: "📭";
+    display: block;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}

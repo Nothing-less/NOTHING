@@ -49,7 +49,7 @@
             <div class="form-row">
                 <label for="password">Password</label>
                 <div class="input-wrapper">
-                    <input id="password" name="password" type="password" required placeholder="Enter your password"/>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter your password"/>
                 </div>
             </div>
 

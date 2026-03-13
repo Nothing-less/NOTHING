@@ -49,7 +49,8 @@ public final class PDBPoolManager {
      */
     public static void init(String path) {
         if (path == null || path.isBlank()) {
-            throw new IllegalArgumentException("Config path must not be empty");
+            LOGGER.error("PDBPoolManager Initialize failed! ",new IllegalArgumentException("Config path must not be empty"));
+            return;
         }
 
         // 简单的防止重复初始化不同配置的校验
@@ -63,6 +64,10 @@ public final class PDBPoolManager {
 
         // 触发 Holder 初始化
         var ds = Holder.INSTANCE;
+        if(null == ds){
+            LOGGER.error("Faild to trigger Holder Initialize");
+            return;
+        }
         LOGGER.info("Database pool ready: {0}", ds.getPoolName());
     }
 
@@ -71,7 +76,8 @@ public final class PDBPoolManager {
      */
     public static Connection getConnection() throws SQLException {
         if (Holder.INSTANCE.isClosed()) {
-            throw new SQLException("Connection pool has been closed");
+            LOGGER.error("PDBPoolManager getConnection failed! ", new SQLException("Connection pool has been closed"));
+            return null;
         }
         return Holder.INSTANCE.getConnection();
     }
@@ -114,7 +120,8 @@ public final class PDBPoolManager {
             return dataSource;
 
         } catch (IOException e) {
-            throw new ExceptionInInitializerError("Failed to initialize database pool: " + e.getMessage());
+            LOGGER.error("PDBPoolManager initializePool Initialize failed! ", e.getMessage());
+            return null;
         }
     }
 
@@ -124,7 +131,7 @@ public final class PDBPoolManager {
 
         try (InputStream is = PDBPoolManager.class.getClassLoader().getResourceAsStream(path)) {
             if (is == null) {
-                throw new IOException("Config file not found in classpath: " + path);
+                LOGGER.error("PDBPoolManager loadConfig failed! ", new IOException("Config file not found in classpath: " + path));
             }
             props.load(is);
         }

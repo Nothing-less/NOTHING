@@ -145,6 +145,32 @@ public class RedisUtil {
         }
     }
 
+    /**
+     * SETNX - 仅在 key 不存在时设置值
+     * 用于简单的分布式锁或标记设置
+     * 
+     * @param key   键
+     * @param value 值
+     * @return 1-设置成功，0-key已存在，null-执行失败
+     */
+    public static Long setnx(String key, String value) {
+        try (Jedis jedis = RedisPoolManager.getJedis()) {
+            return jedis.setnx(key, value);
+        }
+    }
+
+    /**
+     * 获取 key 的剩余生存时间（TTL）
+     * 
+     * @param key 键
+     * @return 剩余秒数，-1表示key存在但没有设置过期时间，-2表示key不存在
+     */
+    public static Long ttl(String key) {
+        try (Jedis jedis = RedisPoolManager.getJedis()) {
+            return jedis.ttl(key);
+        }
+    }
+
     // =================== 分布式锁 ===================
 
     /**

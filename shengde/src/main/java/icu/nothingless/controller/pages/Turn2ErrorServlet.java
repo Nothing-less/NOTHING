@@ -1,4 +1,4 @@
-package icu.nothingless.controller;
+package icu.nothingless.controller.pages;
 
 import java.io.IOException;
 import java.util.Map;

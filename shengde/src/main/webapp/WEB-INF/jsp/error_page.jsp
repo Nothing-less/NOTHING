@@ -3,7 +3,7 @@
 <%@ page import="java.util.Map" %>
 
 <%
-    RespEntity<Object> respEntity = (RespEntity<Object>)request.getAttribute("respEntity");
+    RespEntity<Object> respEntity = (RespEntity<Object>)request.getSession(false).getAttribute("respEntity");
     String backUrl = "";
 %>
 
@@ -34,22 +34,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error</title>
     <style>
+        .btn-back {
+            padding: 10px 20px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
 
-    .btn-back {
-        padding: 10px 20px;
-        background: #6b7280;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.3s ease;
-    }
-
-    .btn-back:hover {
-        background: #4b5563;
-        transform: translateX(-3px);
-    }
+        .btn-back:hover {
+            background: #4b5563;
+            transform: translateX(-3px);
+        }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -123,8 +122,6 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
         }
-
-        
     </style>
 </head>
 

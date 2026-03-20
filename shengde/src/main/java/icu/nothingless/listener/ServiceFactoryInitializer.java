@@ -11,41 +11,41 @@ import org.slf4j.LoggerFactory;
 @WebListener
 public class ServiceFactoryInitializer implements ServletContextListener {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceFactoryInitializer.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServiceFactoryInitializer.class);
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        LOGGER.info("=== Starting ServiceFactory Initialize ===");
+        logger.info("=== Starting ServiceFactory Initialize ===");
         
         ServiceFactoryConfig config = ServiceFactoryConfig.getInstance();
         
         // 检查配置
         if (!config.hasPackages()) {
-            LOGGER.warn("The scan package path is not configured, please set scan-packages in service-factory.yml");
+            logger.warn("The scan package path is not configured, please set scan-packages in service-factory.yml");
             return;
         }
         
-        LOGGER.info("Scanning Mode: {}", config.getScanMode());
-        LOGGER.info("Scanning Packages: {}", config.getScanPackages());
+        logger.info("Scanning Mode: {}", config.getScanMode());
+        logger.info("Scanning Packages: {}", config.getScanPackages());
         
         // 饥饿加载：立即触发扫描
         if ("eager".equals(config.getScanMode())) {
             try {
                 ServiceFactory.eagerScan();
-                LOGGER.info("Scanning Completed, A total of {} Implementation Classes of Interfaces are Found.", 
+                logger.info("Scanning Completed, A total of {} Implementation Classes of Interfaces are Found.", 
                     ServiceFactory.getAllScannedClasses().size());
             } catch (Exception e) {
-                LOGGER.error("ServiceFactory scan failed!", e);
+                logger.error("ServiceFactory scan failed!", e);
                 // throw new RuntimeException("ServiceFactory Initialize failed", e);
             }
         }
          
-        LOGGER.info("=== ServiceFactory Initialize Completed ===");
+        logger.info("=== ServiceFactory Initialize Completed ===");
     }
     
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         ServiceFactory.clearAllSingletons();
-        LOGGER.info("=== ServiceFactory destroyed ===");
+        logger.info("=== ServiceFactory destroyed ===");
     }
 }

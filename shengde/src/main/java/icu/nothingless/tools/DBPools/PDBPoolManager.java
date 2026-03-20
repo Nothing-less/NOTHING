@@ -20,7 +20,7 @@ import com.zaxxer.hikari.HikariDataSource;
  */
 public final class PDBPoolManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PDBPoolManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(PDBPoolManager.class);
 
     // 懒加载 + 线程安全
     private static class Holder {
@@ -49,13 +49,13 @@ public final class PDBPoolManager {
      */
     public static void init(String path) {
         if (path == null || path.isBlank()) {
-            LOGGER.error("PDBPoolManager Initialize failed! ",new IllegalArgumentException("Config path must not be empty"));
+            logger.error("PDBPoolManager Initialize failed! ",new IllegalArgumentException("Config path must not be empty"));
             return;
         }
 
         // 简单的防止重复初始化不同配置的校验
         if (configPath != null && !configPath.equals(path)) {
-            LOGGER.warn("Pool already initialized with config: {0}, ignoring: {1}",
+            logger.warn("Pool already initialized with config: {0}, ignoring: {1}",
                     configPath, path);
             return;
         }
@@ -65,10 +65,10 @@ public final class PDBPoolManager {
         // 触发 Holder 初始化
         var ds = Holder.INSTANCE;
         if(null == ds){
-            LOGGER.error("Faild to trigger Holder Initialize");
+            logger.error("Faild to trigger Holder Initialize");
             return;
         }
-        LOGGER.info("Database pool ready: {0}", ds.getPoolName());
+        logger.info("Database pool ready: {0}", ds.getPoolName());
     }
 
     /**
@@ -76,7 +76,7 @@ public final class PDBPoolManager {
      */
     public static Connection getConnection() throws SQLException {
         if (Holder.INSTANCE.isClosed()) {
-            LOGGER.error("PDBPoolManager getConnection failed! ", new SQLException("Connection pool has been closed"));
+            logger.error("PDBPoolManager getConnection failed! ", new SQLException("Connection pool has been closed"));
             return null;
         }
         return Holder.INSTANCE.getConnection();
@@ -91,7 +91,7 @@ public final class PDBPoolManager {
                 conn.close();
             }
         } catch (SQLException e) {
-            LOGGER.error("Failed to close connection", e);
+            logger.error("Failed to close connection", e);
         }
 
     }
@@ -102,7 +102,7 @@ public final class PDBPoolManager {
     public static void close() {
         if (!Holder.INSTANCE.isClosed()) {
             Holder.INSTANCE.close();
-            LOGGER.info("Database pool closed");
+            logger.info("Database pool closed");
         }
     }
 
@@ -120,7 +120,7 @@ public final class PDBPoolManager {
             return dataSource;
 
         } catch (IOException e) {
-            LOGGER.error("PDBPoolManager initializePool Initialize failed! ", e.getMessage());
+            logger.error("PDBPoolManager initializePool Initialize failed! ", e.getMessage());
             return null;
         }
     }
@@ -131,7 +131,7 @@ public final class PDBPoolManager {
 
         try (InputStream is = PDBPoolManager.class.getClassLoader().getResourceAsStream(path)) {
             if (is == null) {
-                LOGGER.error("PDBPoolManager loadConfig failed! ", new IOException("Config file not found in classpath: " + path));
+                logger.error("PDBPoolManager loadConfig failed! ", new IOException("Config file not found in classpath: " + path));
             }
             props.load(is);
         }
@@ -187,12 +187,12 @@ public final class PDBPoolManager {
             // 实际执行一次查询确保连接有效
             stmt.execute("SELECT version()");
 
-            LOGGER.info("PostgreSQL pool initialized | Pool size: {0}/{1} | URL: {2}",
+            logger.info("PostgreSQL pool initialized | Pool size: {0}/{1} | URL: {2}",
                     ds.getMinimumIdle(), ds.getMaximumPoolSize(), ds.getJdbcUrl());
 
         } catch (SQLException e) {
             // 预热失败记录警告但不阻断，连接池本身会在首次使用时重试
-            LOGGER.warn("Pool warm-up query failed", e);
+            logger.warn("Pool warm-up query failed", e);
         }
     }
 

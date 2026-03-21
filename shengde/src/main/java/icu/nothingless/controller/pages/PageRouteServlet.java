@@ -1,4 +1,4 @@
-package icu.nothingless.controller;
+package icu.nothingless.controller.pages;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -85,7 +85,7 @@ public class PageRouteServlet extends HttpServlet {
      */
     private static synchronized void loadMenuCache() {
         try {
-            iPageService pageService = ServiceFactory.createInstance(iPageService.class);
+            iPageService pageService = ServiceFactory.getSingleton(iPageService.class);
             Set<Map<String, String>> pages = pageService.getPages("main_page");
             
             if (pages != null && !pages.isEmpty()) {

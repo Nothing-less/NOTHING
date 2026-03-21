@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.RespEntity;
-import icu.nothingless.dao.impl.LoginDaoImpl.UserDaoImpl;
 import icu.nothingless.dao.interfaces.iUserDao;
 import icu.nothingless.dto.UserDTO;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
@@ -23,12 +22,12 @@ import icu.nothingless.tools.ServiceFactory;
  *  LastLoginIpAddr 登录地址
 */
 public class UserServiceImpl implements iUserService<UserDTO>{
-    private static final iUserDao userDao = ServiceFactory.createInstance(iUserDao.class);
+    private static final iUserDao userDao = ServiceFactory.createInstance(iUserDao.class,"cacheUserDaoImpl");
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    
     @Override
-    public RespEntity doLogin(final UserDTO target) {
+    public RespEntity doLogin(UserDTO target) {
         
         if(target == null || Objects.isNull(target.getUserAccount()) 
                           || Objects.isNull(target.getUserPasswd()) 
@@ -39,7 +38,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
 
         iUserSTOAdapter result;
         try {
-            result = UserServiceImpl.userDao.findByUsername(target.getUserAccount());
+            result = userDao.findByUsername(target.getUserAccount());
 
             if(result == null){
                 // 未找到对应账号
@@ -53,7 +52,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
             
             /* *------------------------ 密码一致 ------------------------* */ 
             // 更新登录信息(通过主键更新登录时间和登录地址)
-            final Boolean b_result = UserServiceImpl.userDao.doLogin(result);
+            final Boolean b_result = userDao.doLogin(result);
             if(Boolean.TRUE.equals(b_result)){
                 final UserDTO ret = this.bean_to_dto(result);
                 return RespEntity.success(ret);
@@ -64,7 +63,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
         return RespEntity.error("Login Failed 〒▽〒");
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    
     @Override
     public RespEntity doRegister(final UserDTO target) {
         if(target == null 
@@ -76,7 +75,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
         }
         iUserSTOAdapter result;
         try {
-            result = UserServiceImpl.userDao.findByUsername(target.getUserAccount());
+            result = userDao.findByUsername(target.getUserAccount());
 
             if(result != null){
                 // 当前账号已被注册
@@ -88,7 +87,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
                 this.put("last_login_time",target.getLastLoginTime());
                 this.put("last_login_ip",target.getLastLoginIpAddr());
             }};
-            Boolean ret = UserServiceImpl.userDao.doRegister(params);
+            Boolean ret = userDao.doRegister(params);
             if(Boolean.TRUE.equals(ret)){
                 // TODO 
             }

@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 public class ServiceFactory {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServiceFactory.class);
     
     // 缓存：接口 -> 实现类列表
     public static final Map<Class<?>, Set<Class<?>>> INTERFACE_IMPL_CACHE = new ConcurrentHashMap<>();
@@ -56,9 +56,9 @@ public class ServiceFactory {
         for (Class<?> iface : new ArrayList<>(INTERFACE_IMPL_CACHE.keySet())) {
             try {
                 getSingleton(iface);
-                LOGGER.debug("预加载单例: {}", iface.getName());
+                logger.debug("预加载单例: {}", iface.getName());
             } catch (Exception e) {
-                LOGGER.warn("预加载失败 {}: {}", iface.getName(), e.getMessage());
+                logger.warn("预加载失败 {}: {}", iface.getName(), e.getMessage());
             }
         }
     }
@@ -75,7 +75,7 @@ public class ServiceFactory {
         if (impls.size() > 1) {
             // 每个接口只警告一次
             if (WARNED_INTERFACES.add(interfaceClass)) {
-                LOGGER.warn("Multiple implementations found for " + interfaceClass.getName() + 
+                logger.warn("Multiple implementations found for " + interfaceClass.getName() + 
                               ", returning first one: " + impls.get(0).getName() + 
                               ". Consider using getImplClassByName() to specify which one to use.");
             }
@@ -83,7 +83,7 @@ public class ServiceFactory {
         return impls.get(0);
     }
 
-    @SuppressWarnings("unchecked")
+    
     public static <T> List<Class<T>> getImplClasses(Class<T> interfaceClass) {
         ensureScanned();
         Set<Class<?>> impls = INTERFACE_IMPL_CACHE.get(interfaceClass);
@@ -92,13 +92,13 @@ public class ServiceFactory {
         }
         List<Class<T>> result = new ArrayList<>(impls.size());
         for (Class<?> impl : impls) {
-            LOGGER.debug("Implments Class:"+impl.getName());
+            logger.debug("Implments Class:"+impl.getName());
             result.add((Class<T>) impl);
         }
         return Collections.unmodifiableList(result);
     }
 
-    @SuppressWarnings("unchecked")
+    
     public static <T> Class<T> getImplClassByName(Class<T> interfaceClass, String implName) {
         if (implName == null || implName.trim().isEmpty()) {
             throw new IllegalArgumentException("Implementation name cannot be null or empty");
@@ -128,7 +128,7 @@ public class ServiceFactory {
     /**
      * 获取单例实例
      */
-    @SuppressWarnings("unchecked")
+    
     public static <T> T getSingleton(Class<T> interfaceClass) {
         ensureScanned();
         
@@ -160,7 +160,7 @@ public class ServiceFactory {
      * @param supplier 自定义实例创建逻辑
      * @return 单例实例
      */
-    @SuppressWarnings("unchecked")
+    
     public static <T> T getSingleton(Class<T> interfaceClass, Supplier<T> supplier) {
         if (supplier == null) {
             throw new IllegalArgumentException("Supplier cannot be null");
@@ -287,7 +287,7 @@ public class ServiceFactory {
         try {
             Enumeration<URL> resources = classLoader.getResources(packagePath);
             if (!resources.hasMoreElements()) {
-                LOGGER.warn("No resources found for package: " + basePackage);
+                logger.warn("No resources found for package: " + basePackage);
                 return;
             }
             
@@ -350,18 +350,18 @@ public class ServiceFactory {
                 }
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to scan JAR: " + url, e);
+            logger.error("Failed to scan JAR: " + url, e);
         }
     }
 
     private static void loadClass(String className, ClassLoader classLoader) {
         try {
-            LOGGER.debug("尝试加载类: " + className);
+            logger.debug("尝试加载类: " + className);
             // Class<?> clazz = Class.forName(className, false, classLoader);
             Class<?> clazz;
             try {
                 ClassLoader effectiveLoader = getClassLoader();
-                LOGGER.debug("尝试加载类: " + className + " using " + effectiveLoader);
+                logger.debug("尝试加载类: " + className + " using " + effectiveLoader);
                 clazz = Class.forName(className, false, effectiveLoader);
             } catch (Exception e) {
                 // 回退到传入的类加载器
@@ -372,10 +372,10 @@ public class ServiceFactory {
             // 跳过非实现类
             if (clazz.isInterface() || clazz.isAnnotation() || 
                 clazz.isEnum() || java.lang.reflect.Modifier.isAbstract(clazz.getModifiers())) {
-                LOGGER.debug("  -> 被过滤（接口/抽象类/枚举）:  " + className);
+                logger.debug("  -> 被过滤（接口/抽象类/枚举）:  " + className);
                 return;
             }
-            LOGGER.debug("  -> 有效实现类: " + className);
+            logger.debug("  -> 有效实现类: " + className);
             
             // 收集所有实现的接口（包括父类），提前过滤标记接口
             Set<Class<?>> interfaces = new HashSet<>();
@@ -386,9 +386,9 @@ public class ServiceFactory {
                 cacheImplementation(iface, clazz);
             }
         } catch (ClassNotFoundException | NoClassDefFoundError e) {
-            LOGGER.error( "Failed to load class: " + className, e);
+            logger.error( "Failed to load class: " + className, e);
         } catch (Exception e) {
-            LOGGER.error( "Unexpected error loading class: " + className, e);
+            logger.error( "Unexpected error loading class: " + className, e);
         }
     }
 
@@ -441,7 +441,7 @@ public class ServiceFactory {
             
             boolean added = set.add(implClass);  // O(1) 查重+添加
             if (added) {
-                LOGGER.debug("Add one implClass: " + implClass.getName());
+                logger.debug("Add one implClass: " + implClass.getName());
             }
             return set;
         });
@@ -509,7 +509,7 @@ public class ServiceFactory {
         return Collections.unmodifiableSet(ALL_SCANNED_CLASSES);
     }
     // 获取所有实现类（包括所有接口的实现）
-    @SuppressWarnings("unchecked")
+    
     public static <T> List<Class<? extends T>> getAllImplementations(Class<T> type) {
         ensureScanned();
         List<Class<? extends T>> result = new ArrayList<>();

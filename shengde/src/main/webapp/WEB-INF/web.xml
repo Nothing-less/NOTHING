@@ -13,9 +13,9 @@
     </filter-mapping>
 
     <!-- 监听器配置 -->
-    <!-- <listener>
+    <listener>
         <listener-class>icu.nothingless.listener.InfrastructureInitializer</listener-class>
-    </listener> -->
+    </listener> 
     <!-- Session 配置 -->
     <session-config>
         <session-timeout>30</session-timeout>        <!-- 分钟 -->
@@ -27,12 +27,12 @@
 
     <!-- 配置欢迎页列表 -->
     <welcome-file-list>
-        <welcome-file>index_2.jsp</welcome-file>
+        <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
-        <servlet-class>icu.nothingless.controller.LoginServlet</servlet-class>
+        <servlet-class>icu.nothingless.controller.login.LoginServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>
@@ -41,7 +41,7 @@
 
     <servlet>
     <servlet-name>Turn2ErrorServlet</servlet-name>
-        <servlet-class>icu.nothingless.controller.Turn2ErrorServlet</servlet-class>
+        <servlet-class>icu.nothingless.controller.pages.Turn2ErrorServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>Turn2ErrorServlet</servlet-name>
@@ -50,7 +50,7 @@
 
     <servlet>
     <servlet-name>LogoutServlet</servlet-name>
-        <servlet-class>icu.nothingless.controller.LogoutServlet</servlet-class>
+        <servlet-class>icu.nothingless.controller.login.LogoutServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>LogoutServlet</servlet-name>

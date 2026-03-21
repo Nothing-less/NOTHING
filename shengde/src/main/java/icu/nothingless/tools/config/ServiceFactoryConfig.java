@@ -8,7 +8,7 @@ import java.nio.file.*;
 import java.util.*;
 
 public class ServiceFactoryConfig {
-    private static final Logger log = LoggerFactory.getLogger(ServiceFactoryConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServiceFactoryConfig.class);
     
     private static final String DEFAULT_CONFIG = "service-factory.yml";
     private static final String EXTERNAL_CONFIG = "config/service-factory.yml";
@@ -43,7 +43,7 @@ public class ServiceFactoryConfig {
             try (InputStream is = Files.newInputStream(externalPath)) {
                 return parseYaml(is);
             } catch (IOException e) {
-                log.error("Failed to load external config: ", e);
+                logger.error("Failed to load external config: ", e);
             }
         }
         
@@ -54,7 +54,7 @@ public class ServiceFactoryConfig {
             try (InputStream is = classpathStream) {
                 return parseYaml(is);
             } catch (IOException e) {
-                log.error("Failed to load classpath config: ", e);
+                logger.error("Failed to load classpath config: ", e);
             }
         }
         

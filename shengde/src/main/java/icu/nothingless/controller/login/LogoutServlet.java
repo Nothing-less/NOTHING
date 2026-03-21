@@ -1,4 +1,4 @@
-package icu.nothingless.controller;
+package icu.nothingless.controller.login;
 
 import java.io.IOException;
 

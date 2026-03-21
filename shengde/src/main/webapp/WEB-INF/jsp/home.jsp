@@ -398,7 +398,28 @@
                         if (!style) {
                             style = iframeDoc.createElement('style');
                             style.id = 'hide-scrollbar-style';
-                            style.textContent = '::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }';
+                            style.textContent = `
+                                /* 全局隐藏 */
+                                ::-webkit-scrollbar {
+                                    display: none !important;
+                                    width: 0 !important;
+                                    height: 0 !important;
+                                    background: transparent !important;
+                                }
+                                
+                                /* 针对 html 和 body 元素 */
+                                html::-webkit-scrollbar,
+                                body::-webkit-scrollbar {
+                                    display: none !important;
+                                }
+                                
+                                /* 确保 overflow 设置 */
+                                html, body {
+                                    overflow-y: auto !important;
+                                    scrollbar-width: none !important;
+                                    -ms-overflow-style: none !important;
+                                }
+                            `;
                             iframeDoc.head.appendChild(style);
                         }
                         

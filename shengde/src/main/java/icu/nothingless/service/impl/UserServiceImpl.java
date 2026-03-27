@@ -27,7 +27,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
 
     
     @Override
-    public RespEntity doLogin(UserDTO target) {
+    public RespEntity<UserDTO> doLogin(UserDTO target) {
         
         if(target == null || Objects.isNull(target.getUserAccount()) 
                           || Objects.isNull(target.getUserPasswd()) 
@@ -65,7 +65,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
 
     
     @Override
-    public RespEntity doRegister(final UserDTO target) {
+    public RespEntity<UserDTO> doRegister(final UserDTO target) {
         if(target == null 
             || Objects.isNull(target.getUserAccount()) 
             || Objects.isNull(target.getUserPasswd())
@@ -89,7 +89,7 @@ public class UserServiceImpl implements iUserService<UserDTO>{
             }};
             Boolean ret = userDao.doRegister(params);
             if(Boolean.TRUE.equals(ret)){
-                // TODO 
+                // TODO register new user
             }
 
         } catch (final Exception e) {

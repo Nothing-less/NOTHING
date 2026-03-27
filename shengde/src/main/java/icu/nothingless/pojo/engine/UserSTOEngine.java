@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.exceptions.MyException;
+import icu.nothingless.exceptions.EngineException;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.tools.PDBUtil;
@@ -46,7 +46,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
     public Long delete(iUserSTOAdapter bean) throws Exception{
         Map<String, Object> beanMap = toMap(bean);
         if (beanMap.isEmpty() || !beanMap.containsKey(USERID)) {
-            throw new MyException("Function <delete> entering null");
+            throw new EngineException("Function <delete> entering null");
         }
         StringBuilder sql = new StringBuilder();
         Object[] params = new Object[2];
@@ -57,21 +57,21 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         try {
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
-            throw new MyException("Error occurred while executing function <delete> : ", e);
+            throw new EngineException("Error occurred while executing function <delete> : ", e);
         }
     }
 
     @Override
     public List<iUserSTOAdapter> query(iUserSTOAdapter bean) throws Exception {
         if(bean == null){
-            throw new MyException("Function <query> entering null");
+            throw new EngineException("Function <query> entering null");
         }
         return fuzzyQuery(bean);
     }
 
     private iUserSTOAdapter toBean(Map<String, Object> map) throws Exception {
         if (map == null || map.isEmpty()){
-            throw new MyException("Function <toBean> entering null");
+            throw new EngineException("Function <toBean> entering null");
         }
 
         iUserSTOAdapter bean = new UserSTO();
@@ -94,7 +94,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             Optional.ofNullable(map.get(USER_STATUS)).ifPresent(v -> bean.setUserStatus(Boolean.valueOf(String.valueOf(v))));  
             return bean;
         } catch (Exception e) {
-            throw new MyException("Error occurred while executing function <toBean> : ",e);
+            throw new EngineException("Error occurred while executing function <toBean> : ",e);
         }
 
     }
@@ -107,7 +107,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
          */
         var map = new LinkedHashMap<String, Object>(16);
         if (bean == null){
-            throw new MyException("Function <toMap> entering null");
+            throw new EngineException("Function <toMap> entering null");
         }
         String s;
         Object o;
@@ -147,13 +147,13 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             
             return map; 
         }catch (Exception e) {
-            throw new MyException("Error occurred while executing function <toMap> : ",e);
+            throw new EngineException("Error occurred while executing function <toMap> : ",e);
         }
     }
 
     private long insertOne(Map<String, Object> bean) throws Exception {
         if (bean == null || bean.isEmpty()) {
-            throw new MyException("Function <insertOne> entering null");
+            throw new EngineException("Function <insertOne> entering null");
         }
         bean.remove(USERID); // 自增主键, 无需手动设值
         bean.put(USER_STATUS,true);
@@ -172,13 +172,13 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         try {
             return PDBUtil.executeInsert(sql.toString(), bean.values().toArray());
         } catch (SQLException e) {
-            throw new MyException("Error occurred while executing function <insertOne> : ", e);
+            throw new EngineException("Error occurred while executing function <insertOne> : ", e);
         }
     }
 
     private long updateOne(Map<String, Object> bean) throws Exception{
         if (bean == null || bean.isEmpty()) {
-            throw new MyException("Function <updateOne> entering null");
+            throw new EngineException("Function <updateOne> entering null");
         }
 
         bean.remove(USER_STATUS);
@@ -204,7 +204,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         try {
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
         } catch (SQLException e) {
-            throw new MyException("Error occurred while executing function <updateOne> : ", e);
+            throw new EngineException("Error occurred while executing function <updateOne> : ", e);
         }
     }
 
@@ -212,7 +212,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         Map<String, Object> beanMap = toMap(bean);
         List<iUserSTOAdapter> results = new ArrayList<>();
         if (bean == null || beanMap.isEmpty()) {
-            throw new MyException("Function <fuzzyQuery> entering null");
+            throw new EngineException("Function <fuzzyQuery> entering null");
         }
         beanMap.remove(USER_STATUS); // 不參與模糊查詢條件
         StringBuilder sql = new StringBuilder();
@@ -236,13 +236,12 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             });
             return results;
         } catch (Exception e) {
-            throw new MyException("Error occurred while executing function <fuzzyQuery> : ", e);
+            throw new EngineException("Error occurred while executing function <fuzzyQuery> : ", e);
         }
     }
 
 
-    // /*------------------------------- Singleton Pattern
-    // -------------------------------*/
+    // /*------------------------------- Singleton Pattern -------------------------------*/
 
     // private UserSTOEngine() {
     // if (Holder.INSTANCE != null) {

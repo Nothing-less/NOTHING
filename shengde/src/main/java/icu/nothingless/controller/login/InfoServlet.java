@@ -1,4 +1,4 @@
-package icu.nothingless.controller.pages;
+package icu.nothingless.controller.login;
 
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.dto.UserDTO;

@@ -19,7 +19,7 @@ public class InfrastructureInitializer implements ServletContextListener {
         try {
             logger.info("Initializing Infrastructure...");
             // 初始化 PostgreSQL 连接池
-            // PDBPoolManager.init("PostrgeConfig.properties");
+             PDBPoolManager.init("PostrgeConfig.properties");
             logger.info("PostgreSQL connection pool initialized.");
 
             // 初始化 Redis 连接池

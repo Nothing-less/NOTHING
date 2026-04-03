@@ -14,7 +14,11 @@ public class UserSTO implements iUserSTOAdapter{
      private String lastLoginIpAddr; /* last login IP address */
      private Boolean userStatus; /* True for active; False for inactive */
      private String roleId; /* user role ID */
+     // for online status, we can use userKey1 to store it, with values "ONLINE" or "OFFLINE"
+     public static final String STATUS_ONLINE = "ONLINE";
+     public static final String STATUS_OFFLINE = "OFFLINE";
      private String userKey1; /* Alternate fields 1~6 */
+
      private String userKey2;
      private String userKey3;
      private String userKey4;
@@ -186,7 +190,6 @@ public class UserSTO implements iUserSTOAdapter{
           return "UserSTO{" +
                     "userId='" + userId + '\'' +
                     ", userAccount='" + userAccount + '\'' +
-                    ", userPasswd='" + userPasswd + '\'' +
                     ", nickname='" + nickname + '\'' +
                     ", userInfos='" + userInfos + '\'' +
                     ", registerTime='" + registerTime + '\'' +

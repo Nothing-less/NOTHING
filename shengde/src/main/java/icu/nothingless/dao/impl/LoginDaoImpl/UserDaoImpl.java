@@ -1,5 +1,6 @@
 package icu.nothingless.dao.impl.LoginDaoImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,6 +17,28 @@ import icu.nothingless.pojo.bean.UserSTO;
 public class UserDaoImpl implements iUserDao {
     private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
 
+    @Override
+    public List<iUserSTOAdapter> fuzzyQuery(String keyword) throws Exception{
+        if (keyword == null || keyword.trim().isEmpty()) {
+            throw new UserSTOException("keyword is empty");
+        }
+        iUserSTOAdapter tmp = new UserSTO();
+        tmp.setNickname(keyword);
+        tmp.setUserAccount(keyword);
+
+        List<iUserSTOAdapter> results = null;
+        try {
+            results = tmp.query();
+            if (results == null || results.isEmpty()) {
+            throw new UserSTOException(" not found the exact user nickname");
+            }
+        } catch (Exception e) {
+            throw new UserSTOException("Error occurred in iUserDao.findByNickName : ",e);
+        }
+
+        logger.info("user not found : "+keyword);
+        return results;
+    }
     
     @Override
     public iUserSTOAdapter findByUsername(String username) throws Exception{

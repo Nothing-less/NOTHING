@@ -7,6 +7,7 @@ import icu.nothingless.tools.SHA256Util;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.cache.*;
 
+import java.util.List;
 import java.util.Map;
 
 import static icu.nothingless.tools.cache.RedisCacheHelper.*;
@@ -295,5 +296,10 @@ public class CacheUserDaoImpl implements iUserDao {
         public Status getStatus() { return status; }
         public iUserSTOAdapter getUser() { return user; }
         public String getMessage() { return message; }
+    }
+
+    @Override
+    public List<iUserSTOAdapter> fuzzyQuery(String keyword) throws Exception {
+        return userDao.fuzzyQuery(keyword);
     }
 }

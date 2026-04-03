@@ -1,5 +1,6 @@
 package icu.nothingless.dao.interfaces;
 
+import java.util.List;
 import java.util.Map;
 import icu.nothingless.pojo.adapter.iUserSTOAdapter;
 
@@ -7,6 +8,8 @@ public interface iUserDao {
 
     // 查询用户名
     <T> T findByUsername(String username) throws Exception;
+
+    <T> List<T> fuzzyQuery(String keyword) throws Exception;
 
     // 登录
     Boolean doLogin(iUserSTOAdapter login)throws Exception;

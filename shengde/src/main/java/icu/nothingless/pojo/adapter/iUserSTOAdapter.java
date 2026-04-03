@@ -2,9 +2,13 @@ package icu.nothingless.pojo.adapter;
 
 import java.util.List;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import icu.nothingless.pojo.bean.UserSTO;
 import icu.nothingless.pojo.engine.BaseEngine;
 import icu.nothingless.pojo.engine.UserSTOEngine;
 
+@JsonDeserialize(as = UserSTO.class)
 public interface iUserSTOAdapter extends iSTAdapter<iUserSTOAdapter> {
     @Override
     default Long save() throws Exception{

@@ -160,7 +160,7 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
 
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO ").append(TABLENAME).append(" (");
-        StringBuffer valuesPart = new StringBuffer("VALUES (");
+        StringBuilder valuesPart = new StringBuilder("VALUES (");
         for (String key : bean.keySet()) {
             sql.append(key).append(", ");
             valuesPart.append("?, ");

@@ -16,7 +16,7 @@ import icu.nothingless.tools.PDBUtil;
 public class PageItemEngine extends BaseEngine<iPageItemAdpter, PageItemEngine> {
 
     private static final String PAGE_ID = "PAGE_ID";
-    private static final String PAGE = "PAGE";
+    private static final String PAGE_LINK = "PAGE_LINK";
     private static final String PAGE_NAME = "PAGE_NAME";
     private static final String PAGE_ORDER = "PAGE_ORDER";
     private static final String PARENT = "PARENT";
@@ -33,7 +33,7 @@ public class PageItemEngine extends BaseEngine<iPageItemAdpter, PageItemEngine> 
         beanMap.remove(PAGE_STATUS);
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT * FROM ").append(TABLENAME).append(" WHERE PAGE_STATUS = TRUE ");
+        sql.append("SELECT * FROM ").append(TABLENAME).append(" WHERE PAGE_STATUS = TRUE");
         beanMap.forEach((key, value) -> {
             sql.append(" AND ").append(key).append(" LIKE ? ");
         });
@@ -64,7 +64,7 @@ public class PageItemEngine extends BaseEngine<iPageItemAdpter, PageItemEngine> 
         }
 
         return new PageItem(map.get(PAGE_ID).toString(), 
-                            map.get(PAGE).toString(),
+                            map.get(PAGE_LINK).toString(),
                             map.get(PAGE_NAME).toString(),
                             map.get(PAGE_ORDER).toString(),
                             map.get(PARENT).toString(),
@@ -81,8 +81,8 @@ public class PageItemEngine extends BaseEngine<iPageItemAdpter, PageItemEngine> 
         try {
             if ((s = bean.page_id()) != null && !s.isBlank())
                 map.put(PAGE_ID, s);
-            if ((s = bean.page()) != null && !s.isBlank())
-                map.put(PAGE, s);
+            if ((s = bean.page_link()) != null && !s.isBlank())
+                map.put(PAGE_LINK, s);
             if ((s = bean.page_name()) != null && !s.isBlank())
                 map.put(PAGE_NAME, s);
             if ((s = bean.page_order()) != null && !s.isBlank())

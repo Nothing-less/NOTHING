@@ -149,7 +149,7 @@ public class PDBUtil {
     private static void setParameters(PreparedStatement ps, Object... params)
             throws SQLException {
         if (params != null) {
-            logger.info("Parameters: {}", java.util.Arrays.toString(params));
+            // logger.info("Parameters: {}", java.util.Arrays.toString(params));
             for (int i = 0; i < params.length; i++) {
                 ps.setObject(i + 1, params[i]);
             }

@@ -10,14 +10,18 @@ import icu.nothingless.exceptions.PageItemException;
 import icu.nothingless.pojo.adapter.iPageItemAdpter;
 import icu.nothingless.pojo.bean.PageItem;
 
-public class PageDaoImpl implements iPageDao<iPageItemAdpter>{
-        private static final Logger logger = LoggerFactory.getLogger(PageDaoImpl.class);
+public class PageDaoImpl implements iPageDao<iPageItemAdpter> {
+    private static final Logger logger = LoggerFactory.getLogger(PageDaoImpl.class);
 
     @Override
-    public List<iPageItemAdpter> getKidPages(String pageName) throws Exception{
+    public List<iPageItemAdpter> getKidPages(String pageName) throws Exception {
         iPageItemAdpter bean = new PageItem(
-            null, null, pageName, null, null, null
-        );
+                null,
+                null,
+                null,
+                null,
+                pageName,
+                true);
         try {
             return bean.query();
         } catch (Exception e) {
@@ -28,8 +32,8 @@ public class PageDaoImpl implements iPageDao<iPageItemAdpter>{
 
     @Override
     public List<iPageItemAdpter> getKidPages(iPageItemAdpter page) throws Exception {
-        try {   
-            return page.query();
+        try {
+            return getKidPages(page.parent());
         } catch (Exception e) {
             logger.error("Error occurred in iPageDao.getKidPages(iPageItemAdpter page) : ", e);
             throw new PageItemException("Error occurred in iPageDao.getKidPages(iPageItemAdpter page) : ", e);

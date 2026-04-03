@@ -31,21 +31,21 @@ public class PageRouteServlet extends HttpServlet {
     private static final Gson gson = new Gson();
     
     // 缓存的菜单数据
-    private static List<MenuItem> CACHED_MENU;
+    private static List<MenuItem> CACHED_MENU = new java.util.ArrayList<>();
     
     // 默认菜单（当配置加载失败时使用）
     private static final List<MenuItem> DEFAULT_MENU = List.of(
-        new MenuItem("dashboard", "主页"),
-        new MenuItem("users", "用户管理"),
-        new MenuItem("orders", "订单管理"),
-        new MenuItem("products", "商品管理"),
-        new MenuItem("analytics", "数据分析"),
-        new MenuItem("example_tables", "数据表门"),
-        new MenuItem("settings", "系统设置")
+        // new MenuItem("dashboard", "主页"),
+        // new MenuItem("users", "用户管理"),
+        // new MenuItem("orders", "订单管理"),
+        // new MenuItem("products", "商品管理"),
+        // new MenuItem("analytics", "数据分析"),
+        // new MenuItem("example_tables", "数据表门"),
+        // new MenuItem("settings", "系统设置")
     );
     
     static {
-        loadMenuCache();
+        // loadMenuCache();
     }
     
     @Override
@@ -89,11 +89,9 @@ public class PageRouteServlet extends HttpServlet {
             Set<Map<String, String>> pages = pageService.getPages("main_page");
             
             if (pages != null && !pages.isEmpty()) {
-                CACHED_MENU = pages.stream()
-                    .flatMap(map -> map.entrySet().stream())
-                    .map(entry -> new MenuItem(entry.getKey(), entry.getValue()))
-                    .collect(Collectors.toList());
-                
+                pages.forEach(
+                    page->CACHED_MENU.add(new MenuItem(page.get("page_link"), page.get("page_name")))
+                );
                 logger.info("Loaded {} menu items", CACHED_MENU.size());
             } else {
                 logger.warn("No menu items loaded, using default");

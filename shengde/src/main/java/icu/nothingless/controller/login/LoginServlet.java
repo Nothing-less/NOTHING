@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.dto.UserDTO;
 import icu.nothingless.service.interfaces.iUserService;
+import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.ViewUtil;
@@ -80,8 +81,10 @@ public class LoginServlet extends HttpServlet {
         logger.error("password: "+password);
         logger.error("pwd_entrypted :"+pwd_entrypted);
         UserDTO signed = new UserDTO();
+        signed.setUserId("7");
         signed.setUserAccount("Shengde.Yi");
         signed.setRoleId("Super Administrator");
+        ChatJedisUtil.setUserOnline(Long.parseLong(signed.getUserId()), 1);
         RedirectUtil.redirect(req, resp, "/home", Map.of("CURRENT_USER", signed,"MENU",MENU));
         // ViewUtil.render(req, resp, view,Map.of("CURRENT_USER",signed));
         

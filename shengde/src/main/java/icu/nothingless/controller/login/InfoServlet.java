@@ -1,7 +1,8 @@
 package icu.nothingless.controller.login;
 
 import icu.nothingless.commons.RespEntity;
-import icu.nothingless.dto.UserDTO;
+import icu.nothingless.pojo.dto.User;
+
 import com.google.gson.Gson;
 
 import jakarta.servlet.ServletException;
@@ -26,7 +27,7 @@ public class InfoServlet extends HttpServlet {
         resp.setContentType("application/json;charset=UTF-8");
         
         HttpSession session = req.getSession(false);
-        UserDTO user = session != null ? (UserDTO) session.getAttribute("CURRENT_USER") : null;
+        User user = session != null ? (User) session.getAttribute("CURRENT_USER") : null;
         
         if (user == null) {
             resp.setStatus(401);

@@ -1,11 +1,11 @@
-package icu.nothingless.dto;
+package icu.nothingless.pojo.dto;
 
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
- * 用户行为追踪 DTO（优化版）
+ * 用户行为追踪
  * 
  * 设计原则：
  * 1. Record 自动提供 equals/hashCode/toString，无需手动实现
@@ -37,7 +37,7 @@ public record UserAction(
         Optional<UserIdentity> principal,
 
         // 性能指标
-        PerformanceMetrics metrics) {
+        PerformanceMetrics metrics) implements java.io.Serializable {
 
     // ========== 紧凑构造函数：验证与默认值 ==========
     public UserAction {

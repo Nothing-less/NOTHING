@@ -5,6 +5,10 @@
 <%
     RespEntity<Object> respEntity = (RespEntity<Object>)request.getSession(false).getAttribute("respEntity");
     String backUrl = "";
+    if(respEntity == null){
+        respEntity = new RespEntity<>();
+        respEntity.setMessage("发生未知错误");
+    }
 %>
 
 <!DOCTYPE html>

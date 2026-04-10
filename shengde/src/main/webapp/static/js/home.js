@@ -98,7 +98,7 @@ var App = (function() {
     var userRenderer = {
         render: function(userInfo) {
             if (!userInfo) return;
-            var safeAccount = utils.escapeHtml(userInfo.userAccount);
+            var safeAccount = utils.escapeHtml(userInfo.nickname);
             elements.userAvatar.textContent = utils.getInitial(safeAccount);
             elements.userName.textContent = safeAccount;
             elements.userRole.textContent = utils.escapeHtml(userInfo.roleId || '-');
@@ -203,7 +203,7 @@ var App = (function() {
             var userInfo = configManager.getUserInfo();
             elements.pageTitle.textContent = displayText;
             elements.breadcrumbCurrent.textContent = displayText;
-            document.title = displayText + ' - ' + (userInfo?.userAccount || '');
+            document.title = displayText + ' - ' + (userInfo?.nickname || '');
         },
         
         loadIframePage: function(url) {

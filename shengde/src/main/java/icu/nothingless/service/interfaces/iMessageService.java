@@ -2,18 +2,18 @@ package icu.nothingless.service.interfaces;
 
 import java.util.List;
 
-import icu.nothingless.pojo.bean.Message;
+import icu.nothingless.pojo.bean.MessageBean;
 
-public interface iMessageService {
+public interface IMessageService {
 
     // 发送消息
-    Message sendMessage(Long senderId, Long receiverId, String content, Integer msgType);
+    MessageBean sendMessage(Long senderId, Long receiverId, String content, Integer msgType);
 
     // 获取聊天记录
-    List<Message> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit);
+    List<MessageBean> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit);
 
     // 获取未读消息(登录时拉取)
-    List<Message> getUnreadMessages(Long userId);
+    List<MessageBean> getUnreadMessages(Long userId);
 
     // 标记已读
     void markAsRead(Long userId, Long friendId);

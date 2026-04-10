@@ -4,12 +4,12 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import icu.nothingless.pojo.bean.PageItem;
+import icu.nothingless.pojo.bean.PageItemBean;
 import icu.nothingless.pojo.engine.BaseEngine;
 import icu.nothingless.pojo.engine.PageItemEngine;
 
-@JsonDeserialize(as = PageItem.class)
-public interface iPageItemAdpter extends iSTAdapter<iPageItemAdpter> {
+@JsonDeserialize(as = PageItemBean.class)
+public interface IPageItemAdpter extends IAdapter<IPageItemAdpter> {
 
     @Override
     default Long save() throws Exception{
@@ -22,8 +22,12 @@ public interface iPageItemAdpter extends iSTAdapter<iPageItemAdpter> {
     }
 
     @Override
-    default List<iPageItemAdpter> query() throws Exception{
+    default List<IPageItemAdpter> query() throws Exception{
         return BaseEngine.getInstance(PageItemEngine.class).query(this);
+    }
+        @Override
+    default Long update() throws Exception {
+        return BaseEngine.getInstance(PageItemEngine.class).update(this);
     }
 
         public String page_id();

@@ -7,6 +7,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import icu.nothingless.tools.ChatRedisBus;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -78,5 +79,9 @@ public class RedisPoolManager {
             jedisPool.close();
             logger.info("Redis Pool closed.");
         }
+    }
+
+    public static JedisPool getJedisPool() {
+        return jedisPool;
     }
 }

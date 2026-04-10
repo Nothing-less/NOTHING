@@ -22,7 +22,7 @@ CREATE TABLE t_friendship (
     fs_id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     friend_id BIGINT NOT NULL,
-    fs_status SMALLINT DEFAULT 0,
+    fs_status SMALLINT DEFAULT 1,
     remark VARCHAR(50),
     group_name VARCHAR(50) DEFAULT '我的好友',
     apply_msg VARCHAR(200),
@@ -35,6 +35,9 @@ CREATE TABLE t_friendship (
 CREATE INDEX idx_fs_user ON t_friendship(user_id, fs_status);
 CREATE INDEX idx_fs_friend ON t_friendship(friend_id, fs_status);
 
+ALTER TABLE t_friendship 
+ADD CONSTRAINT uk_user_friend_pending 
+UNIQUE (user_id, friend_id, fs_status);
 -- 消息表
 CREATE TABLE t_message (
     msg_id BIGSERIAL PRIMARY KEY,

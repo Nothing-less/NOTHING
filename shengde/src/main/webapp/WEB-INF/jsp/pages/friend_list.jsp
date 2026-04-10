@@ -1,6 +1,6 @@
 <!-- friend_list.jsp - 好友列表面板 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <div class="friend-panel">
     <div class="friend-header">
         <div class="search-box">
@@ -34,11 +34,11 @@ function renderFriendList(friends) {
     const container = document.getElementById('friendList');
     container.innerHTML = friends.map(f => `
         <div class="friend-item" onclick="openChat(${f.friendInfo.userId}, '${f.friendInfo.nickname}')" data-group="${f.groupName}">
-            <img src="${f.friendInfo.avatar || 'default-avatar.png'}" class="avatar">
+            
             <div class="friend-info">
                 <div class="nickname">${f.remark || f.friendInfo.nickname}</div>
-                <div class="status ${f.friendInfo.status === 1 ? 'online' : 'offline'}">
-                    ${f.friendInfo.status === 1 ? '在线' : '离线'}
+                <div class="status ${f.friendInfo.userKey1 }">
+                    ${f.friendInfo.userKey1 }
                 </div>
             </div>
             ${f.unreadCount > 0 ? `<span class="badge">${f.unreadCount}</span>` : ''}

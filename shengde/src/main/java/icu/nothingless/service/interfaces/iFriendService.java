@@ -2,23 +2,22 @@ package icu.nothingless.service.interfaces;
 
 import java.util.List;
 
-import icu.nothingless.dto.UserDTO;
-import icu.nothingless.pojo.bean.Friendship;
-import icu.nothingless.pojo.bean.UserSTO;
+import icu.nothingless.pojo.bean.FriendshipBean;
+import icu.nothingless.pojo.dto.User;
 
-public interface iFriendService {
+public interface IFriendService {
 
     // 搜索用户
-    List<UserDTO> searchUsers(Long userId, String keyword);
+    List<User> searchUsers(Long userId, String keyword);
 
     // 申请添加好友
     boolean applyFriend(Long userId, Long friendId, String applyMsg);
 
     // 获取好友列表
-    List<Friendship> getFriendList(Long userId, String group, String keyword);
+    List<FriendshipBean> getFriendList(Long userId, String group, String keyword);
 
     // 获取好友申请列表
-    List<Friendship> getPendingRequests(Long userId);
+    List<FriendshipBean> getPendingRequests(Long userId);
 
     // 同意好友申请
     boolean agreeFriend(Long userId, Long friendId, String remark, String groupName);

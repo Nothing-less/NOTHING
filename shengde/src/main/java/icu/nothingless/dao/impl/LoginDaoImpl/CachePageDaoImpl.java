@@ -1,8 +1,8 @@
 package icu.nothingless.dao.impl.LoginDaoImpl;
 
-import icu.nothingless.dao.interfaces.iPageDao;
+import icu.nothingless.dao.interfaces.IPageDao;
 import icu.nothingless.exceptions.PageItemException;
-import icu.nothingless.pojo.adapter.iPageItemAdpter;
+import icu.nothingless.pojo.adapter.IPageItemAdpter;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.cache.*;
 
@@ -17,10 +17,10 @@ import static icu.nothingless.tools.cache.RedisCacheHelper.*;
 /**
  * Page数据访问层 - Redis缓存代理实现
  */
-public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
+public class CachePageDaoImpl implements IPageDao<IPageItemAdpter> {
 
     private static final Logger logger = LoggerFactory.getLogger(CachePageDaoImpl.class);
-    private final iPageDao<iPageItemAdpter> pageDao;
+    private final IPageDao<IPageItemAdpter> pageDao;
 
     // Key前缀配置
     private static final String KEY_PREFIX_PAGE_NAME = "page:name:";
@@ -31,15 +31,15 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
 
     @SuppressWarnings("unchecked")
     public CachePageDaoImpl() {
-        this.pageDao = ServiceFactory.createInstance(iPageDao.class, "pageDaoImpl");
+        this.pageDao = ServiceFactory.createInstance(IPageDao.class, "pageDaoImpl");
     }
 
-    public CachePageDaoImpl(iPageDao<iPageItemAdpter> pageDao) {
+    public CachePageDaoImpl(IPageDao<IPageItemAdpter> pageDao) {
         this.pageDao = pageDao;
     }
 
     @Override
-    public List<iPageItemAdpter> getKidPages(String pageName) throws Exception {
+    public List<IPageItemAdpter> getKidPages(String pageName) throws Exception {
         if (isBlank(pageName)) {
             logger.warn("getKidPages: pageName为空");
             return Collections.emptyList();
@@ -48,8 +48,8 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
         final String normalizedName = pageName.trim();
         final String cacheKey = CacheKeyBuilder.build(KEY_PREFIX_KIDS, normalizedName);
 
-        // 1. 尝试读缓存
-        CacheResult<List<iPageItemAdpter>> cacheResult = readListCache(cacheKey);
+        // 尝试读缓存
+        CacheResult<List<IPageItemAdpter>> cacheResult = readListCache(cacheKey);
 
         if (cacheResult.isHit()) {
             return cacheResult.getData() != null ? cacheResult.getData() : Collections.emptyList();
@@ -59,7 +59,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
             return Collections.emptyList();
         }
 
-        // 2. 缓存未命中：加锁防击穿
+        // 缓存未命中：加锁防击穿
         String lockKey = CacheKeyBuilder.buildLockKey(KEY_PREFIX_LOCK, normalizedName);
         boolean lockAcquired = tryLock(lockKey);
 
@@ -92,7 +92,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
     }
 
     @Override
-    public List<iPageItemAdpter> getKidPages(iPageItemAdpter page) throws Exception {
+    public List<IPageItemAdpter> getKidPages(IPageItemAdpter page) throws Exception {
         if (page == null) {
             return Collections.emptyList();
         }
@@ -110,7 +110,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
     }
 
     @Override
-    public iPageItemAdpter getParentPage(String pageName) {
+    public IPageItemAdpter getParentPage(String pageName) {
         if (isBlank(pageName)) {
             return null;
         }
@@ -119,7 +119,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
         final String cacheKey = CacheKeyBuilder.build(KEY_PREFIX_PARENT, normalizedName);
 
         try {
-            CacheResult<iPageItemAdpter> cacheResult = readSingleCache(cacheKey);
+            CacheResult<IPageItemAdpter> cacheResult = readSingleCache(cacheKey);
 
             if (cacheResult.isHit()) {
                 return cacheResult.getData();
@@ -161,7 +161,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
     // ==================== 缓存读取方法 ====================
 
     @SuppressWarnings("unchecked")
-    private CacheResult<List<iPageItemAdpter>> readListCache(String cacheKey) {
+    private CacheResult<List<IPageItemAdpter>> readListCache(String cacheKey) {
         String cachedJson = safeGet(cacheKey);
 
         if (cachedJson == null) {
@@ -174,7 +174,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
         }
 
         try {
-            List<iPageItemAdpter> list = JsonSerializer.deserialize(cachedJson, List.class);
+            List<IPageItemAdpter> list = JsonSerializer.deserialize(cachedJson, List.class);
             if (list != null) {
                 return CacheResult.hit(list);
             }
@@ -185,7 +185,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
         return CacheResult.miss();
     }
 
-    private CacheResult<iPageItemAdpter> readSingleCache(String cacheKey) {
+    private CacheResult<IPageItemAdpter> readSingleCache(String cacheKey) {
         String cachedJson = safeGet(cacheKey);
 
         if (cachedJson == null) {
@@ -196,7 +196,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
             return CacheResult.emptyHit();
         }
 
-        iPageItemAdpter page = JsonSerializer.deserialize(cachedJson, iPageItemAdpter.class);
+        IPageItemAdpter page = JsonSerializer.deserialize(cachedJson, IPageItemAdpter.class);
         if (page != null) {
             return CacheResult.hit(page);
         }
@@ -209,9 +209,9 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
     /**
      * 查询子页面并回填缓存（主方法）
      */
-    private List<iPageItemAdpter> queryDBAndCacheKids(String pageName) throws Exception {
+    private List<IPageItemAdpter> queryDBAndCacheKids(String pageName) throws Exception {
         try {
-            List<iPageItemAdpter> result = pageDao.getKidPages(pageName);
+            List<IPageItemAdpter> result = pageDao.getKidPages(pageName);
 
             if (result != null && !result.isEmpty()) {
                 cacheKidsResult(pageName, result);
@@ -230,9 +230,9 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
     /**
      * 降级查询（不缓存，用于获取锁失败时）
      */
-    private List<iPageItemAdpter> queryDBWithoutCache(String pageName) {
+    private List<IPageItemAdpter> queryDBWithoutCache(String pageName) {
         try {
-            List<iPageItemAdpter> result = pageDao.getKidPages(pageName);
+            List<IPageItemAdpter> result = pageDao.getKidPages(pageName);
             return result != null ? result : Collections.emptyList();
         } catch (Exception e) {
             logger.error("降级查询失败，pageName={}", pageName, e);
@@ -243,8 +243,8 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
     /**
      * 查询父页面并回填缓存（主方法）
      */
-    private iPageItemAdpter queryDBAndCacheParent(String pageName) throws Exception {
-        iPageItemAdpter parent = pageDao.getParentPage(pageName);
+    private IPageItemAdpter queryDBAndCacheParent(String pageName) throws Exception {
+        IPageItemAdpter parent = pageDao.getParentPage(pageName);
 
         if (parent != null) {
             cacheParentResult(pageName, parent);
@@ -258,7 +258,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
     /**
      * 降级查询父页面（不抛异常）
      */
-    private iPageItemAdpter queryDBParentQuietly(String pageName) {
+    private IPageItemAdpter queryDBParentQuietly(String pageName) {
         try {
             return pageDao.getParentPage(pageName);
         } catch (Exception e) {
@@ -269,7 +269,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
 
     // ==================== 缓存写入方法 ====================
 
-    private void cacheKidsResult(String pageName, List<iPageItemAdpter> kids) {
+    private void cacheKidsResult(String pageName, List<IPageItemAdpter> kids) {
         if (kids == null || kids.isEmpty())
             return;
 
@@ -281,12 +281,12 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
 
         safeSetex(cacheKey, randomTtl(), json);
 
-        for (iPageItemAdpter kid : kids) {
+        for (IPageItemAdpter kid : kids) {
             cacheSinglePage(kid);
         }
     }
 
-    private void cacheSinglePage(iPageItemAdpter page) {
+    private void cacheSinglePage(IPageItemAdpter page) {
         if (page == null)
             return;
 
@@ -308,7 +308,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
         }
     }
 
-    private void cacheParentResult(String pageName, iPageItemAdpter parent) {
+    private void cacheParentResult(String pageName, IPageItemAdpter parent) {
         if (parent == null)
             return;
 
@@ -343,7 +343,7 @@ public class CachePageDaoImpl implements iPageDao<iPageItemAdpter> {
         String json = safeGet(cacheKey);
 
         if (json != null && !isEmptyPlaceholder(json)) {
-            iPageItemAdpter page = JsonSerializer.deserialize(json, iPageItemAdpter.class);
+            IPageItemAdpter page = JsonSerializer.deserialize(json, IPageItemAdpter.class);
             if (page != null && !isBlank(page.page_name())) {
                 evictPageCache(page.page_name());
             }

@@ -10,11 +10,11 @@ import java.util.Optional;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.exceptions.EngineException;
-import icu.nothingless.pojo.adapter.iUserSTOAdapter;
-import icu.nothingless.pojo.bean.UserSTO;
+import icu.nothingless.pojo.adapter.IUserAdapter;
+
 import icu.nothingless.tools.PDBUtil;
 
-public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
+public class UserEngine extends BaseEngine<IUserAdapter, UserEngine> {
     private static final String USERID = "USER_ID";
     private static final String USERACCOUNT = "USERACCOUNT";
     private static final String USERPASSWD = "USERPASSWD";
@@ -35,80 +35,69 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
     private static final String TABLENAME = "USERS";
 
     @Override
-    public Long save(iUserSTOAdapter bean) throws Exception{
+    public Long save(IUserAdapter bean) throws Exception {
+        if (bean == null) {
+            throw new EngineException("Function <save> entering null");
+        }
+
         Map<String, Object> beanMap = toMap(bean);
         return (bean.getUserId() == null || bean.getUserId().isBlank())
-                ? (insertOne(beanMap))
-                : (updateOne(beanMap));
+                ? insertOne(beanMap)
+                : updateOne(beanMap);
     }
 
     @Override
-    public Long delete(iUserSTOAdapter bean) throws Exception{
+    public Long delete(IUserAdapter bean) throws Exception {
+        if (bean == null) {
+            throw new EngineException("Function <delete> entering null");
+        }
+
         Map<String, Object> beanMap = toMap(bean);
         if (beanMap.isEmpty() || !beanMap.containsKey(USERID)) {
             throw new EngineException("Function <delete> entering null");
         }
+
         StringBuilder sql = new StringBuilder();
-        Object[] params = new Object[2];
-        sql.append("UPDATE ").append(TABLENAME).append(" SET ");
-        sql.append(USER_STATUS).append(" = ? ");
-        params[0] = false;
-        params[1] = beanMap.get(USERID).toString();
+        sql.append("UPDATE ").append(TABLENAME).append(" SET ")
+                .append(USER_STATUS).append(" = ? ")
+                .append("WHERE ").append(USERID).append(" = ?");
+
         try {
-            return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
+            return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), IUserAdapter.STATUS_INACTIVE,
+                    beanMap.get(USERID).toString()));
         } catch (SQLException e) {
             throw new EngineException("Error occurred while executing function <delete> : ", e);
         }
     }
 
     @Override
-    public List<iUserSTOAdapter> query(iUserSTOAdapter bean) throws Exception {
-        if(bean == null){
+    public List<IUserAdapter> query(IUserAdapter bean) throws Exception {
+        if (bean == null) {
             throw new EngineException("Function <query> entering null");
         }
         return fuzzyQuery(bean);
     }
 
-    private iUserSTOAdapter toBean(Map<String, Object> map) throws Exception {
-        if (map == null || map.isEmpty()){
-            throw new EngineException("Function <toBean> entering null");
+    @Override
+    public Long update(IUserAdapter bean) throws Exception {
+        if (bean == null) {
+            throw new EngineException("Function <update> entering null");
         }
 
-        iUserSTOAdapter bean = new UserSTO();
-        try {
-            Optional.ofNullable(map.get(USERID)).ifPresent(v -> bean.setUserId(String.valueOf(v)));
-            Optional.ofNullable(map.get(USERACCOUNT)).ifPresent(v -> bean.setUserAccount(String.valueOf(v)));
-            Optional.ofNullable(map.get(USERPASSWD)).ifPresent(v -> bean.setUserPasswd(String.valueOf(v)));
-            Optional.ofNullable(map.get(NICKNAME)).ifPresent(v -> bean.setNickname(String.valueOf(v)));
-            Optional.ofNullable(map.get(USER_INFOS)).ifPresent(v -> bean.setUserInfos(String.valueOf(v)));
-            Optional.ofNullable(map.get(REGISTER_TIME)).ifPresent(v -> bean.setRegisterTime(String.valueOf(v)));
-            Optional.ofNullable(map.get(LAST_LOGIN_TIME)).ifPresent(v -> bean.setLastLoginTime(String.valueOf(v)));
-            Optional.ofNullable(map.get(LAST_LOGIN_IP_ADDR)).ifPresent(v -> bean.setLastLoginIpAddr(String.valueOf(v)));
-            Optional.ofNullable(map.get(ROLEID)).ifPresent(v -> bean.setRoleId(String.valueOf(v)));
-            Optional.ofNullable(map.get(USERKEY1)).ifPresent(v -> bean.setUserKey1(String.valueOf(v)));
-            Optional.ofNullable(map.get(USERKEY2)).ifPresent(v -> bean.setUserKey2(String.valueOf(v)));
-            Optional.ofNullable(map.get(USERKEY3)).ifPresent(v -> bean.setUserKey3(String.valueOf(v)));
-            Optional.ofNullable(map.get(USERKEY4)).ifPresent(v -> bean.setUserKey4(String.valueOf(v)));
-            Optional.ofNullable(map.get(USERKEY5)).ifPresent(v -> bean.setUserKey5(String.valueOf(v)));
-            Optional.ofNullable(map.get(USERKEY6)).ifPresent(v -> bean.setUserKey6(String.valueOf(v)));
-            Optional.ofNullable(map.get(USER_STATUS)).ifPresent(v -> bean.setUserStatus(Boolean.valueOf(String.valueOf(v))));  
-            return bean;
-        } catch (Exception e) {
-            throw new EngineException("Error occurred while executing function <toBean> : ",e);
+        Map<String, Object> beanMap = toMap(bean);
+        if (beanMap.isEmpty() || !beanMap.containsKey(USERID)) {
+            throw new EngineException("Function <update> entering null");
         }
-
+        return updateOne(beanMap);
     }
 
-    private Map<String, Object> toMap(iUserSTOAdapter bean) throws Exception {
-        /**
-         * Initializes a new {@link LinkedHashMap} with an initial capacity of 16.
-         * At this point, the map contains no key-value mappings.
-         * Therefore, calling {@code map.isEmpty()} will return {@code true}.
-         */
-        var map = new LinkedHashMap<String, Object>(16);
-        if (bean == null){
+    @Override
+    public Map<String, Object> toMap(IUserAdapter bean) throws Exception {
+        if (bean == null) {
             throw new EngineException("Function <toMap> entering null");
         }
+
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>(16);
         String s;
         Object o;
         try {
@@ -144,10 +133,41 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
                 map.put(USERKEY6, s);
             if ((o = bean.getUserStatus()) != null)
                 map.put(USER_STATUS, o);
-            
-            return map; 
-        }catch (Exception e) {
-            throw new EngineException("Error occurred while executing function <toMap> : ",e);
+
+            return map;
+        } catch (Exception e) {
+            throw new EngineException("Error occurred while executing function <toMap> : ", e);
+        }
+    }
+
+    @Override
+    public IUserAdapter toBean(Map<String, Object> map) throws Exception {
+        if (map == null || map.isEmpty()) {
+            throw new EngineException("Function <toBean> entering null");
+        }
+
+        IUserAdapter bean = new icu.nothingless.pojo.bean.UserBean();
+        try {
+            Optional.ofNullable(map.get(USERID)).ifPresent(v -> bean.setUserId(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERACCOUNT)).ifPresent(v -> bean.setUserAccount(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERPASSWD)).ifPresent(v -> bean.setUserPasswd(String.valueOf(v)));
+            Optional.ofNullable(map.get(NICKNAME)).ifPresent(v -> bean.setNickname(String.valueOf(v)));
+            Optional.ofNullable(map.get(USER_INFOS)).ifPresent(v -> bean.setUserInfos(String.valueOf(v)));
+            Optional.ofNullable(map.get(REGISTER_TIME)).ifPresent(v -> bean.setRegisterTime(String.valueOf(v)));
+            Optional.ofNullable(map.get(LAST_LOGIN_TIME)).ifPresent(v -> bean.setLastLoginTime(String.valueOf(v)));
+            Optional.ofNullable(map.get(LAST_LOGIN_IP_ADDR)).ifPresent(v -> bean.setLastLoginIpAddr(String.valueOf(v)));
+            Optional.ofNullable(map.get(ROLEID)).ifPresent(v -> bean.setRoleId(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY1)).ifPresent(v -> bean.setUserKey1(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY2)).ifPresent(v -> bean.setUserKey2(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY3)).ifPresent(v -> bean.setUserKey3(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY4)).ifPresent(v -> bean.setUserKey4(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY5)).ifPresent(v -> bean.setUserKey5(String.valueOf(v)));
+            Optional.ofNullable(map.get(USERKEY6)).ifPresent(v -> bean.setUserKey6(String.valueOf(v)));
+            Optional.ofNullable(map.get(USER_STATUS))
+                    .ifPresent(v -> bean.setUserStatus(Boolean.valueOf(String.valueOf(v))));
+            return bean;
+        } catch (Exception e) {
+            throw new EngineException("Error occurred while executing function <toBean> : ", e);
         }
     }
 
@@ -155,8 +175,9 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         if (bean == null || bean.isEmpty()) {
             throw new EngineException("Function <insertOne> entering null");
         }
+
         bean.remove(USERID); // 自增主键, 无需手动设值
-        bean.put(USER_STATUS,true);
+        bean.put(USER_STATUS, IUserAdapter.STATUS_ACTIVE);
 
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO ").append(TABLENAME).append(" (");
@@ -165,10 +186,10 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
             sql.append(key).append(", ");
             valuesPart.append("?, ");
         }
-        // 移除最後的逗號和空格
         sql.setLength(sql.length() - 2);
         valuesPart.setLength(valuesPart.length() - 2);
         sql.append(") ").append(valuesPart).append(")");
+
         try {
             return PDBUtil.executeInsert(sql.toString(), bean.values().toArray());
         } catch (SQLException e) {
@@ -176,94 +197,80 @@ public class UserSTOEngine extends BaseEngine<iUserSTOAdapter, UserSTOEngine> {
         }
     }
 
-    private long updateOne(Map<String, Object> bean) throws Exception{
+    private long updateOne(Map<String, Object> bean) throws Exception {
         if (bean == null || bean.isEmpty()) {
             throw new EngineException("Function <updateOne> entering null");
         }
 
         bean.remove(USER_STATUS);
 
-        StringBuilder sql = new StringBuilder();
-        Object[] params = new Object[bean.size()];
-        sql.append("UPDATE ").append(TABLENAME).append(" SET ");
-        int i = 0;
-        boolean firstField = true;
-        for (String key : bean.keySet()) {
-            if (!key.equals(USERID)) { // 主键是 WHERE 条件
-                if (!firstField) {
-                sql.append(", ");   // 先加逗号，除了第一个字段
-            }
-                sql.append(key).append(" = ? ");
-                params[i++] = bean.get(key).toString(); // 参数有序化
-                firstField = false;
-            }
+        if (!bean.containsKey(USERID)) {
+            throw new EngineException("Function <updateOne> requires USER_ID");
         }
-        params[i] =Long.valueOf( String.valueOf(bean.get(USERID)));
+        if (bean.size()<2) {
+            throw new EngineException("Function <updateOne> no fields to update");
+        }
 
-        sql.append("WHERE ").append(USERID).append(" = ? ");
+        StringBuilder sql = new StringBuilder();
+        List<Object> params = new ArrayList<>();
+        sql.append("UPDATE ").append(TABLENAME).append(" SET ");
+
+        for (String key : bean.keySet()) {
+            if (USERID.equals(key)) {
+                continue; // 主键不参与SET
+            }
+            sql.append(key).append(" = ?, ");
+            params.add(bean.get(key));
+        }
+
+        if (params.isEmpty()) {
+            throw new EngineException("Function <updateOne> no fields to update");
+        }
+
+        sql.setLength(sql.length() - 2); // 移除最后一个逗号和空格
+        sql.append(" WHERE ").append(USERID).append(" = ?");
+        params.add(String.valueOf(bean.get(USERID)));
+
         try {
-            return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params));
+            return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params.toArray()));
         } catch (SQLException e) {
             throw new EngineException("Error occurred while executing function <updateOne> : ", e);
         }
     }
 
-    private List<iUserSTOAdapter> fuzzyQuery(iUserSTOAdapter bean) throws Exception {
-        Map<String, Object> beanMap = toMap(bean);
-        List<iUserSTOAdapter> results = new ArrayList<>();
-        if (bean == null || beanMap.isEmpty()) {
+    private List<IUserAdapter> fuzzyQuery(IUserAdapter bean) throws Exception {
+        if (bean == null) {
             throw new EngineException("Function <fuzzyQuery> entering null");
         }
-        beanMap.remove(USER_STATUS); // 不參與模糊查詢條件
+
+        Map<String, Object> beanMap = toMap(bean);
+        if (beanMap.isEmpty()) {
+            throw new EngineException("Function <fuzzyQuery> entering null");
+        }
+
+        beanMap.remove(USER_STATUS); // 不参与模糊查询条件
+
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT * FROM ").append(TABLENAME).append(" WHERE USER_STATUS = TRUE ");
-        beanMap.forEach((key, value) -> {
-            sql.append(" AND ").append(key).append(" LIKE ? ");
-        });
+        sql.append("SELECT * FROM ").append(TABLENAME).append(" WHERE USER_STATUS = TRUE");
+        beanMap.forEach((key, value) -> sql.append(" AND ").append(key).append(" LIKE ?"));
+
         try {
             Object[] params = beanMap.values().stream()
                     .map(v -> v == null ? null : "%" + v.toString() + "%")
                     .toArray();
             List<Map<String, Object>> queryResults = PDBUtil.executeQuery(sql.toString(), params);
-            queryResults.forEach(row -> {
-                iUserSTOAdapter resultBean;
+            List<IUserAdapter> results = new ArrayList<>();
+            for (Map<String, Object> row : queryResults) {
                 try {
-                    resultBean = toBean(row);
-                    results.add(resultBean);
-                }catch(Exception e){
-                    LoggerFactory.getLogger(UserSTOEngine.class).error("Error occurred while executing function <toBean> in function <fuzzyQuery>: ", e);
+                    results.add(toBean(row));
+                } catch (Exception e) {
+                    LoggerFactory.getLogger(UserEngine.class)
+                            .error("Error occurred while executing function <toBean> in function <fuzzyQuery>: ", e);
                 }
-            });
+            }
             return results;
         } catch (Exception e) {
             throw new EngineException("Error occurred while executing function <fuzzyQuery> : ", e);
         }
     }
-
-
-    // /*------------------------------- Singleton Pattern -------------------------------*/
-
-    // private UserSTOEngine() {
-    // if (Holder.INSTANCE != null) {
-    // throw new IllegalStateException("單例已存在，禁止通過反射創建！");
-    // }
-    // }
-    // private static class Holder {
-    // private static final UserSTOEngine INSTANCE = new UserSTOEngine();
-    // }
-
-    // public static UserSTOEngine getInstance() {
-    // return Holder.INSTANCE;
-    // }
-
-    // protected UserSTOEngine readResolve() {
-    // return getInstance();
-    // }
-
-    // @Override
-    // protected Object clone() throws CloneNotSupportedException {
-    // super.clone();
-    // throw new CloneNotSupportedException("單例模式禁止克隆");
-    // }
-
 }

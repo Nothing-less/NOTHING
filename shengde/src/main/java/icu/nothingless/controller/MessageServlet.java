@@ -3,10 +3,10 @@ package icu.nothingless.controller;
 import java.io.IOException;
 import java.util.List;
 
-import icu.nothingless.commons.Result;
-import icu.nothingless.pojo.bean.Message;
+import icu.nothingless.commons.ResultEntity;
+import icu.nothingless.pojo.bean.MessageBean;
 import icu.nothingless.service.impl.MessageServiceImpl;
-import icu.nothingless.service.interfaces.iMessageService;
+import icu.nothingless.service.interfaces.IMessageService;
 import icu.nothingless.tools.JsonUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/message/*")
 public class MessageServlet extends HttpServlet {
-    private iMessageService messageService = new MessageServiceImpl();
+    private IMessageService messageService = new MessageServiceImpl();
     
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -34,13 +34,13 @@ public class MessageServlet extends HttpServlet {
             Long lastMsgId = lastId != null ? Long.parseLong(lastId) : null;
             int limit = 20;
             
-            List<Message> list = messageService.getChatHistory(userId, friendId, lastMsgId, limit);
-            resp.getWriter().write(JsonUtil.toJson(Result.success(list)));
+            List<MessageBean> list = messageService.getChatHistory(userId, friendId, lastMsgId, limit);
+            resp.getWriter().write(JsonUtil.toJson(ResultEntity.success(list)));
             
         } else if ("/unread".equals(path)) {
             // 获取所有未读消息
-            List<Message> list = messageService.getUnreadMessages(userId);
-            resp.getWriter().write(JsonUtil.toJson(Result.success(list)));
+            List<MessageBean> list = messageService.getUnreadMessages(userId);
+            resp.getWriter().write(JsonUtil.toJson(ResultEntity.success(list)));
         }
     }
     
@@ -58,20 +58,20 @@ public class MessageServlet extends HttpServlet {
             String content = req.getParameter("content");
             Integer msgType = Integer.parseInt(req.getParameter("msgType"));
             
-            Message msg = messageService.sendMessage(userId, receiverId, content, msgType);
-            resp.getWriter().write(JsonUtil.toJson(msg != null ? Result.success(msg) : Result.error("发送失败")));
+            MessageBean msg = messageService.sendMessage(userId, receiverId, content, msgType);
+            resp.getWriter().write(JsonUtil.toJson(msg != null ? ResultEntity.success(msg) : ResultEntity.error("发送失败")));
             
         } else if ("/read".equals(path)) {
             // 标记已读
             Long friendId = Long.parseLong(req.getParameter("friendId"));
             messageService.markAsRead(userId, friendId);
-            resp.getWriter().write(JsonUtil.toJson(Result.success(null)));
+            resp.getWriter().write(JsonUtil.toJson(ResultEntity.success(null)));
             
         } else if ("/recall".equals(path)) {
             // 撤回消息
             Long msgId = Long.parseLong(req.getParameter("msgId"));
             boolean success = messageService.recallMessage(msgId, userId);
-            resp.getWriter().write(JsonUtil.toJson(success ? Result.success(null) : Result.error("撤回失败，超过2分钟")));
+            resp.getWriter().write(JsonUtil.toJson(success ? ResultEntity.success(null) : ResultEntity.error("撤回失败，超过2分钟")));
         }
     }
 }

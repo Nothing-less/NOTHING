@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 
 import icu.nothingless.commons.RespEntity;
-import icu.nothingless.service.interfaces.iPageService;
+import icu.nothingless.service.interfaces.IPageService;
 import icu.nothingless.tools.ServiceFactory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -85,7 +84,7 @@ public class PageRouteServlet extends HttpServlet {
      */
     private static synchronized void loadMenuCache() {
         try {
-            iPageService pageService = ServiceFactory.getSingleton(iPageService.class);
+            IPageService pageService = ServiceFactory.getSingleton(IPageService.class);
             Set<Map<String, String>> pages = pageService.getPages("main_page");
             
             if (pages != null && !pages.isEmpty()) {

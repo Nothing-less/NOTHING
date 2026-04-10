@@ -58,7 +58,7 @@ public class SHA256Util {
     /**
      * 测试方法：验证前后端一致性
      */
-    public static void main(String[] args) {
+    public static void _main(String[] args) {
         String testPassword = "123456";
         String encrypted = encrypt(testPassword);
         System.out.println("测试密码: " + testPassword);

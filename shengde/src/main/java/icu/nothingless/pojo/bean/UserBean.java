@@ -1,8 +1,8 @@
 package icu.nothingless.pojo.bean;
 
-import icu.nothingless.pojo.adapter.iUserSTOAdapter;
+import icu.nothingless.pojo.adapter.IUserAdapter;
 
-public class UserSTO implements iUserSTOAdapter{
+public class UserBean implements java.io.Serializable, IUserAdapter{
 
      private String userId; /* Primary Key */
      private String userAccount; /* user login account */
@@ -14,11 +14,7 @@ public class UserSTO implements iUserSTOAdapter{
      private String lastLoginIpAddr; /* last login IP address */
      private Boolean userStatus; /* True for active; False for inactive */
      private String roleId; /* user role ID */
-     // for online status, we can use userKey1 to store it, with values "ONLINE" or "OFFLINE"
-     public static final String STATUS_ONLINE = "ONLINE";
-     public static final String STATUS_OFFLINE = "OFFLINE";
      private String userKey1; /* Alternate fields 1~6 */
-
      private String userKey2;
      private String userKey3;
      private String userKey4;

@@ -1,30 +1,30 @@
 package icu.nothingless.pojo.engine;
 
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
-import java.util.HashMap;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import icu.nothingless.pojo.adapter.iSTAdapter;
+import icu.nothingless.pojo.adapter.IAdapter;
 
-public abstract class BaseEngine<T extends iSTAdapter<T>, E> {
-
-    // 参数映射
-    protected Map<String, Object> params = new HashMap<>();
-
-    // 数据库连接
-    protected Connection connection;
+public abstract class BaseEngine<T extends IAdapter<T>, E extends BaseEngine> {
 
     // 查询
     public abstract List<T> query(T bean) throws Exception;
 
-    // 插入或更新
+    // 插入
     public abstract Long save(T bean) throws Exception;
 
+    // 更新
+    public abstract Long update(T bean) throws Exception;
+    
     // 删除 status -> false
     public abstract Long delete(T bean) throws Exception;
+
+    public abstract Map<String, Object> toMap(T bean) throws Exception;
+
+    public abstract T toBean(Map<String, Object> map) throws Exception;
 
     // 线程安全的实例注册表
     private static final ConcurrentHashMap<Class<?>, BaseEngine<?, ?>> INSTANCES = new ConcurrentHashMap<>();
@@ -34,6 +34,7 @@ public abstract class BaseEngine<T extends iSTAdapter<T>, E> {
         if (INSTANCES.containsKey(this.getClass())) {
             throw new IllegalStateException("Instance already exists for " + this.getClass());
         }
+        
     }
 
     

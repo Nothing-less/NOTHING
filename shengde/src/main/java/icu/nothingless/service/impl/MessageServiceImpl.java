@@ -2,24 +2,24 @@ package icu.nothingless.service.impl;
 
 import java.util.List;
 
-import icu.nothingless.dao.interfaces.iMessageDao;
-import icu.nothingless.pojo.bean.Message;
-import icu.nothingless.service.interfaces.iMessageService;
+import icu.nothingless.dao.interfaces.IMessageDao;
+import icu.nothingless.pojo.bean.MessageBean;
+import icu.nothingless.service.interfaces.IMessageService;
 import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ServiceFactory;
 
-public class MessageServiceImpl implements iMessageService {
-    private iMessageDao messageDao = ServiceFactory.getSingleton(iMessageDao.class);
+public class MessageServiceImpl implements IMessageService {
+    private IMessageDao messageDao = ServiceFactory.getSingleton(IMessageDao.class);
     
     // 发送消息
     @Override
-    public Message sendMessage(Long senderId, Long receiverId, String content, Integer msgType) {
-        Message msg = new Message();
+    public MessageBean sendMessage(Long senderId, Long receiverId, String content, Integer msgType) {
+        MessageBean msg = new MessageBean();
         msg.setSenderId(senderId);
         msg.setReceiverId(receiverId);
         msg.setMsgType(msgType);
         msg.setContent(content);
-        msg.setStatus(Message.STATUS_UNREAD);
+        msg.setStatus(MessageBean.STATUS_UNREAD);
         
         Long msgId = messageDao.saveMessage(msg);
         if (msgId != null) {
@@ -48,17 +48,17 @@ public class MessageServiceImpl implements iMessageService {
     
     // 获取聊天记录
     @Override
-    public List<Message> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit) {
+    public List<MessageBean> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit) {
         return messageDao.getChatHistory(userId, friendId, lastMsgId, limit);
     }
     
     // 获取未读消息(登录时拉取)
     @Override
-    public List<Message> getUnreadMessages(Long userId) {
-        List<Message> list = messageDao.getUnreadMessages(userId);
+    public List<MessageBean> getUnreadMessages(Long userId) {
+        List<MessageBean> list = messageDao.getUnreadMessages(userId);
         
         // 同时获取Redis中的离线消息
-        List<Message> offlineMsgs = ChatJedisUtil.popOfflineMessages(userId);
+        List<MessageBean> offlineMsgs = ChatJedisUtil.popOfflineMessages(userId);
         if (!offlineMsgs.isEmpty()) {
             list.addAll(0, offlineMsgs);
         }

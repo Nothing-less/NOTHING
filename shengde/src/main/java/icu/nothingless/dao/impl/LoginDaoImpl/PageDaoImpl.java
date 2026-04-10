@@ -5,17 +5,17 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.dao.interfaces.iPageDao;
+import icu.nothingless.dao.interfaces.IPageDao;
 import icu.nothingless.exceptions.PageItemException;
-import icu.nothingless.pojo.adapter.iPageItemAdpter;
-import icu.nothingless.pojo.bean.PageItem;
+import icu.nothingless.pojo.adapter.IPageItemAdpter;
+import icu.nothingless.pojo.bean.PageItemBean;
 
-public class PageDaoImpl implements iPageDao<iPageItemAdpter> {
+public class PageDaoImpl implements IPageDao<IPageItemAdpter> {
     private static final Logger logger = LoggerFactory.getLogger(PageDaoImpl.class);
 
     @Override
-    public List<iPageItemAdpter> getKidPages(String pageName) throws Exception {
-        iPageItemAdpter bean = new PageItem(
+    public List<IPageItemAdpter> getKidPages(String pageName) throws Exception {
+        IPageItemAdpter bean = new PageItemBean(
                 null,
                 null,
                 null,
@@ -31,7 +31,7 @@ public class PageDaoImpl implements iPageDao<iPageItemAdpter> {
     }
 
     @Override
-    public List<iPageItemAdpter> getKidPages(iPageItemAdpter page) throws Exception {
+    public List<IPageItemAdpter> getKidPages(IPageItemAdpter page) throws Exception {
         try {
             return getKidPages(page.parent());
         } catch (Exception e) {
@@ -42,7 +42,7 @@ public class PageDaoImpl implements iPageDao<iPageItemAdpter> {
     }
 
     @Override
-    public iPageItemAdpter getParentPage(String pageName) {
+    public IPageItemAdpter getParentPage(String pageName) {
         logger.error("");
         return null;
     }

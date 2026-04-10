@@ -1,12 +1,12 @@
 package icu.nothingless.pojo.bean;
 
 
-import icu.nothingless.pojo.adapter.iFSAdapter;
-import icu.nothingless.pojo.adapter.iUserSTOAdapter;
+import icu.nothingless.pojo.adapter.IFSAdapter;
+import icu.nothingless.pojo.ibean.IUserBean;
 
-public class Friendship implements java.io.Serializable, iFSAdapter{
-    private String fsId;
-    private String userId;
+public class FriendshipBean implements java.io.Serializable, IFSAdapter {
+    private Long fsId;
+    private Long userId;
     private String friendId;
     private Integer fsStatus;
     private String remark;
@@ -14,96 +14,97 @@ public class Friendship implements java.io.Serializable, iFSAdapter{
     private String applyMsg;
     private String createTime;
     private String agreeTime;
-    private Long unreadMsgCount; // 非持久化字段，表示与该好友的未读消息数
 
-    public static final int STATUS_PENDING = 0;   // 待确认
-    public static final int STATUS_AGREED = 1;    // 已同意
-    public static final int STATUS_REJECTED = 2;  // 已拒绝
-    public static final int STATUS_DELETED = 3;   // 已删除
-    private iUserSTOAdapter friendInfo; // 好友的详细信息
-    
-    // Getters
-    public String getFsId() {
-        return fsId;
+    private Long unreadMsgCount; // 非持久化字段，表示与该好友的未读消息数
+    private IUserBean friendInfo; // 好友的详细信息
+
+    public void setUnreadMsgCount(Long unreadMsgCount) {
+        this.unreadMsgCount = unreadMsgCount;
     }
-    public String getUserId() {
-        return userId;
-    }
-    public String getFriendId() {
-        return friendId;
-    }
-    public Integer getFsStatus() {
-        return fsStatus;
-    }
-    public String getRemark() {
-        return remark;
-    }
-    public String getGroupName() {
-        return groupName;
-    }
-    public String getApplyMsg() {
-        return applyMsg;
-    }
-    public String getCreateTime() {
-        return createTime;
-    }
-    public String getAgreeTime() {
-        return agreeTime;
-    }
-    public static int getStatusPending() {
-        return STATUS_PENDING;
-    }
-    public static int getStatusAgreed() {
-        return STATUS_AGREED;
-    }
-    public static int getStatusRejected() {
-        return STATUS_REJECTED;
-    }
-    public static int getStatusDeleted() {
-        return STATUS_DELETED;
-    }
-    public iUserSTOAdapter getFriendInfo() {
-        return friendInfo;
-    }
-    
-    // Setters
-    public void setFsId(String fsId) {
-        this.fsId = fsId;
-    }
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-    public void setFriendId(String friendId) {
-        this.friendId = friendId;
-    }
-    public void setFsStatus(Integer fsStatus) {
-        this.fsStatus = fsStatus;
-    }
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
-    }
-    public void setApplyMsg(String applyMsg) {
-        this.applyMsg = applyMsg;
-    }
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
-    }
-    public void setAgreeTime(String agreeTime) {
-        this.agreeTime = agreeTime;
-    }
-    public void setFriendInfo(iUserSTOAdapter friendInfo) {
+    public void setFriendInfo(IUserBean friendInfo) {
         this.friendInfo = friendInfo;
     }
     public Long getUnreadMsgCount() {
         return unreadMsgCount;
     }
-    public void setUnreadMsgCount(Long unreadMsgCount) {
-        this.unreadMsgCount = unreadMsgCount;
+    public IUserBean getFriendInfo() {
+        return friendInfo;
+    }
+    
+    // Getters
+    @Override
+    public Long getFsId() {
+        return fsId;
+    }
+    @Override
+    public Long  getUserId() {
+        return userId;
+    }
+    @Override
+    public String getFriendId() {
+        return friendId;
+    }
+    @Override
+    public Integer getFsStatus() {
+        return fsStatus;
+    }
+    @Override
+    public String getRemark() {
+        return remark;
+    }
+    @Override
+    public String getGroupName() {
+        return groupName;
+    }
+    @Override
+    public String getApplyMsg() {
+        return applyMsg;
+    }
+    @Override
+    public String getCreateTime() {
+        return createTime;
+    }
+    @Override
+    public String getAgreeTime() {
+        return agreeTime;
     }
 
-    
+    // Setters
+    @Override
+    public void setFsId(Long  fsId) {
+        this.fsId = fsId;
+    }
+    @Override
+    public void setUserId(Long  userId) {
+        this.userId = userId;
+    }
+    @Override
+    public void setFriendId(String friendId) {
+        this.friendId = friendId;
+    }
+    @Override
+    public void setFsStatus(Integer fsStatus) {
+        this.fsStatus = fsStatus;
+    }
+    @Override
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+    @Override
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+    @Override
+    public void setApplyMsg(String applyMsg) {
+        this.applyMsg = applyMsg;
+    }
+    @Override
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+    @Override
+    public void setAgreeTime(String agreeTime) {
+        this.agreeTime = agreeTime;
+    }
 
 }

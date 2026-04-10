@@ -7,29 +7,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.RespEntity;
-import icu.nothingless.dao.interfaces.iFriendDao;
-import icu.nothingless.dto.UserDTO;
-import icu.nothingless.pojo.bean.Friendship;
-import icu.nothingless.pojo.bean.UserSTO;
-import icu.nothingless.service.interfaces.iFriendService;
-import icu.nothingless.service.interfaces.iUserService;
+import icu.nothingless.dao.interfaces.IFriendDao;
+import icu.nothingless.pojo.bean.FriendshipBean;
+import icu.nothingless.pojo.bean.UserBean;
+import icu.nothingless.pojo.dto.User;
+import icu.nothingless.service.interfaces.IFriendService;
+import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ServiceFactory;
 
-public class FriendServiceImpl implements iFriendService {
-    private static final iUserService<UserDTO> userService = (iUserService<UserDTO>) ServiceFactory
-            .getSingleton(iUserService.class);
-    private static final iFriendDao friendDao = (iFriendDao) ServiceFactory.getSingleton(iFriendDao.class);
+public class FriendServiceImpl implements IFriendService {
+    private static final IUserService<User> userService = (IUserService<User>) ServiceFactory
+            .getSingleton(IUserService.class);
+    private static final IFriendDao friendDao = (IFriendDao) ServiceFactory.getSingleton(IFriendDao.class);
     private static final Logger logger = LoggerFactory.getLogger(FriendServiceImpl.class);
 
     // 搜索用户
     @Override
-    public List<UserDTO> searchUsers(Long userId, String keyword) {
-        UserDTO searchTarget = new UserDTO();
+    public List<User> searchUsers(Long userId, String keyword) {
+        User searchTarget = new User();
         searchTarget.setUserId("" + userId);
         searchTarget.setNickname(keyword);
         searchTarget.setUserAccount(keyword);
-        RespEntity<List<UserDTO>> result = userService.doSearch(searchTarget);
+        RespEntity<List<User>> result = userService.doSearch(searchTarget);
         if (result.isSuccess()) {
             return result.getData();
         }
@@ -49,8 +49,8 @@ public class FriendServiceImpl implements iFriendService {
                 return false;
 
             // 检查是否已有待处理申请
-            List<Friendship> exist = friendDao.getFriendship(userId, friendId);
-            if (exist != null && !exist.isEmpty() && exist.get(0).getFsStatus() == Friendship.STATUS_PENDING) {
+            List<FriendshipBean> exist = friendDao.getFriendship(userId, friendId);
+            if (exist != null && !exist.isEmpty() && exist.get(0).getFsStatus() == FriendshipBean.STATUS_PENDING) {
                 return false;
             }
 
@@ -68,17 +68,21 @@ public class FriendServiceImpl implements iFriendService {
 
     // 获取好友列表
     @Override
-    public List<Friendship> getFriendList(Long userId, String group, String keyword) {
-        List<Friendship> list = new ArrayList<>();
+    public List<FriendshipBean> getFriendList(Long userId, String group, String keyword) {
+        List<FriendshipBean> list = new ArrayList<>();
         try {
             list = friendDao.getFriendList(userId, group, keyword);
 
             // 补充在线状态和未读消息数
-            for (Friendship f : list) {
+            for (FriendshipBean f : list) {
                 var friend = f.getFriendInfo();
+                if (friend == null) {
+                    logger.warn("FriendInfo is null for friendship: {}", f.getFsId());
+                    continue;
+                }
                 // 从Redis获取实时在线状态
                 Integer status = ChatJedisUtil.getUserStatus(friend.getUserId());
-                friend.setUserKey1(status > 0 ? UserSTO.STATUS_ONLINE : UserSTO.STATUS_OFFLINE);
+                friend.setUserKey1(status > 0 ? UserBean.STATUS_ONLINE : UserBean.STATUS_OFFLINE);
 
                 // 获取未读消息数
                 Long unread = ChatJedisUtil.getUnreadCount(userId, Long.parseLong(friend.getUserId()));
@@ -92,7 +96,7 @@ public class FriendServiceImpl implements iFriendService {
 
     // 获取好友申请列表
     @Override
-    public List<Friendship> getPendingRequests(Long userId) {
+    public List<FriendshipBean> getPendingRequests(Long userId) {
         try {
             return friendDao.getPendingRequests(userId);
         } catch (Exception e) {
@@ -106,12 +110,19 @@ public class FriendServiceImpl implements iFriendService {
     public boolean agreeFriend(Long userId, Long friendId, String remark, String groupName) {
         boolean success = false;
         try {
+            // 1. 先操作Redis（可回滚）
+            ChatJedisUtil.clearFriendRequests(userId, friendId);
+
+            // 2. 再操作数据库（失败则回滚Redis）
             success = friendDao.agreeFriend(userId, friendId, remark, groupName);
+
+            if (!success) {
+                // 回滚Redis（或设置过期时间让自动清理）
+                ChatJedisUtil.restoreFriendRequests(userId, friendId);
+            }
+            return success;
         } catch (Exception e) {
             logger.error("Error occurred while executing function <agreeFriend>: ", e);
-        }
-        if (success) {
-            ChatJedisUtil.clearFriendRequests(userId, friendId);
         }
         return success;
     }

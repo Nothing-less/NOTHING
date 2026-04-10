@@ -2,23 +2,23 @@ package icu.nothingless.dao.interfaces;
 
 import java.util.List;
 
-import icu.nothingless.pojo.bean.Message;
+import icu.nothingless.pojo.adapter.IMSGAdapter;
 
-public interface iMessageDao {
+public interface IMessageDao<T extends IMSGAdapter> {
 
     // 保存消息
-    Long saveMessage(Message msg);
+    Long saveMessage(T msg)throws Exception;
 
     // 标记消息为已读
-    boolean markAsRead(Long userId, Long friendId);
+    Boolean markAsRead(Long userId, Long friendId)throws Exception;
 
     // 获取聊天记录(分页)
-    List<Message> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit);
+    List<T> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit)throws Exception;
 
     // 获取未读消息列表
-    List<Message> getUnreadMessages(Long userId);
+    List<T> getUnreadMessages(Long userId)throws Exception;
 
     // 撤回消息
-    boolean recallMessage(Long msgId, Long userId);
+    Boolean recallMessage(Long msgId, Long userId)throws Exception;
 
 }

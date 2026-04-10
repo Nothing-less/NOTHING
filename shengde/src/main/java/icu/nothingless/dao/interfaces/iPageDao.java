@@ -2,7 +2,7 @@ package icu.nothingless.dao.interfaces;
 
 import java.util.List;
 
-public interface iPageDao<T> {
+public interface IPageDao<T> {
     // get children pages form currentPageName
     List<T> getKidPages(String pageName) throws Exception;
 

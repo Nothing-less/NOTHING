@@ -8,8 +8,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 
 import icu.nothingless.commons.RespEntity;
-import icu.nothingless.dto.UserDTO;
-import icu.nothingless.service.interfaces.iUserService;
+import icu.nothingless.pojo.dto.User;
+import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
@@ -25,7 +25,7 @@ public class LoginServlet extends HttpServlet {
 
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LoginServlet.class);
     
-    private static final iUserService<UserDTO> userService = (iUserService<UserDTO>)ServiceFactory.getSingleton(iUserService.class);
+    protected static final IUserService<User> userService = (IUserService<User>)ServiceFactory.getSingleton(IUserService.class);
 
     @Override
     protected void doGet( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException {
@@ -39,14 +39,17 @@ public class LoginServlet extends HttpServlet {
         logger.warn("TEST-TEST:::{}",req.getParameter("password"));
         String password = req.getParameter("pwd_entrypted");
         logger.error("UserName::{}----PassWord::{}",username,password);
-        UserDTO bean = new UserDTO();
+
+        User bean = new User();
         bean.setUserAccount(username);
         bean.setUserPasswd(password);
-        bean.setLastLoginIpAddr("114.51.4.2");
+
+        bean.setLastLoginIpAddr(getClientIP(req));
+        bean.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         bean.setRoleId("Admin");
         bean.setUserId("7");
         bean.setUserStatus(true);
-        RespEntity<UserDTO> respEntity = userService.doLogin(bean);
+        RespEntity<User> respEntity = userService.doLogin(bean);
         if(respEntity.isSuccess()){
             RedirectUtil.redirect(req, resp, "/home", Map.of("CURRENT_USER", respEntity.getData(),"MENU",MENU));
         }else{
@@ -64,23 +67,24 @@ public class LoginServlet extends HttpServlet {
         String text = now.format(fmt);
         String token = "Testing token" + text;
         logger.error(token);
-        UserDTO bean = new UserDTO();
+        User bean = new User();
         bean.setUserAccount(username);
         bean.setUserPasswd(password);
-        bean.setLastLoginIpAddr("114.51.4.2");
+        String clientIP = getClientIP(req);
+
+        bean.setLastLoginIpAddr(clientIP);
+        bean.setLastLoginTime(now.format(fmt));
         bean.setRoleId("Admin");
         bean.setUserId("7");
         bean.setUserStatus(false);
-        // var loginResult = userService.doLogin(bean);
-        // if(loginResult.isSuccess()){
-        //     ViewUtil.render(req, resp, "example/index");
-        // }else{
-            
-        // }
+        var loginResult = userService.doLogin(bean);
+        if(loginResult.isSuccess()){
+            ViewUtil.render(req, resp, "example/index");
+        }
         logger.error("username :"+username);
         logger.error("password: "+password);
         logger.error("pwd_entrypted :"+pwd_entrypted);
-        UserDTO signed = new UserDTO();
+        User signed = new User();
         signed.setUserId("7");
         signed.setUserAccount("Shengde.Yi");
         signed.setRoleId("Super Administrator");
@@ -90,6 +94,32 @@ public class LoginServlet extends HttpServlet {
         
         // ViewUtil.render(req, resp, "error_page",Map.of("resp",RespEntity.error("错误错误！登录失败！无法登录！系统网络异常！")));
         
+    }
+        private String getClientIP(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        
+        // 多级代理时，取第一个 IP
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        
+        return ip;
     }
 
 }

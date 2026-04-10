@@ -3,11 +3,11 @@ package icu.nothingless.controller;
 import java.io.IOException;
 import java.util.List;
 
-import icu.nothingless.commons.Result;
-import icu.nothingless.dto.UserDTO;
-import icu.nothingless.pojo.bean.Friendship;
+import icu.nothingless.commons.ResultEntity;
+import icu.nothingless.pojo.bean.FriendshipBean;
+import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.impl.FriendServiceImpl;
-import icu.nothingless.service.interfaces.iFriendService;
+import icu.nothingless.service.interfaces.IFriendService;
 import icu.nothingless.tools.JsonUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/friend/*")
 public class FriendServlet extends HttpServlet {
-    private iFriendService friendService = new FriendServiceImpl();
+    private IFriendService friendService = new FriendServiceImpl();
     
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -32,24 +32,24 @@ public class FriendServlet extends HttpServlet {
             // 获取好友列表
             String group = req.getParameter("group");
             String keyword = req.getParameter("keyword");
-            List<Friendship> list = friendService.getFriendList(userId, group, keyword);
-            resp.getWriter().write(JsonUtil.toJson(Result.success(list)));
+            List<FriendshipBean> list = friendService.getFriendList(userId, group, keyword);
+            resp.getWriter().write(JsonUtil.toJson(ResultEntity.success(list)));
             
         } else if ("/search".equals(path)) {
             // 搜索用户
             String keyword = req.getParameter("keyword");
-            List<UserDTO> list = friendService.searchUsers(userId, keyword);
-            resp.getWriter().write(JsonUtil.toJson(Result.success(list)));
+            List<User> list = friendService.searchUsers(userId, keyword);
+            resp.getWriter().write(JsonUtil.toJson(ResultEntity.success(list)));
             
         } else if ("/requests".equals(path)) {
             // 获取好友申请列表
-            List<Friendship> list = friendService.getPendingRequests(userId);
-            resp.getWriter().write(JsonUtil.toJson(Result.success(list)));
+            List<FriendshipBean> list = friendService.getPendingRequests(userId);
+            resp.getWriter().write(JsonUtil.toJson(ResultEntity.success(list)));
             
         } else if ("/groups".equals(path)) {
             // 获取分组列表
             List<String> groups = friendService.getGroups(userId);
-            resp.getWriter().write(JsonUtil.toJson(Result.success(groups)));
+            resp.getWriter().write(JsonUtil.toJson(ResultEntity.success(groups)));
         }
     }
     
@@ -66,7 +66,7 @@ public class FriendServlet extends HttpServlet {
             Long friendId = Long.parseLong(req.getParameter("friendId"));
             String applyMsg = req.getParameter("applyMsg");
             boolean success = friendService.applyFriend(userId, friendId, applyMsg);
-            resp.getWriter().write(JsonUtil.toJson(success ? Result.success(null) : Result.error("申请失败")));
+            resp.getWriter().write(JsonUtil.toJson(success ? ResultEntity.success(null) : ResultEntity.error("申请失败")));
             
         } else if ("/agree".equals(path)) {
             // 同意申请
@@ -74,19 +74,19 @@ public class FriendServlet extends HttpServlet {
             String remark = req.getParameter("remark");
             String groupName = req.getParameter("groupName");
             boolean success = friendService.agreeFriend(userId, friendId, remark, groupName);
-            resp.getWriter().write(JsonUtil.toJson(success ? Result.success(null) : Result.error("操作失败")));
+            resp.getWriter().write(JsonUtil.toJson(success ? ResultEntity.success(null) : ResultEntity.error("操作失败")));
             
         } else if ("/reject".equals(path)) {
             // 拒绝申请
             Long friendId = Long.parseLong(req.getParameter("friendId"));
             boolean success = friendService.rejectFriend(userId, friendId);
-            resp.getWriter().write(JsonUtil.toJson(success ? Result.success(null) : Result.error("操作失败")));
+            resp.getWriter().write(JsonUtil.toJson(success ? ResultEntity.success(null) : ResultEntity.error("操作失败")));
             
         } else if ("/delete".equals(path)) {
             // 删除好友
             Long friendId = Long.parseLong(req.getParameter("friendId"));
             boolean success = friendService.deleteFriend(userId, friendId);
-            resp.getWriter().write(JsonUtil.toJson(success ? Result.success(null) : Result.error("删除失败")));
+            resp.getWriter().write(JsonUtil.toJson(success ? ResultEntity.success(null) : ResultEntity.error("删除失败")));
             
         } else if ("/update".equals(path)) {
             // 修改备注/分组
@@ -94,7 +94,7 @@ public class FriendServlet extends HttpServlet {
             String remark = req.getParameter("remark");
             String groupName = req.getParameter("groupName");
             boolean success = friendService.updateFriendInfo(userId, friendId, remark, groupName);
-            resp.getWriter().write(JsonUtil.toJson(success ? Result.success(null) : Result.error("修改失败")));
+            resp.getWriter().write(JsonUtil.toJson(success ? ResultEntity.success(null) : ResultEntity.error("修改失败")));
         }
     }
 }

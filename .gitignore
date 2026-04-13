@@ -1,6 +1,5 @@
 .vscode/
-shengde/target/
+JXMQ/target/
 *.log
 a.txt
-shengde/src/main/java/icu/nothingless/listener/InfrastructureInitializer.java
 

@@ -1,0 +1,18 @@
+# 1. 确认当前在 master 分支，并提交所有修改
+git add .
+git commit -m "描述你的修改"
+
+# 2. 切换到 main 分支并更新
+git checkout main
+git pull origin main
+
+# 3. 将 master 分支的更改合并到 main
+git merge master
+
+# 4. 如果有冲突，解决冲突后提交
+#（编辑冲突文件后）
+git add .
+git commit -m "合并 master 分支的更改"
+
+# 5. 推送更新后的 main 分支
+git push origin main

@@ -8,6 +8,8 @@ import redis.clients.jedis.Response;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
  * 功能：发布订阅、消息队列、在线状态、心跳检测
  */
 public class ChatRedisBus {
+    private static final Logger logger = LoggerFactory.getLogger(ChatRedisBus.class);
     
     // Redis Key 常量
     private static final String KEY_USER_ONLINE = "chat:online:%s";      // 用户在线状态（Hash：serverId, lastHeartbeat）
@@ -162,14 +165,14 @@ public class ChatRedisBus {
                         jedis.del(key);
                         jedis.zrem(KEY_HEARTBEAT_ZSET, userId);
                         
-                        System.out.println("用户离线检测: " + userId);
+                        logger.info("用户离线检测: {}", userId);
                         
                         // 触发离线回调（可扩展）
                         onUserTimeout(userId);
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Heartbeat checker failed: {}", e.getMessage(), e);
             }
         }, 30, 30, TimeUnit.SECONDS); // 每30秒检查一次
     }
@@ -272,12 +275,12 @@ public class ChatRedisBus {
                     
                     @Override
                     public void onSubscribe(String channel, int subscribedChannels) {
-                        System.out.println("订阅频道: " + channel);
+                        logger.info("订阅频道: {}", channel);
                     }
                     
                     @Override
                     public void onUnsubscribe(String channel, int subscribedChannels) {
-                        System.out.println("取消订阅: " + channel);
+                        logger.info("取消订阅: {}", channel);
                     }
                 };
                 
@@ -286,7 +289,7 @@ public class ChatRedisBus {
                 
             } catch (Exception e) {
                 if (running) {
-                    System.err.println("订阅异常: " + e.getMessage());
+                    logger.error("订阅异常: {}", e.getMessage(), e);
                     // 可加入重试逻辑
                 }
             }

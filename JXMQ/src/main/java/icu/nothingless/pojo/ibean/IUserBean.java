@@ -1,5 +1,10 @@
 package icu.nothingless.pojo.ibean;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import icu.nothingless.pojo.bean.UserBean;
+
+@JsonDeserialize(as = UserBean.class)
 public interface IUserBean {
 
     String getUserId();

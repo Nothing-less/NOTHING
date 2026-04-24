@@ -59,7 +59,7 @@ public class ServiceFactoryConfig {
         }
         
         // 优先级 3：使用默认配置（空列表，依赖手动扫描）
-        System.out.println("No service-factory.yml found, using default empty config");
+        logger.warn("No service-factory.yml found, using default empty config");
         return new ServiceFactoryConfig();
     }
     
@@ -89,7 +89,7 @@ public class ServiceFactoryConfig {
         Boolean auto = (Boolean) sfConfig.get("auto-scan");
         if (auto != null) config.autoScan = auto;
         
-        System.out.println("ServiceFactory config loaded: " + config.scanPackages);
+        logger.info("ServiceFactory config loaded: {}", config.scanPackages);
         return config;
     }
     

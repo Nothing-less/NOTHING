@@ -17,7 +17,7 @@
         <!-- 好友列表动态加载 -->
     </div>
 </div>
-
+<script src="<c:url value='/static/js/ChatClient.js' />" /> </script>
 <script>
 // 加载好友列表
 function loadFriends(group = '', keyword = '') {
@@ -32,18 +32,17 @@ function loadFriends(group = '', keyword = '') {
 
 function renderFriendList(friends) {
     const container = document.getElementById('friendList');
-    container.innerHTML = friends.map(f => `
-        <div class="friend-item" onclick="openChat(${f.friendInfo.userId}, '${f.friendInfo.nickname}')" data-group="${f.groupName}">
-            
-            <div class="friend-info">
-                <div class="nickname">${f.remark || f.friendInfo.nickname}</div>
-                <div class="status ${f.friendInfo.userKey1 }">
-                    ${f.friendInfo.userKey1 }
-                </div>
-            </div>
-            ${f.unreadCount > 0 ? `<span class="badge">${f.unreadCount}</span>` : ''}
-        </div>
-    `).join('');
+    container.innerHTML = friends.map(function(f) {
+        return '<div class="friend-item" onclick="openChat(' + f.friendInfo.userId + ', \'' + f.friendInfo.nickname + '\')" data-group="' + f.groupName + '">' +
+            '<div class="friend-info">' +
+                '<div class="nickname">' + (f.remark || f.friendInfo.nickname) + '</div>' +
+                '<div class="status ' + f.friendInfo.userKey1 + '">' +
+                    f.friendInfo.userKey1 +
+                '</div>' +
+            '</div>' +
+            (f.unreadCount > 0 ? '<span class="badge">' + f.unreadCount + '</span>' : '') +
+        '</div>';
+    }).join('');
 }
 
 // 筛选好友
@@ -55,12 +54,14 @@ function filterFriends() {
 // 加载分组
 function loadGroups() {
     fetch('${pageContext.request.contextPath}/friend/groups')
-        .then(r => r.json())
-        .then(res => {
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
             if (res.code === 0) {
                 const tabs = document.getElementById('groupTabs');
                 tabs.innerHTML = '<span class="active" onclick="switchGroup(\'\')">全部</span>' +
-                    res.data.map(g => `<span onclick="switchGroup('${g}')">${g}</span>`).join('');
+                    res.data.map(function(g) {
+                        return '<span onclick="switchGroup(\'' + g + '\')">' + g + '</span>';
+                    }).join('');
             }
         });
 }

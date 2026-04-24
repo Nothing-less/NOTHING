@@ -2,13 +2,19 @@ package icu.nothingless.controller;
 
 import icu.nothingless.controller.config.ChatConfigurator;
 import icu.nothingless.pojo.bean.MessageBean;
+import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.tools.ChatRedisBus;
 import icu.nothingless.tools.JsonUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -27,6 +33,12 @@ public class ChatWebSocketServer {
     
     // Redis 消息总线（由 ServletContext 初始化时注入）
     private static ChatRedisBus redisBus;
+    
+    // WebSocket 等待消息队列（可供长轮询客户端读取）
+    private static final int MAX_QUEUE_CAPACITY = 500;
+    private static final ConcurrentHashMap<Long, BlockingQueue<Message>> waitQueues = new ConcurrentHashMap<>();
+
+    private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketServer.class);
     
     // 心跳调度器
     private ScheduledExecutorService heartbeatScheduler;
@@ -50,6 +62,9 @@ public class ChatWebSocketServer {
         // 注册会话
         sessions.put(userId, session);
         
+        // 如果用户通过 WebSocket 连接，则创建并维护对应的等待队列
+        getWaitQueue(Long.valueOf(userId));
+        
         // 注册到 Redis 总线
         redisBus.userOnline(userId, this::onRedisMessage);
         
@@ -63,10 +78,11 @@ public class ChatWebSocketServer {
             "timestamp", System.currentTimeMillis()
         )));
         
-        System.out.println("用户上线: " + userId + ", 当前在线: " + sessions.size());
+        logger.info("用户上线: {}，当前在线: {}", userId, sessions.size());
     }
     
     @OnMessage
+    @SuppressWarnings("unchecked")
     public void onMessage(String message, Session session) {
         try {
             // 解析消息
@@ -105,12 +121,12 @@ public class ChatWebSocketServer {
     @OnClose
     public void onClose(CloseReason reason) {
         cleanup();
-        System.out.println("用户离线: " + userId + ", 原因: " + reason.getReasonPhrase());
+        logger.info("用户离线: {}，原因: {}", userId, reason.getReasonPhrase());
     }
     
     @OnError
     public void onError(Throwable error) {
-        System.err.println("WebSocket 错误 [" + userId + "]: " + error.getMessage());
+        logger.error("WebSocket 错误 [{}]: {}", userId, error.getMessage(), error);
         cleanup();
     }
     
@@ -141,9 +157,9 @@ public class ChatWebSocketServer {
         MessageBean message = new MessageBean();
         message.setSenderId(Long.valueOf(userId));
         message.setReceiverId(Long.valueOf(toUserId));
-        message.setContent(content);
-        message.setSendTime(new java.util.Date());
-        message.setStatus(0); // 未读
+        message.setContents(content);
+        message.setSendTime(LocalDateTime.now());
+        message.setMsgStatus(MessageBean.STATUS_UNREAD); // 未读
         
         // 保存到数据库（异步）
         saveMessageAsync(message);
@@ -155,6 +171,7 @@ public class ChatWebSocketServer {
         ));
         
         redisBus.sendMessage(toUserId, msgJson);
+        pushToWaitQueue(Long.valueOf(toUserId), message);
         
         // 发送回执给发送者
         sendMessage(JsonUtil.toJson(Map.of(
@@ -231,14 +248,14 @@ public class ChatWebSocketServer {
             
             // 90 秒无心跳则关闭连接
             if (System.currentTimeMillis() - last > 90000) {
-                System.err.println("心跳超时，关闭连接: " + userId);
+                logger.warn("心跳超时，关闭连接: {}", userId);
                 try {
                     session.close(new CloseReason(
                         CloseReason.CloseCodes.GOING_AWAY,
                         "Heartbeat timeout"
                     ));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("关闭 WebSocket 连接失败 [{}]: {}", userId, e.getMessage(), e);
                 }
                 heartbeatScheduler.shutdown();
             }
@@ -252,7 +269,7 @@ public class ChatWebSocketServer {
             try {
                 session.getBasicRemote().sendText(message);
             } catch (IOException e) {
-                System.err.println("发送消息失败 [" + userId + "]: " + e.getMessage());
+                logger.error("发送消息失败 [{}]: {}", userId, e.getMessage(), e);
             }
         }
     }
@@ -276,6 +293,31 @@ public class ChatWebSocketServer {
             heartbeatScheduler.shutdown();
         }
     }
+
+    public static BlockingQueue<Message> getWaitQueue(Long userId) {
+        if (userId == null) {
+            return new LinkedBlockingQueue<>(MAX_QUEUE_CAPACITY);
+        }
+        return waitQueues.computeIfAbsent(userId, key -> new LinkedBlockingQueue<>(MAX_QUEUE_CAPACITY));
+    }
+
+    public static void pushToWaitQueue(Long userId, Message message) {
+        if (userId == null || message == null) {
+            return;
+        }
+        BlockingQueue<Message> queue = getWaitQueue(userId);
+        if (!queue.offer(message)) {
+            queue.poll();
+            queue.offer(message);
+        }
+    }
+
+    public static void pushToWaitQueue(Long userId, MessageBean messageBean) {
+        if (messageBean == null) {
+            return;
+        }
+        pushToWaitQueue(userId, Message.fromEntity(messageBean));
+    }
     
     private void saveMessageAsync(MessageBean message) {
         // 使用线程池异步保存
@@ -297,7 +339,7 @@ public class ChatWebSocketServer {
             try {
                 session.getBasicRemote().sendText(message);
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("主动推送消息失败 [{}]: {}", userId, e.getMessage(), e);
             }
         }
     }

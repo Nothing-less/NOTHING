@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.List;
 
 import icu.nothingless.commons.R;
-import icu.nothingless.pojo.bean.FriendshipBean;
+import icu.nothingless.commons.RespEntity;
+import icu.nothingless.pojo.dto.Friendship;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.impl.FriendServiceImpl;
 import icu.nothingless.service.interfaces.IFriendService;
@@ -18,83 +19,184 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/friend/*")
 public class FriendServlet extends HttpServlet {
-    private IFriendService friendService = new FriendServiceImpl();
-    
+    private static final long serialVersionUID = 1L;
+    private final IFriendService<Friendship, User> friendService = new FriendServiceImpl();
+
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json;charset=UTF-8");
-        
+        prepareResponse(resp);
+        Long userId = getCurrentUserId(req);
+        if (userId == null) {
+            writeJson(resp, R.error("未登录或会话已过期"));
+            return;
+        }
+
         String path = req.getPathInfo();
-        HttpSession session = req.getSession();
-        Long userId = (Long) session.getAttribute("userId");
-        
-        if ("/list".equals(path)) {
-            // 获取好友列表
-            String group = req.getParameter("group");
-            String keyword = req.getParameter("keyword");
-            List<FriendshipBean> list = friendService.getFriendList(userId, group, keyword);
-            resp.getWriter().write(JsonUtil.toJson(R.success(list)));
-            
-        } else if ("/search".equals(path)) {
-            // 搜索用户
-            String keyword = req.getParameter("keyword");
-            List<User> list = friendService.searchUsers(userId, keyword);
-            resp.getWriter().write(JsonUtil.toJson(R.success(list)));
-            
-        } else if ("/requests".equals(path)) {
-            // 获取好友申请列表
-            List<FriendshipBean> list = friendService.getPendingRequests(userId);
-            resp.getWriter().write(JsonUtil.toJson(R.success(list)));
-            
-        } else if ("/groups".equals(path)) {
-            // 获取分组列表
-            List<String> groups = friendService.getGroups(userId);
-            resp.getWriter().write(JsonUtil.toJson(R.success(groups)));
+        if (path == null) {
+            writeJson(resp, R.error("无效请求路径"));
+            return;
+        }
+
+        switch (path) {
+            case "/list" -> handleFriendList(req, resp, userId);
+            case "/search" -> handleSearchUsers(req, resp, userId);
+            case "/requests" -> handlePendingRequests(resp, userId);
+            case "/groups" -> handleGroups(resp, userId);
+            default -> writeJson(resp, R.error("无效请求路径"));
         }
     }
-    
+
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json;charset=UTF-8");
-        
-        String path = req.getPathInfo();
-        HttpSession session = req.getSession();
-        Long userId = (Long) session.getAttribute("userId");
-        
-        if ("/apply".equals(path)) {
-            // 申请添加好友
-            Long friendId = Long.parseLong(req.getParameter("friendId"));
-            String applyMsg = req.getParameter("applyMsg");
-            boolean success = friendService.applyFriend(userId, friendId, applyMsg);
-            resp.getWriter().write(JsonUtil.toJson(success ? R.success(null) : R.error("申请失败")));
-            
-        } else if ("/agree".equals(path)) {
-            // 同意申请
-            Long friendId = Long.parseLong(req.getParameter("friendId"));
-            String remark = req.getParameter("remark");
-            String groupName = req.getParameter("groupName");
-            boolean success = friendService.agreeFriend(userId, friendId, remark, groupName);
-            resp.getWriter().write(JsonUtil.toJson(success ? R.success(null) : R.error("操作失败")));
-            
-        } else if ("/reject".equals(path)) {
-            // 拒绝申请
-            Long friendId = Long.parseLong(req.getParameter("friendId"));
-            boolean success = friendService.rejectFriend(userId, friendId);
-            resp.getWriter().write(JsonUtil.toJson(success ? R.success(null) : R.error("操作失败")));
-            
-        } else if ("/delete".equals(path)) {
-            // 删除好友
-            Long friendId = Long.parseLong(req.getParameter("friendId"));
-            boolean success = friendService.deleteFriend(userId, friendId);
-            resp.getWriter().write(JsonUtil.toJson(success ? R.success(null) : R.error("删除失败")));
-            
-        } else if ("/update".equals(path)) {
-            // 修改备注/分组
-            Long friendId = Long.parseLong(req.getParameter("friendId"));
-            String remark = req.getParameter("remark");
-            String groupName = req.getParameter("groupName");
-            boolean success = friendService.updateFriendInfo(userId, friendId, remark, groupName);
-            resp.getWriter().write(JsonUtil.toJson(success ? R.success(null) : R.error("修改失败")));
+        prepareResponse(resp);
+        Long userId = getCurrentUserId(req);
+        if (userId == null) {
+            writeJson(resp, R.error("未登录或会话已过期"));
+            return;
         }
+
+        String path = req.getPathInfo();
+        if (path == null) {
+            writeJson(resp, R.error("无效请求路径"));
+            return;
+        }
+
+        switch (path) {
+            case "/apply" -> handleApplyFriend(req, resp, userId);
+            case "/agree" -> handleAgreeFriend(req, resp, userId);
+            case "/reject" -> handleRejectFriend(req, resp, userId);
+            case "/delete" -> handleDeleteFriend(req, resp, userId);
+            case "/update" -> handleUpdateFriend(req, resp, userId);
+            default -> writeJson(resp, R.error("无效请求路径"));
+        }
+    }
+
+    private void handleFriendList(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
+        String group = req.getParameter("group");
+        String keyword = req.getParameter("keyword");
+        RespEntity<List<Friendship>> respEntity = friendService.getFriendList(userId, group, keyword);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private void handleSearchUsers(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
+        String keyword = req.getParameter("keyword");
+        RespEntity<List<User>> respEntity = friendService.searchUsers(userId, keyword);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private void handlePendingRequests(HttpServletResponse resp, Long userId) throws IOException {
+        RespEntity<List<Friendship>> respEntity = friendService.getPendingRequests(userId);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private void handleGroups(HttpServletResponse resp, Long userId) throws IOException {
+        RespEntity<List<String>> respEntity = friendService.getGroups(userId);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private void handleApplyFriend(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
+        Long friendId = parseLongParameter(req, "friendId");
+        String applyMsg = req.getParameter("applyMsg");
+        if (friendId == null) {
+            writeJson(resp, R.error("缺少 friendId 参数"));
+            return;
+        }
+        RespEntity<Void> respEntity = friendService.applyFriend(userId, friendId, applyMsg);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private void handleAgreeFriend(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
+        Long friendId = parseLongParameter(req, "friendId");
+        String remark = req.getParameter("remark");
+        String groupName = req.getParameter("groupName");
+        if (friendId == null) {
+            writeJson(resp, R.error("缺少 friendId 参数"));
+            return;
+        }
+        RespEntity<Void> respEntity = friendService.agreeFriend(userId, friendId, remark, groupName);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private void handleRejectFriend(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
+        Long friendId = parseLongParameter(req, "friendId");
+        if (friendId == null) {
+            writeJson(resp, R.error("缺少 friendId 参数"));
+            return;
+        }
+        RespEntity<Void> respEntity = friendService.rejectFriend(userId, friendId);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private void handleDeleteFriend(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
+        Long friendId = parseLongParameter(req, "friendId");
+        if (friendId == null) {
+            writeJson(resp, R.error("缺少 friendId 参数"));
+            return;
+        }
+        RespEntity<Void> respEntity = friendService.deleteFriend(userId, friendId);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private void handleUpdateFriend(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
+        Long friendId = parseLongParameter(req, "friendId");
+        String remark = req.getParameter("remark");
+        String groupName = req.getParameter("groupName");
+        if (friendId == null) {
+            writeJson(resp, R.error("缺少 friendId 参数"));
+            return;
+        }
+        RespEntity<Void> respEntity = friendService.updateFriendInfo(userId, friendId, remark, groupName);
+        writeRespEntity(resp, respEntity);
+    }
+
+    private Long getCurrentUserId(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        Object userIdObj = session.getAttribute("userId");
+        if (userIdObj instanceof Long) {
+            return (Long) userIdObj;
+        }
+        if (userIdObj instanceof String) {
+            try {
+                return Long.parseLong((String) userIdObj);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private Long parseLongParameter(HttpServletRequest req, String name) {
+        String value = req.getParameter(name);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private void prepareResponse(HttpServletResponse resp) {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
+    }
+
+    private void writeRespEntity(HttpServletResponse resp, RespEntity<?> respEntity) throws IOException {
+        if (respEntity == null) {
+            writeJson(resp, R.error("服务器返回空响应"));
+            return;
+        }
+        if (respEntity.isError()) {
+            writeJson(resp, R.error(respEntity.getMessage()));
+            return;
+        }
+        writeJson(resp, R.success(respEntity.getData()));
+    }
+
+    private void writeJson(HttpServletResponse resp, Object body) throws IOException {
+        resp.getWriter().write(JsonUtil.toJson(body));
     }
 }

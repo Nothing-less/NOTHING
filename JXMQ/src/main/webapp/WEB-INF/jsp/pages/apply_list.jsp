@@ -8,30 +8,30 @@
 <script>
 function loadApplyList() {
     fetch('${pageContext.request.contextPath}/friend/requests')
-        .then(r => r.json())
-        .then(res => {
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
             if (res.code === 0 && res.data.length > 0) {
                 document.getElementById('applyPanel').style.display = 'block';
-                document.getElementById('applyList').innerHTML = res.data.map(a => `
-                    <div class="apply-item">
-                        <img src="${a.friendInfo.avatar || 'default-avatar.png'}" class="avatar">
-                        <div class="apply-info">
-                            <div>${a.friendInfo.nickname} (${a.friendInfo.account})</div>
-                            <div class="apply-msg">${a.applyMsg}</div>
-                        </div>
-                        <div class="apply-actions">
-                            <button onclick="handleApply(${a.friendInfo.userId}, true)">同意</button>
-                            <button onclick="handleApply(${a.friendInfo.userId}, false)">拒绝</button>
-                        </div>
-                        <div class="remark-input" id="remark_${a.friendInfo.userId}" style="display:none;">
-                            <input type="text" placeholder="备注名" id="input_remark_${a.friendInfo.userId}">
-                            <select id="input_group_${a.friendInfo.userId}">
-                                <option value="我的好友">我的好友</option>
-                            </select>
-                            <button onclick="confirmAgree(${a.friendInfo.userId})">确认</button>
-                        </div>
-                    </div>
-                `).join('');
+                document.getElementById('applyList').innerHTML = res.data.map(function(a) {
+                    return '<div class="apply-item">' +
+                        '<img src="' + (a.friendInfo.avatar || 'default-avatar.png') + '" class="avatar">' +
+                        '<div class="apply-info">' +
+                            '<div>' + a.friendInfo.nickname + ' (' + a.friendInfo.account + ')</div>' +
+                            '<div class="apply-msg">' + a.applyMsg + '</div>' +
+                        '</div>' +
+                        '<div class="apply-actions">' +
+                            '<button onclick="handleApply(' + a.friendInfo.userId + ', true)">同意</button>' +
+                            '<button onclick="handleApply(' + a.friendInfo.userId + ', false)">拒绝</button>' +
+                        '</div>' +
+                        '<div class="remark-input" id="remark_' + a.friendInfo.userId + '" style="display:none;">' +
+                            '<input type="text" placeholder="备注名" id="input_remark_' + a.friendInfo.userId + '">' +
+                            '<select id="input_group_' + a.friendInfo.userId + '">' +
+                                '<option value="我的好友">我的好友</option>' +
+                            '</select>' +
+                            '<button onclick="confirmAgree(' + a.friendInfo.userId + ')">确认</button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
             }
         });
 }

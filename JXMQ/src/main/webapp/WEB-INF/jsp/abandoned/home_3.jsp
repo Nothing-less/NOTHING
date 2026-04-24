@@ -3,11 +3,11 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ page import="icu.nothingless.commons.RespEntity" %>
-<%@ page import="icu.nothingless.dto.UserDTO" %>
+<%@ page import="icu.nothingless.pojo.dto.User" %>
 <%@ page import="icu.nothingless.tools.ViewUtil" %>
 <!DOCTYPE html>
 <%
-    UserDTO currentUser = (UserDTO) request.getSession().getAttribute("CURRENT_USER");
+    User currentUser = (User) request.getSession().getAttribute("CURRENT_USER");
     if (currentUser == null) {
         request.setAttribute("respEntity", RespEntity.error("错误！系统出现异常！"));
         ViewUtil.render(request, response, "error_page");

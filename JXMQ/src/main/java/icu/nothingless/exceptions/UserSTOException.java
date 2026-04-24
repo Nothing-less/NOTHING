@@ -4,7 +4,7 @@ public class UserSTOException extends Exception {
     public UserSTOException(String message) {
         super(message);
     }
-    
+
     public UserSTOException(String message, Throwable cause) {
         super(message, cause);
     }

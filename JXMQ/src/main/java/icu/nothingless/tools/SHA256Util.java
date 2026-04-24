@@ -1,5 +1,7 @@
 package icu.nothingless.tools;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -9,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
  * 前后端共用算法，确保一致性
  */
 public class SHA256Util {
+    private static final Logger logger = LoggerFactory.getLogger(SHA256Util.class);
     
     /**
      * 将字符串进行 SHA256 加密
@@ -61,8 +64,8 @@ public class SHA256Util {
     public static void _main(String[] args) {
         String testPassword = "123456";
         String encrypted = encrypt(testPassword);
-        System.out.println("测试密码: " + testPassword);
-        System.out.println("加密结果: " + encrypted);
+        logger.info("测试密码: {}", testPassword);
+        logger.info("加密结果: {}", encrypted);
         // 应该输出: 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
     }
 }

@@ -1,11 +1,16 @@
 package icu.nothingless.controller;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import icu.nothingless.commons.R;
+import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.bean.MessageBean;
+import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.service.impl.MessageServiceImpl;
 import icu.nothingless.service.interfaces.IMessageService;
 import icu.nothingless.tools.JsonUtil;
@@ -18,48 +23,95 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/chat/poll")
 public class ChatPollServlet extends HttpServlet {
-    private IMessageService messageService = new MessageServiceImpl();
-    // 存储等待队列(模拟WebSocket)
-    private static final Map<Long, BlockingQueue<MessageBean>> waitQueues = new ConcurrentHashMap<>();
-    
+    private static final long serialVersionUID = 1L;
+    private static final int POLL_TIMEOUT_SECONDS = 30;
+
+    private final IMessageService<Message> messageService = new MessageServiceImpl();
+
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json;charset=UTF-8");
-        
-        HttpSession session = req.getSession();
-        Long userId = (Long) session.getAttribute("userId");
-        
-        // 长轮询：等待新消息，最多30秒
-        BlockingQueue<MessageBean> queue = waitQueues.computeIfAbsent(userId, k -> new LinkedBlockingQueue<>());
-        
+        prepareResponse(resp);
+        Long userId = getCurrentUserId(req);
+        if (userId == null) {
+            writeJson(resp, R.error("未登录或会话已过期"));
+            return;
+        }
+
+        BlockingQueue<Message> queue = ChatWebSocketServer.getWaitQueue(userId);
+        List<Message> messages = new ArrayList<>();
+
         try {
-            // 先检查是否有离线消息
-            List<MessageBean> offline = messageService.getUnreadMessages(userId);
-            if (!offline.isEmpty()) {
-                resp.getWriter().write(JsonUtil.toJson(R.success(offline)));
+            RespEntity<List<Message>> unreadResp = messageService.getUnreadMessages(userId);
+            if (unreadResp.isError()) {
+                writeRespEntity(resp, unreadResp);
                 return;
             }
-            
-            // 等待新消息，最多30秒
-            MessageBean msg = queue.poll(30, TimeUnit.SECONDS);
-            List<MessageBean> result = new ArrayList<>();
-            if (msg != null) {
-                result.add(msg);
-                // 继续取队列中可能有的其他消息
-                queue.drainTo(result);
+
+            if (unreadResp.getData() != null && !unreadResp.getData().isEmpty()) {
+                messages.addAll(unreadResp.getData());
             }
-            
-            resp.getWriter().write(JsonUtil.toJson(R.success(result)));
+
+            if (messages.isEmpty()) {
+                Message message = queue.poll(POLL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                if (message != null) {
+                    messages.add(message);
+                    queue.drainTo(messages);
+                }
+            } else {
+                queue.drainTo(messages);
+            }
+
+            writeJson(resp, R.success(messages));
         } catch (InterruptedException e) {
-            resp.getWriter().write(JsonUtil.toJson(R.success(Collections.emptyList())));
+            Thread.currentThread().interrupt();
+            writeJson(resp, R.success(Collections.emptyList()));
         }
     }
-    
-    // 供MessageService调用，当收到新消息时推送到等待队列
-    public static void pushMessage(Long userId, MessageBean msg) {
-        BlockingQueue<MessageBean> queue = waitQueues.get(userId);
-        if (queue != null) {
-            queue.offer(msg);
+
+    public static void pushMessage(Long userId, Message message) {
+        ChatWebSocketServer.pushToWaitQueue(userId, message);
+    }
+
+    public static void pushMessage(Long userId, MessageBean messageBean) {
+        ChatWebSocketServer.pushToWaitQueue(userId, messageBean);
+    }
+
+    private Long getCurrentUserId(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            return null;
         }
+        Object userId = session.getAttribute("userId");
+        if (userId instanceof Long) {
+            return (Long) userId;
+        }
+        if (userId instanceof String) {
+            try {
+                return Long.parseLong((String) userId);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
+    }
+
+    private void prepareResponse(HttpServletResponse resp) {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
+    }
+
+    private void writeRespEntity(HttpServletResponse resp, RespEntity<?> respEntity) throws IOException {
+        if (respEntity == null) {
+            writeJson(resp, R.error("服务器返回空响应"));
+            return;
+        }
+        if (respEntity.isError()) {
+            writeJson(resp, R.error(respEntity.getMessage()));
+            return;
+        }
+        writeJson(resp, R.success(respEntity.getData()));
+    }
+
+    private void writeJson(HttpServletResponse resp, Object body) throws IOException {
+        resp.getWriter().write(JsonUtil.toJson(body));
     }
 }

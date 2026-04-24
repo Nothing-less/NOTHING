@@ -1,133 +1,138 @@
 package icu.nothingless.dao.impl;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import icu.nothingless.commons.R;
 import icu.nothingless.dao.interfaces.IUserDao;
 import icu.nothingless.exceptions.UserSTOException;
 import icu.nothingless.pojo.adapter.IUserAdapter;
 import icu.nothingless.pojo.bean.UserBean;
+import icu.nothingless.pojo.dto.User;
+import icu.nothingless.tools.Fmt;
 
-
-public class UserDaoImpl implements IUserDao<IUserAdapter> {
+public class UserDaoImpl implements IUserDao<User> {
     private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
 
     @Override
-    public List<IUserAdapter> fuzzyQuery(String keyword) throws Exception {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            throw new UserSTOException("keyword is empty");
+    public R findByUsername(String username) throws Exception {
+        if (username == null || "".equals(username)) {
+            return R.error("Empty UserName");
         }
-        IUserAdapter tmp = new UserBean();
-        tmp.setNickname(keyword);
-        tmp.setUserAccount(keyword);
-
-        List<IUserAdapter> results = null;
-        try {
-            results = tmp.query();
-            if (results == null || results.isEmpty()) {
-                throw new UserSTOException(" not found the exact user nickname");
-            }
-        } catch (Exception e) {
-            throw new UserSTOException("Error occurred in iUserDao.findByNickName : ", e);
-        }
-
-        logger.info("user not found : " + keyword);
-        return results;
-    }
-
-    @Override
-    public IUserAdapter findByUsername(String username) throws Exception {
-
-        if (username == null || username.trim().isEmpty()) {
-            throw new UserSTOException("username is empty");
-        }
-        IUserAdapter tmp = new UserBean();
+        IUserAdapter tmp = new icu.nothingless.pojo.bean.UserBean();
         tmp.setUserAccount(username);
-
-        List<IUserAdapter> results;
         try {
-            results = tmp.query();
+            List<IUserAdapter> results = tmp.query();
             if (results == null || results.isEmpty()) {
-                throw new UserSTOException(" not found the exact user account");
+                logger.error("User({}) Not Found!", username);
+                throw new UserSTOException(Fmt.of("User({}) Not Found!", username));
             }
             for (IUserAdapter one : results) {
                 if (one != null && username.equals(one.getUserAccount())) {
-                    logger.info("successfully found the user account");
-                    return one;
+                    logger.info("User({}) Found!", username);
+                    return R.success(User.from(one));
                 }
             }
+            return R.error("");
         } catch (Exception e) {
+            logger.error("Error occurred in iUserDao.findByUsername : ", e);
             throw new UserSTOException("Error occurred in iUserDao.findByUsername : ", e);
         }
-
-        logger.info("user not found : " + username);
-        return null;
     }
 
     @Override
-    public Boolean doLogin(IUserAdapter login) throws Exception {
-        if (login == null)
-            return false;
-        if (login.getUserId() == null || Objects.equals("", login.getUserId())) {
-            throw new UserSTOException("user ID is empty");
+    public R doSearch(String str)throws Exception{
+                if (str == null || "".equals(str)) {
+            return R.error("Empty Search");
         }
-        if (login.getLastLoginTime() == null || Objects.equals("", login.getLastLoginTime())) {
-            throw new UserSTOException("can not get last login time");
+        IUserAdapter tmp1 = new icu.nothingless.pojo.bean.UserBean();
+        tmp1.setUserAccount(str);
+        IUserAdapter tmp2 = new icu.nothingless.pojo.bean.UserBean();
+        tmp2.setNickname(str);
+        try {
+            List<IUserAdapter> results_1 = tmp1.query();
+            List<IUserAdapter> results_2 = tmp2.query();
+            List<IUserAdapter> results = new ArrayList<>(results_1);
+            results.addAll(results_2);
+            if (results == null || results.isEmpty()) {
+                logger.error("Keyword({}) Not Found!", str);
+                throw new UserSTOException(Fmt.of("Keyword({}) Not Found!", str));
+            }
+            List<User> ret = new ArrayList<>();
+            for(IUserAdapter one: results){
+                ret.add(User.from(one));
+            }
+            return R.success(ret);
+        } catch (Exception e) {
+            logger.error("Error occurred in iUserDao.findByUsername : ", e);
+            throw new UserSTOException("Error occurred in iUserDao.findByUsername : ", e);
         }
-        if (login.getLastLoginIpAddr() == null || Objects.equals("", login.getLastLoginIpAddr())) {
-            throw new UserSTOException("can not get last login IP");
-        }
-        IUserAdapter target = findByUsername(login.getUserAccount());
-        if (target == null) {
-            throw new UserSTOException("can not find the user account");
-        }
+    }
 
-        
+    @Override
+    public R doLogin(User login_user) throws Exception {
+        if (login_user == null) {
+            logger.error("Empty User!");
+            throw new UserSTOException("Empty User!");
+        }
+        R query = findByUsername(login_user.userAccount());
+        if (!query.isSuccess()) {
+            logger.error("User({}) Not Found", login_user.userAccount());
+            throw new UserSTOException(Fmt.of("User({}) Not Found", login_user.userAccount()));
+        }
+        User queryResult = (User) query.data();
+        if (!Objects.equals(queryResult.userPasswd(), login_user.userPasswd())) {
+            logger.error("User({}) Login Failed!", login_user.userAccount());
+            return R.error(Fmt.of("User({}) Login Failed!", login_user.userAccount()));
+        }
 
         IUserAdapter tmp = new UserBean();
-        tmp.setUserId(login.getUserId());
-        tmp.setLastLoginTime(login.getLastLoginTime());
-        tmp.setLastLoginIpAddr(login.getLastLoginIpAddr());
+        tmp.setUserId(login_user.userId());
+        tmp.setLastLoginTime(login_user.lastLoginTime());
+        tmp.setLastLoginIpAddr(login_user.lastLoginIpAddr());
         tmp.setUserKey1(UserBean.STATUS_ONLINE);
-        long result = -1L;
         try {
-            result = tmp.save();
+            long result = tmp.save();
+            if (result > 0L) {
+                logger.info("User(ID:{}) Login!", tmp.getUserId());
+                return R.success(login_user);
+            }
+            logger.info("User(ID:{}) Login Can't Update!", tmp.getUserId());
+            return R.error(Fmt.of("User(ID:{}) Login Can't Update!", tmp.getUserId()));
         } catch (Exception e) {
+            logger.error("User({}) Login Failed", login_user.userAccount());
+            logger.error("Last Login Time :<{}> ", login_user.lastLoginTime());
+            logger.error("Last Login IP :<{}> ", login_user.lastLoginIpAddr());
+            logger.error("Error occurred in iUserDao.doLogin : ", e);
             throw new UserSTOException("Error occurred in iUserDao.doLogin : ", e);
         }
-        if (result > 0L) {
-            logger.info("successfully saved the new login messages");
-            return true;
-        }
-        logger.error("failed to update new login messages");
-        logger.error("Last Login Time :<{}> ", login.getLastLoginTime());
-        logger.error("Last Login IP   : " + login.getLastLoginIpAddr());
-        return false;
+
     }
 
     @Override
-    public Boolean doRegister(Map<String, String> register) throws Exception {
-        if (register == null || register.size() == 0) {
-            throw new UserSTOException("register is empty");
+    public R doRegister(User register) throws Exception {
+        if (register == null) {
+            logger.error("Empty Register!");
+            throw new UserSTOException("Empty Register!");
         }
-        String username = Optional.ofNullable(register.get("username"))
+        String username = Optional.ofNullable(register.userAccount())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
                 .orElse("");
-        String password = Optional.ofNullable(register.get("password"))
+        String password = Optional.ofNullable(register.userPasswd())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
                 .orElse("");
-        String last_login_time = Optional.ofNullable(register.get("last_login_time"))
+        String last_login_time = Optional.ofNullable(register.lastLoginTime())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
                 .orElse("");
-        String last_login_ip = Optional.ofNullable(register.get("last_login_ip"))
+        String last_login_ip = Optional.ofNullable(register.lastLoginIpAddr())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
                 .orElse("");
@@ -143,42 +148,41 @@ public class UserDaoImpl implements IUserDao<IUserAdapter> {
         tmp.setLastLoginIpAddr(last_login_ip);
         tmp.setLastLoginTime(last_login_time);
         tmp.setRegisterTime(last_login_time);
-        Long result = tmp.save();
+        long result = tmp.save();
         if (result > 0L) {
-            logger.info("register successfully!");
-            return true;
+            logger.info("User({}) Regisiter Successful!", username);
+            return R.success(Fmt.of("User({}) Regisiter Successful!", username));
         }
-        logger.error("failed to regisiter");
-        return false;
+        logger.error("User({}) Can't Regisiter!", username);
+        return R.error(Fmt.of("User({}) Can't Regisiter!", username));
     }
 
     @Override
-    public Boolean updatePwd(String username, String newPassword) throws Exception {
-
-        throw new UnsupportedOperationException("Unimplemented method 'updatePassword'");
+    public R doUpdate(User newTarget) throws Exception {
+        // TODO doUpdate
+        return null;
     }
 
     @Override
-    public Boolean doLogout(IUserAdapter currentUser) throws Exception {
-        if (currentUser == null)
-            return false;
-        if (currentUser.getUserId() == null || Objects.equals("", currentUser.getUserId())) {
-            throw new UserSTOException("user ID is empty");
+    public R doLogout(User currentUser) throws Exception {
+        if (currentUser == null || currentUser.userId() == null || Objects.equals("", currentUser.userId())) {
+            logger.error("Empty User!");
+            throw new UserSTOException("Empty User!");
         }
         IUserAdapter tmp = new UserBean();
-        tmp.setUserId(currentUser.getUserId());
+        tmp.setUserId(currentUser.userId());
         tmp.setUserKey1(UserBean.STATUS_OFFLINE);
         try {
             long result = tmp.save();
             if (result > 0L) {
-                logger.info("successfully updated the user status to offline");
-                return true;
+                logger.info("User({}) Logout!", currentUser.userAccount());
+                return R.success(Fmt.of("User({}) Logout!", currentUser.userAccount()));
             }
-            logger.error("failed to update the user status to offline");
-            return false;
+            logger.error("User({}) Can't Logout!", currentUser.userAccount());
+            return R.error(Fmt.of("User({}) Can't Logout!", currentUser.userAccount()));
         } catch (Exception e) {
+            logger.error("Error occurred in iUserDao.doLogout : ", e);
             throw new UserSTOException("Error occurred in iUserDao.doLogout : ", e);
         }
     }
-
 }

@@ -3,9 +3,8 @@ package icu.nothingless.dao.interfaces;
 import java.util.List;
 
 import icu.nothingless.commons.R;
-import icu.nothingless.pojo.adapter.IFSAdapter;
 
-public interface IFriendDao<T extends IFSAdapter> {
+public interface IFriendDao<T> {
 
     // 申请添加好友
     R<Boolean> applyFriend(Long userId, Long friendId, String applyMsg)throws Exception;

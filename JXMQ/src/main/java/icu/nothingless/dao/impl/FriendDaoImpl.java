@@ -5,6 +5,7 @@ import icu.nothingless.dao.interfaces.IFriendDao;
 import icu.nothingless.exceptions.EngineException;
 import icu.nothingless.pojo.bean.FriendshipBean;
 import icu.nothingless.pojo.bean.UserBean;
+import icu.nothingless.pojo.dto.Friendship;
 import icu.nothingless.pojo.engine.FSEngine;
 import icu.nothingless.tools.PDBUtil;
 
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
+public class FriendDaoImpl implements IFriendDao<Friendship> {
 
     private static final String FS_ID = FSEngine.getFsId();
     private static final String USER_ID = FSEngine.getUserId();
@@ -31,15 +32,15 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
     // 申请添加好友
     public R<Boolean> applyFriend(Long userId, Long friendId, String applyMsg) throws Exception {
         // 检查是否已存在关系
-        List<FriendshipBean> existing = getFriendship(userId, friendId).data();
+        List<Friendship> existing = getFriendship(userId, friendId).data();
         if (existing != null && !existing.isEmpty()) {
             return R.error("已存在关系");
         }
 
         // 检查对方是否已申请自己
-        List<FriendshipBean> reverse = getFriendship(friendId, userId).data();
+        List<Friendship> reverse = getFriendship(friendId, userId).data();
         if (reverse != null && !reverse.isEmpty()) {
-            FriendshipBean req = reverse.get(0);
+            Friendship req = reverse.get(0);
             if (req.getFsStatus() == 0) {
                 // 对方已申请，直接同意
                 try {
@@ -73,7 +74,7 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
     }
 
     // 获取单向好友关系
-    public R<List<FriendshipBean>> getFriendship(Long userId, Long friendId) throws Exception {
+    public R<List<Friendship>> getFriendship(Long userId, Long friendId) throws Exception {
         // String sql = "SELECT * FROM t_friendship WHERE user_id = ? AND friend_id = ?
         // ";
         StringBuilder sql = new StringBuilder();
@@ -91,7 +92,7 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
                 .append(" WHERE ").append(USER_ID).append(" = ? AND ")
                 .append(FRIEND_ID).append(" = ? ");
 
-        List<FriendshipBean> result = new ArrayList<>();
+        List<Friendship> result = new ArrayList<>();
         try {
             List<Map<String, Object>> queryResult = PDBUtil.executeQuery(
                     sql.toString(), userId, friendId);
@@ -116,7 +117,7 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
                 Object agreeTime = map.get(AGREE_TIME);
                 f.setAgreeTime(agreeTime != null ? agreeTime.toString() : null);
 
-                result.add(f);
+                result.add(toDto(f));
             }
             return result.isEmpty() ? R.error("未找到好友关系") : R.success(result);
         } catch (SQLException e) {
@@ -155,8 +156,8 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
     }
 
     // 获取好友列表(包含好友信息)
-    public R<List<FriendshipBean>> getFriendList(Long userId, String groupName, String keyword) throws Exception {
-        List<FriendshipBean> list = new ArrayList<>();
+    public R<List<Friendship>> getFriendList(Long userId, String groupName, String keyword) throws Exception {
+        List<Friendship> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         List<Object> params = new ArrayList<>();
         sql.append("SELECT f.fs_id, f.user_id, f.friend_id, f.fs_status, f.remark, ")
@@ -213,7 +214,7 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
                     applicant.setNickname((String) map.get("NICKNAME"));
 
                     f.setFriendInfo(applicant);
-                    list.add(f);
+                    list.add(toDto(f));
                 }
             }
         } catch (SQLException e) {
@@ -223,8 +224,8 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
     }
 
     // 获取待处理的好友申请列表
-    public R<List<FriendshipBean>> getPendingRequests(Long userId) throws Exception {
-        List<FriendshipBean> list = new ArrayList<>();
+    public R<List<Friendship>> getPendingRequests(Long userId) throws Exception {
+        List<Friendship> list = new ArrayList<>();
 
         /*
          * String sql = "SELECT f.*, u.user_id, u.account, u.nickname "
@@ -282,7 +283,7 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
                 applicant.setNickname((String) map.get("NICKNAME"));
 
                 f.setFriendInfo(applicant);
-                list.add(f);
+                list.add(toDto(f));
             }
         } catch (SQLException e) {
             throw new EngineException("Error occurred while executing function <getPendingRequests> : ", e);
@@ -466,5 +467,9 @@ public class FriendDaoImpl implements IFriendDao<FriendshipBean> {
         } catch (SQLException e) {
             throw new EngineException("Error occurred while executing function <getGroups> : ", e);
         }
+    }
+
+    private Friendship toDto(icu.nothingless.pojo.bean.FriendshipBean bean){
+        return Friendship.builder().from(bean).build();
     }
 }

@@ -50,10 +50,7 @@ function appendMessage(msg) {
     const isSelf = msg.senderId === ${sessionScope.userId};
     const div = document.createElement('div');
     div.className = 'msg-item ' + (isSelf ? 'self' : 'other');
-    div.innerHTML = `
-        <div class="msg-content">${msg.content}</div>
-        <div class="msg-time">${formatTime(msg.sendTime)}</div>
-    `;
+    div.innerHTML = '<div class="msg-content">${msg.content}</div><div class="msg-time">${formatTime(msg.sendTime)}</div>';
     area.appendChild(div);
 }
 

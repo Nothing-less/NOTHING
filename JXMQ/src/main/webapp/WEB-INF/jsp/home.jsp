@@ -1,12 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="icu.nothingless.commons.RespEntity" %>
-<%@ page import="icu.nothingless.dto.UserDTO" %>
+<%@ page import="icu.nothingless.pojo.dto.User" %>
 <%@ page import="icu.nothingless.tools.ViewUtil" %>
 <%@ page import="icu.nothingless.tools.RedirectUtil" %>
 <%@ page import="java.util.Map" %>
 <%
-    UserDTO currentUser = (UserDTO) request.getSession(false).getAttribute("CURRENT_USER");
+    User currentUser = (User) request.getSession(false).getAttribute("CURRENT_USER");
     if (currentUser == null) {
         request.setAttribute("respEntity", RespEntity.error("错误！系统出现异常！"));
         ViewUtil.render(request, response, "error_page");

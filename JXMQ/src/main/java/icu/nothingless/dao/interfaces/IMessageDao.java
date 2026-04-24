@@ -3,10 +3,9 @@ package icu.nothingless.dao.interfaces;
 import java.util.List;
 
 import icu.nothingless.commons.R;
-import icu.nothingless.pojo.adapter.IMSGAdapter;
 
 
-public interface IMessageDao<T extends IMSGAdapter> {
+public interface IMessageDao<T> {
 
     // 保存消息
     R<Long> saveMessage(T msg)throws Exception;

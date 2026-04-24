@@ -1,7 +1,9 @@
 package icu.nothingless.pojo.dto;
 
 import java.util.Objects;
-import icu.nothingless.pojo.bean.UserBean;
+
+import icu.nothingless.pojo.adapter.IUserAdapter;
+import icu.nothingless.pojo.ibean.IUserBean;
 
 /**
  * User DTO - 用户数据传输对象
@@ -138,7 +140,7 @@ public record User(
         /**
          * 从 Entity 构建
          */
-        public Builder from(UserBean bean) {
+        public Builder from(IUserBean bean) {
             this.userId = bean.getUserId();
             this.userAccount = bean.getUserAccount();
             this.userPasswd = bean.getUserPasswd();
@@ -170,12 +172,12 @@ public record User(
         
         public User build() {
             // 必填校验
-            if (userId == null || userId.isEmpty()) {
-                throw new IllegalStateException("userId is required");
-            }
-            if (userAccount == null || userAccount.isEmpty()) {
-                throw new IllegalStateException("userAccount is required");
-            }
+            // if (userId == null || userId.isEmpty()) {
+            //     throw new IllegalStateException("userId is required");
+            // }
+            // if (userAccount == null || userAccount.isEmpty()) {
+            //     throw new IllegalStateException("userAccount is required");
+            // }
             return new User(userId, userAccount, userPasswd, nickname, userInfos,
                     registerTime, lastLoginTime, lastLoginIpAddr, userStatus, roleId,
                     userKey1, userKey2, userKey3, userKey4, userKey5, userKey6);
@@ -187,7 +189,7 @@ public record User(
     /**
      * 从 Entity 快速创建
      */
-    public static User from(UserBean bean) {
+    public static User from(IUserBean bean) {
         return User.builder().from(bean).build();
     }
     
@@ -199,6 +201,65 @@ public record User(
                 .userId(userId)
                 .nickname(nickname)
                 .userInfos(userInfos)
+                .build();
+    }
+    public static User forLogin(User user){
+        return User.builder()
+                .userId(user.userId())
+                .userAccount(user.userAccount())
+                .userPasswd(user.userPasswd())
+                .nickname(user.nickname())
+                .userInfos(user.userInfos())
+                .registerTime(user.registerTime())
+                .lastLoginTime(user.lastLoginTime())
+                .lastLoginIpAddr(user.lastLoginIpAddr())
+                .userStatus(user.userStatus())
+                .roleId(user.roleId())
+                .userKey1(IUserAdapter.STATUS_ONLINE)
+                .userKey2(user.userKey2())
+                .userKey3(user.userKey3())
+                .userKey4(user.userKey4())
+                .userKey5(user.userKey5())
+                .userKey6(user.userKey6())
+                .build();
+    }
+        public static User forLogin(User user, String userId){
+        return User.builder()
+                .userId(userId)
+                .userAccount(user.userAccount())
+                .userPasswd(user.userPasswd())
+                .nickname(user.nickname())
+                .userInfos(user.userInfos())
+                .registerTime(user.registerTime())
+                .lastLoginTime(user.lastLoginTime())
+                .lastLoginIpAddr(user.lastLoginIpAddr())
+                .userStatus(user.userStatus())
+                .roleId(user.roleId())
+                .userKey1(IUserAdapter.STATUS_ONLINE)
+                .userKey2(user.userKey2())
+                .userKey3(user.userKey3())
+                .userKey4(user.userKey4())
+                .userKey5(user.userKey5())
+                .userKey6(user.userKey6())
+                .build();
+    }
+        public static User forLogout(User user){
+        return User.builder()
+                .userId(user.userId())
+                .userAccount(user.userAccount())
+                .nickname(user.nickname())
+                .userInfos(user.userInfos())
+                .registerTime(user.registerTime())
+                .lastLoginTime(user.lastLoginTime())
+                .lastLoginIpAddr(user.lastLoginIpAddr())
+                .userStatus(user.userStatus())
+                .roleId(user.roleId())
+                .userKey1(IUserAdapter.STATUS_OFFLINE)
+                .userKey2(user.userKey2())
+                .userKey3(user.userKey3())
+                .userKey4(user.userKey4())
+                .userKey5(user.userKey5())
+                .userKey6(user.userKey6())
                 .build();
     }
     

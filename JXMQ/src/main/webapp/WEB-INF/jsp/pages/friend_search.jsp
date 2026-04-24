@@ -8,7 +8,7 @@
         <button onclick="closeSearchModal()">关闭</button>
     </div>
 </div>
-
+<script src="<c:url value='/static/js/ChatClient.js' />" /> </script>
 <script>
 function showSearchModal() {
     document.getElementById('searchModal').style.display = 'flex';
@@ -38,18 +38,18 @@ function doSearch() {
 
 function renderSearchResults(users) {
     const container = document.getElementById('searchResults');
-    container.innerHTML = users.map(u => `
-        <div class="user-item">
-            <img src="${u.avatar || 'default-avatar.png'}" class="avatar">
-            <div class="user-info">
-                <div>${u.nickname} (${u.account})</div>
-                <div class="status ${u.status === 1 ? 'online' : 'offline'}">
-                    ${u.status === 1 ? '在线' : '离线'}
-                </div>
-            </div>
-            <button onclick="applyFriend(${u.userId}, '${u.nickname}')">添加</button>
-        </div>
-    `).join('');
+    container.innerHTML = users.map(function(u) {
+        return '<div class="user-item">' +
+            '<img src="' + (u.avatar || 'default-avatar.png') + '" class="avatar">' +
+            '<div class="user-info">' +
+                '<div>' + u.nickname + ' (' + u.account + ')</div>' +
+                '<div class="status ' + (u.userKey1 === "ONLINE" ? 'online' : 'offline') + '">' +
+                    u.userKey1 +
+                '</div>' +
+            '</div>' +
+            '<button onclick="applyFriend(' + u.userId + ', \'' + u.nickname + '\')">添加</button>' +
+        '</div>';
+    }).join('');
 }
 
 function applyFriend(friendId, nickname) {

@@ -105,6 +105,13 @@ body {
 }
 */
 
+/* 添加到 pages.css */
+.server-time {
+    min-width: 180px;  /* 根据你的时间格式调整 */
+    text-align: right;
+    font-variant-numeric: tabular-nums;  /* 等宽数字，防止宽度跳动 */
+}
+
 .sidebar-trigger {
     position: absolute;
     right: -4px; /* 向右偏移一半，居中在边缘 */

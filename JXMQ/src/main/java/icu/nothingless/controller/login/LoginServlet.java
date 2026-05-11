@@ -1,8 +1,6 @@
 package icu.nothingless.controller.login;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -10,7 +8,6 @@ import org.slf4j.Logger;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
-import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.ViewUtil;
@@ -36,9 +33,9 @@ public class LoginServlet extends HttpServlet {
     protected void doPost( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException{
 
         String username = req.getParameter("username");
-        logger.warn("TEST-TEST:::{}",req.getParameter("password"));
         String password = req.getParameter("pwd_entrypted");
-        logger.error("UserName::{}----PassWord::{}",username,password);
+
+        logger.warn("UserName:<{}>----PassWord:<{}>",username,password);
 
         User bean = User.builder()
                     .userAccount(username).userPasswd(password)
@@ -49,6 +46,7 @@ public class LoginServlet extends HttpServlet {
 
         RespEntity<User> respEntity = userService.doLogin(bean);
         if(respEntity.isSuccess()){
+            logger.error("Login Success! User:<{}>",(User)(respEntity.getData()));
             RedirectUtil.redirect(req, resp, "/home", Map.of("CURRENT_USER", (User)respEntity.getData(),"MENU",MENU));
         }else{
             ViewUtil.render(req, resp, "error_page",Map.of("respEntity",respEntity));

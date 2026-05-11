@@ -100,7 +100,7 @@ public class UserDaoImpl implements IUserDao<User> {
             long result = tmp.save();
             if (result > 0L) {
                 logger.info("User(ID:{}) Login!", tmp.getUserId());
-                return R.success(login_user);
+                return R.success(queryResult.withoutPasswd());
             }
             logger.info("User(ID:{}) Login Can't Update!", tmp.getUserId());
             return R.error(Fmt.of("User(ID:{}) Login Can't Update!", tmp.getUserId()));

@@ -42,7 +42,11 @@ public class UserServiceImpl implements IUserService<User> {
                 resultList = (List<User>) result.data();
             }
             if (resultList != null && !resultList.isEmpty()) {
-                return RespEntity.success(resultList);
+                List<User> returnList = new ArrayList<>();
+                for (User user : resultList) {
+                    returnList.add(user.withoutPasswd());
+                }
+                return RespEntity.success(returnList);
             }
 
         } catch (Exception e) {
@@ -113,7 +117,7 @@ public class UserServiceImpl implements IUserService<User> {
     @Override
     public RespEntity<User> doLogout(User target) {
 
-        if (target == null || Objects.isNull(target.userAccount())) {
+        if (target == null) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }

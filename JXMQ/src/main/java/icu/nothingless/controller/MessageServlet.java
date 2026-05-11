@@ -3,7 +3,6 @@ package icu.nothingless.controller;
 import java.io.IOException;
 import java.util.List;
 
-import icu.nothingless.commons.R;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.service.impl.MessageServiceImpl;
@@ -26,13 +25,13 @@ public class MessageServlet extends HttpServlet {
         prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
-            writeJson(resp, R.error("未登录或会话已过期"));
+            writeJson(resp, RespEntity.error("未登录或会话已过期"));
             return;
         }
 
         String path = req.getPathInfo();
         if (path == null) {
-            writeJson(resp, R.error("无效请求路径"));
+            writeJson(resp, RespEntity.error("无效请求路径"));
             return;
         }
 
@@ -41,7 +40,7 @@ public class MessageServlet extends HttpServlet {
         } else if ("/unread".equals(path)) {
             handleUnread(resp, userId);
         } else {
-            writeJson(resp, R.error("无效请求路径"));
+            writeJson(resp, RespEntity.error("无效请求路径"));
         }
     }
 
@@ -50,13 +49,13 @@ public class MessageServlet extends HttpServlet {
         prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
-            writeJson(resp, R.error("未登录或会话已过期"));
+            writeJson(resp, RespEntity.error("未登录或会话已过期"));
             return;
         }
 
         String path = req.getPathInfo();
         if (path == null) {
-            writeJson(resp, R.error("无效请求路径"));
+            writeJson(resp, RespEntity.error("无效请求路径"));
             return;
         }
 
@@ -67,7 +66,7 @@ public class MessageServlet extends HttpServlet {
         } else if ("/recall".equals(path)) {
             handleRecall(req, resp, userId);
         } else {
-            writeJson(resp, R.error("无效请求路径"));
+            writeJson(resp, RespEntity.error("无效请求路径"));
         }
     }
 
@@ -77,7 +76,7 @@ public class MessageServlet extends HttpServlet {
         int limit = parseIntParameter(req, "limit", 20);
 
         if (friendId == null) {
-            writeJson(resp, R.error("缺少 friendId 参数"));
+            writeJson(resp, RespEntity.error("缺少 friendId 参数"));
             return;
         }
 
@@ -96,11 +95,11 @@ public class MessageServlet extends HttpServlet {
         Integer msgType = parseIntegerParameter(req, "msgType");
 
         if (receiverId == null) {
-            writeJson(resp, R.error("缺少 receiverId 参数"));
+            writeJson(resp, RespEntity.error("缺少 receiverId 参数"));
             return;
         }
         if (content == null || content.isBlank()) {
-            writeJson(resp, R.error("消息内容不能为空"));
+            writeJson(resp, RespEntity.error("消息内容不能为空"));
             return;
         }
 
@@ -111,7 +110,7 @@ public class MessageServlet extends HttpServlet {
     private void handleMarkAsRead(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
         Long friendId = parseLongParameter(req, "friendId");
         if (friendId == null) {
-            writeJson(resp, R.error("缺少 friendId 参数"));
+            writeJson(resp, RespEntity.error("缺少 friendId 参数"));
             return;
         }
         RespEntity<Void> respEntity = messageService.markAsRead(userId, friendId);
@@ -121,7 +120,7 @@ public class MessageServlet extends HttpServlet {
     private void handleRecall(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
         Long msgId = parseLongParameter(req, "msgId");
         if (msgId == null) {
-            writeJson(resp, R.error("缺少 msgId 参数"));
+            writeJson(resp, RespEntity.error("缺少 msgId 参数"));
             return;
         }
         RespEntity<Void> respEntity = messageService.recallMessage(msgId, userId);
@@ -133,7 +132,7 @@ public class MessageServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        Object userIdObj = session.getAttribute("userId");
+        Object userIdObj = session.getAttribute("CURRENT_USER_ID");
         if (userIdObj instanceof Long) {
             return (Long) userIdObj;
         }
@@ -182,14 +181,14 @@ public class MessageServlet extends HttpServlet {
 
     private void writeRespEntity(HttpServletResponse resp, RespEntity<?> respEntity) throws IOException {
         if (respEntity == null) {
-            writeJson(resp, R.error("服务器返回空响应"));
+            writeJson(resp, RespEntity.error("服务器返回空响应"));
             return;
         }
         if (respEntity.isError()) {
-            writeJson(resp, R.error(respEntity.getMessage()));
+            writeJson(resp, RespEntity.error(respEntity.getMessage()));
             return;
         }
-        writeJson(resp, R.success(respEntity.getData()));
+        writeJson(resp, RespEntity.success(respEntity.getData()));
     }
 
     private void writeJson(HttpServletResponse resp, Object body) throws IOException {

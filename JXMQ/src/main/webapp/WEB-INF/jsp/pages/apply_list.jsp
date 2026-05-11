@@ -1,5 +1,6 @@
 <!-- apply_list.jsp - 好友申请列表 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
 <div class="apply-panel" id="applyPanel" style="display:none;">
     <h3>好友申请</h3>
     <div id="applyList"></div>
@@ -10,7 +11,7 @@ function loadApplyList() {
     fetch('${pageContext.request.contextPath}/friend/requests')
         .then(function(r) { return r.json(); })
         .then(function(res) {
-            if (res.code === 0 && res.data.length > 0) {
+            if (res.code === 200 && res.data.length > 0) {
                 document.getElementById('applyPanel').style.display = 'block';
                 document.getElementById('applyList').innerHTML = res.data.map(function(a) {
                     return '<div class="apply-item">' +

@@ -5,13 +5,21 @@
 <%@ page import="icu.nothingless.tools.ViewUtil" %>
 <%@ page import="icu.nothingless.tools.RedirectUtil" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="java.time.LocalDateTime" %>
+<%@ page import="java.time.format.DateTimeFormatter" %>
 <%
-    User currentUser = (User) request.getSession(false).getAttribute("CURRENT_USER");
+    String serverDateTime = java.time.LocalDateTime.now()
+        .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    long serverTimestamp = System.currentTimeMillis();
+/***********************************************************************************************/
+    User currentUser = (User) session.getAttribute("CURRENT_USER");
     if (currentUser == null) {
         request.setAttribute("respEntity", RespEntity.error("错误！系统出现异常！"));
         ViewUtil.render(request, response, "error_page");
         return;
     }
+    Object currentUser_ID = currentUser.userId();
+    session.setAttribute("CURRENT_USER_ID", currentUser_ID);
     String contextPath = request.getContextPath();
 %>
 <!DOCTYPE html>
@@ -20,8 +28,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>主页</title>
+    <link rel="preconnect" href="<%= contextPath %>">
     <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
     <link rel="stylesheet" href="<c:url value='/static/css/tables.css' />">
+    <script src="<c:url value='/static/js/home.js'       />" defer></script>
+    <script src="<c:url value='/static/js/ChatClient.js' />" defer></script>
+
 </head>
 <body data-api-base="<%= contextPath %>">
     
@@ -61,7 +73,10 @@
                     <span id="breadcrumbCurrent">加载中...</span>
                 </div>
             </div>
-            <div class="server-time" id="serverTime">--:--:--</div>
+            <%-- <div class="server-time" id="serverTime">--:--:--</div> --%>
+            <div class="server-time" id="serverTime" data-timestamp="<%= serverTimestamp %>">
+                <%= serverDateTime %>
+            </div>
         </div>
         
         <div class="content-wrapper" id="contentWrapper">
@@ -73,7 +88,20 @@
     </main>
     
     <button class="fab" onclick="App.toggleSidebar()" title="切换侧边栏 (Alt+S)">☰</button>
-    
-    <script src="<c:url value='/static/js/home.js' />" /> </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var contextPath = '<%= contextPath %>';
+            const chat = new ChatClient('<%= currentUser.userId() %>');
+            chat.on('connected', function() {
+                console.log('WebSocket connected');
+            });
+            chat.on('disconnected', function(e) {
+                console.log('WebSocket disconnected');
+                if (e.permanent) {
+                    showError('连接已断开，请刷新页面重试');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

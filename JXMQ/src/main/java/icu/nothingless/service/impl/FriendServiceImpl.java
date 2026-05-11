@@ -52,7 +52,7 @@ public class FriendServiceImpl implements IFriendService<Friendship, User> {
             if (!relation.isSuccess()) {
                 return RespEntity.error("Failed to check friendship status");
             }
-            if (Boolean.TRUE.equals(relation.data())) {
+            if (relation.isSuccess() && relation.code() == 2) {
                 return RespEntity.error(RespEntity.CONFLICT, "You are already friends");
             }
 

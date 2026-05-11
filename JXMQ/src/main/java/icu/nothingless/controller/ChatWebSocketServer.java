@@ -3,8 +3,12 @@ package icu.nothingless.controller;
 import icu.nothingless.controller.config.ChatConfigurator;
 import icu.nothingless.pojo.bean.MessageBean;
 import icu.nothingless.pojo.dto.Message;
+import icu.nothingless.pojo.dto.User;
+import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.ChatRedisBus;
 import icu.nothingless.tools.JsonUtil;
+import icu.nothingless.tools.ServiceFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.websocket.*;
@@ -78,7 +82,7 @@ public class ChatWebSocketServer {
             "timestamp", System.currentTimeMillis()
         )));
         
-        logger.info("用户上线: {}，当前在线: {}", userId, sessions.size());
+        logger.info("User: [{}] login ，Current Online number: [{}]", userId, sessions.size());
     }
     
     @OnMessage
@@ -121,12 +125,12 @@ public class ChatWebSocketServer {
     @OnClose
     public void onClose(CloseReason reason) {
         cleanup();
-        logger.info("用户离线: {}，原因: {}", userId, reason.getReasonPhrase());
+        logger.info("User: [{}] logout ，Reason: [{}]", userId, reason.getReasonPhrase());
     }
     
     @OnError
     public void onError(Throwable error) {
-        logger.error("WebSocket 错误 [{}]: {}", userId, error.getMessage(), error);
+        logger.error("WebSocket Error [{}]: {}", userId, error.getMessage(), error);
         cleanup();
     }
     
@@ -136,7 +140,9 @@ public class ChatWebSocketServer {
      * 处理客户端心跳
      */
     private void handleClientHeartbeat() {
+
         // 更新 Redis 心跳
+        session.getUserProperties().put("lastHeartbeat", System.currentTimeMillis());
         redisBus.heartbeat(userId);
         
         // 回复 pong
@@ -246,18 +252,24 @@ public class ChatWebSocketServer {
             Long last = (Long) session.getUserProperties().get("lastHeartbeat");
             if (last == null) last = 0L;
             
+            logger.debug("Last heart beat: <{}>", last);
             // 90 秒无心跳则关闭连接
             if (System.currentTimeMillis() - last > 90000) {
-                logger.warn("心跳超时，关闭连接: {}", userId);
+                logger.warn("Heartbeat Connect Time Out: [{}]", userId);
                 try {
                     session.close(new CloseReason(
                         CloseReason.CloseCodes.GOING_AWAY,
                         "Heartbeat timeout"
                     ));
+                    
                 } catch (IOException e) {
-                    logger.error("关闭 WebSocket 连接失败 [{}]: {}", userId, e.getMessage(), e);
+                    logger.error("Close WebSocket Connection Failed [{}]: {}", userId, e.getMessage(), e);
                 }
                 heartbeatScheduler.shutdown();
+                // 处理用户下线
+                IUserService<User> userService = (IUserService<User>)ServiceFactory.getSingleton(IUserService.class);
+                userService.doLogout(User.builder().userId(userId).build());
+
             }
         }, 30, 30, TimeUnit.SECONDS);
     }
@@ -269,7 +281,7 @@ public class ChatWebSocketServer {
             try {
                 session.getBasicRemote().sendText(message);
             } catch (IOException e) {
-                logger.error("发送消息失败 [{}]: {}", userId, e.getMessage(), e);
+                logger.error("Message Send Failed [{}]: {}", userId, e.getMessage(), e);
             }
         }
     }
@@ -339,7 +351,7 @@ public class ChatWebSocketServer {
             try {
                 session.getBasicRemote().sendText(message);
             } catch (IOException e) {
-                logger.error("主动推送消息失败 [{}]: {}", userId, e.getMessage(), e);
+                logger.error("Push to User Failed [{}]: {}", userId, e.getMessage(), e);
             }
         }
     }
@@ -358,4 +370,21 @@ public class ChatWebSocketServer {
     public static int getLocalOnlineCount() {
         return sessions.size();
     }
+
+    public static void shutdown(){
+        // 关闭所有会话
+        sessions.values().forEach(session -> {
+            try {
+                session.close(new CloseReason(
+                    CloseReason.CloseCodes.GOING_AWAY,
+                    "Server shutdown"
+                ));
+            } catch (IOException e) {
+                logger.error("Close WebSocket Connection Failed [{}]: {}", e.getMessage(), e);
+            }
+        });
+        sessions.clear();
+        redisBus.shutdown();
+    }
+
 }

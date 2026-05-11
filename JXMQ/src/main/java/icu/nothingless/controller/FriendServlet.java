@@ -3,7 +3,6 @@ package icu.nothingless.controller;
 import java.io.IOException;
 import java.util.List;
 
-import icu.nothingless.commons.R;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.dto.Friendship;
 import icu.nothingless.pojo.dto.User;
@@ -27,13 +26,13 @@ public class FriendServlet extends HttpServlet {
         prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
-            writeJson(resp, R.error("未登录或会话已过期"));
+            writeJson(resp, RespEntity.error("未登录或会话已过期"));
             return;
         }
 
         String path = req.getPathInfo();
         if (path == null) {
-            writeJson(resp, R.error("无效请求路径"));
+            writeJson(resp, RespEntity.error("无效请求路径"));
             return;
         }
 
@@ -42,7 +41,7 @@ public class FriendServlet extends HttpServlet {
             case "/search" -> handleSearchUsers(req, resp, userId);
             case "/requests" -> handlePendingRequests(resp, userId);
             case "/groups" -> handleGroups(resp, userId);
-            default -> writeJson(resp, R.error("无效请求路径"));
+            default -> writeJson(resp, RespEntity.error("无效请求路径"));
         }
     }
 
@@ -51,13 +50,13 @@ public class FriendServlet extends HttpServlet {
         prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
-            writeJson(resp, R.error("未登录或会话已过期"));
+            writeJson(resp, RespEntity.error("未登录或会话已过期"));
             return;
         }
 
         String path = req.getPathInfo();
         if (path == null) {
-            writeJson(resp, R.error("无效请求路径"));
+            writeJson(resp, RespEntity.error("无效请求路径"));
             return;
         }
 
@@ -67,7 +66,7 @@ public class FriendServlet extends HttpServlet {
             case "/reject" -> handleRejectFriend(req, resp, userId);
             case "/delete" -> handleDeleteFriend(req, resp, userId);
             case "/update" -> handleUpdateFriend(req, resp, userId);
-            default -> writeJson(resp, R.error("无效请求路径"));
+            default -> writeJson(resp, RespEntity.error("无效请求路径"));
         }
     }
 
@@ -98,7 +97,7 @@ public class FriendServlet extends HttpServlet {
         Long friendId = parseLongParameter(req, "friendId");
         String applyMsg = req.getParameter("applyMsg");
         if (friendId == null) {
-            writeJson(resp, R.error("缺少 friendId 参数"));
+            writeJson(resp, RespEntity.error("缺少 friendId 参数"));
             return;
         }
         RespEntity<Void> respEntity = friendService.applyFriend(userId, friendId, applyMsg);
@@ -110,7 +109,7 @@ public class FriendServlet extends HttpServlet {
         String remark = req.getParameter("remark");
         String groupName = req.getParameter("groupName");
         if (friendId == null) {
-            writeJson(resp, R.error("缺少 friendId 参数"));
+            writeJson(resp, RespEntity.error("缺少 friendId 参数"));
             return;
         }
         RespEntity<Void> respEntity = friendService.agreeFriend(userId, friendId, remark, groupName);
@@ -120,7 +119,7 @@ public class FriendServlet extends HttpServlet {
     private void handleRejectFriend(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
         Long friendId = parseLongParameter(req, "friendId");
         if (friendId == null) {
-            writeJson(resp, R.error("缺少 friendId 参数"));
+            writeJson(resp, RespEntity.error("缺少 friendId 参数"));
             return;
         }
         RespEntity<Void> respEntity = friendService.rejectFriend(userId, friendId);
@@ -130,7 +129,7 @@ public class FriendServlet extends HttpServlet {
     private void handleDeleteFriend(HttpServletRequest req, HttpServletResponse resp, Long userId) throws IOException {
         Long friendId = parseLongParameter(req, "friendId");
         if (friendId == null) {
-            writeJson(resp, R.error("缺少 friendId 参数"));
+            writeJson(resp, RespEntity.error("缺少 friendId 参数"));
             return;
         }
         RespEntity<Void> respEntity = friendService.deleteFriend(userId, friendId);
@@ -142,7 +141,7 @@ public class FriendServlet extends HttpServlet {
         String remark = req.getParameter("remark");
         String groupName = req.getParameter("groupName");
         if (friendId == null) {
-            writeJson(resp, R.error("缺少 friendId 参数"));
+            writeJson(resp, RespEntity.error("缺少 friendId 参数"));
             return;
         }
         RespEntity<Void> respEntity = friendService.updateFriendInfo(userId, friendId, remark, groupName);
@@ -154,7 +153,7 @@ public class FriendServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        Object userIdObj = session.getAttribute("userId");
+        Object userIdObj = session.getAttribute("CURRENT_USER_ID");
         if (userIdObj instanceof Long) {
             return (Long) userIdObj;
         }
@@ -186,14 +185,14 @@ public class FriendServlet extends HttpServlet {
 
     private void writeRespEntity(HttpServletResponse resp, RespEntity<?> respEntity) throws IOException {
         if (respEntity == null) {
-            writeJson(resp, R.error("服务器返回空响应"));
+            writeJson(resp, RespEntity.error("服务器返回空响应"));
             return;
         }
         if (respEntity.isError()) {
-            writeJson(resp, R.error(respEntity.getMessage()));
+            writeJson(resp, RespEntity.error(respEntity.getMessage()));
             return;
         }
-        writeJson(resp, R.success(respEntity.getData()));
+        writeJson(resp, RespEntity.success(respEntity.getData()));
     }
 
     private void writeJson(HttpServletResponse resp, Object body) throws IOException {

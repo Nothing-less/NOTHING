@@ -15,6 +15,18 @@ public class ChatJedisUtil {
     private static JedisPool pool;
     private static final Gson gson = new Gson();
 
+    public static void init(JedisPool jedisPool) {
+        pool = jedisPool;
+    }
+    public static JedisPool getPool() {
+        return pool;
+    }
+    public static void closePool() {
+        if (pool != null) {
+            pool.close();
+        }
+    }
+
     // Key前缀定义
     public static final String KEY_USER_STATUS = "im:user:status:"; // 用户在线状态
     public static final String KEY_USER_CHANNEL = "im:user:channel:"; // 用户长连接标识(轮询用)

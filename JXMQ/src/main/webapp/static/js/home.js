@@ -14,6 +14,7 @@ var App = (function() {
             ]).then(function(results) {
                 self.config = results[0];
                 self.userInfo = results[1];
+                console.log('配置和用户信息加载成功:', self.config, self.userInfo);
                 return self.config;
             });
         },
@@ -98,6 +99,7 @@ var App = (function() {
     var userRenderer = {
         render: function(userInfo) {
             if (!userInfo) return;
+            // console.log('渲染用户信息:', userInfo);
             var safeAccount = utils.escapeHtml(userInfo.nickname);
             elements.userAvatar.textContent = utils.getInitial(safeAccount);
             elements.userName.textContent = safeAccount;
@@ -253,6 +255,9 @@ var App = (function() {
     };
     
     // 时间管理
+    /* 
+     * 之前的实现会在页面加载时等待时间 API 响应，导致首页显示延迟。
+     * 现在改为先从 DOM 读取初始时间戳，立即显示时间，然后在后台静默同步服务器时间，确保用户体验流畅。
     var timeManager = {
         intervals: [],
         apiUrl: '', syncTime: 30000,
@@ -284,6 +289,39 @@ var App = (function() {
                 elements.serverTime.textContent = utils.formatDateTime(now);
             }, 1000));
             this.intervals.push(setInterval(function() { self.fetchServerTime(); }, this.syncTime));
+        }
+    };
+    */
+   
+    var timeManager = {
+        init: function(config) { this.apiUrl = config.contextPath + '/api/time'; },
+        start: function() {
+            var self = this;
+            // 从 DOM 读取初始时间戳，无需等待 API
+            var el = elements.serverTime;
+            var initialTimestamp = parseInt(el.dataset.timestamp);
+            if (initialTimestamp) {
+                state.serverTimeOffset = initialTimestamp - Date.now();
+            }
+            this.startClock();
+            // 后台静默同步，不阻塞显示
+            this.syncInBackground();
+        },
+        startClock: function() {
+            var self = this;
+            this.intervals.push(setInterval(function() {
+                var now = new Date(Date.now() + state.serverTimeOffset);
+                elements.serverTime.textContent = utils.formatDateTime(now);
+            }, 1000));
+        },
+        syncInBackground: function() {
+            var self = this;
+            setInterval(function() {
+                fetch(self.apiUrl).then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.timestamp) state.serverTimeOffset = data.timestamp - Date.now();
+                    }).catch(function() {});
+            }, 30000);
         }
     };
     
@@ -332,6 +370,8 @@ var App = (function() {
     
     // 初始化
     var init = function() {
+        /*
+
         configManager.init().then(function(config) {
             userRenderer.render(configManager.getUserInfo());
             menuManager.init(config);
@@ -347,6 +387,27 @@ var App = (function() {
             console.error('初始化失败:', error);
             elements.dynamicMenu.innerHTML = '<div class="menu-error">系统初始化失败</div>';
         });
+        */
+
+        // 优化初始化流程，先渲染用户信息和界面，再加载菜单和页面，提升首屏速度
+        // 1. 先显示本地时间（不等待 API）
+        elements.serverTime.textContent = utils.formatDateTime(new Date());
+        // 2. 并行初始化，不阻塞 UI
+        configManager.init().then(function(config) {
+            userRenderer.render(configManager.getUserInfo());
+            menuManager.init(config);
+            pageLoader.init(config);
+            timeManager.init(config);
+            // ... 其他初始化
+            menuManager.loadMenuData();
+        });
+        // 3. 这些可以立即执行，不依赖 config
+        uiEffects.createParticles();
+        uiEffects.initFadeIn();
+        keyboardShortcuts.init();
+        window.addEventListener('resize', function() { pageLoader.resizeIframe(); });
+
+
     };
     
     return {

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import icu.nothingless.commons.R;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.bean.MessageBean;
 import icu.nothingless.pojo.dto.Message;
@@ -33,7 +32,7 @@ public class ChatPollServlet extends HttpServlet {
         prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
-            writeJson(resp, R.error("未登录或会话已过期"));
+            writeJson(resp, RespEntity.error("未登录或会话已过期"));
             return;
         }
 
@@ -61,10 +60,10 @@ public class ChatPollServlet extends HttpServlet {
                 queue.drainTo(messages);
             }
 
-            writeJson(resp, R.success(messages));
+            writeJson(resp, RespEntity.success(messages));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            writeJson(resp, R.success(Collections.emptyList()));
+            writeJson(resp, RespEntity.success(Collections.emptyList()));
         }
     }
 
@@ -81,7 +80,7 @@ public class ChatPollServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        Object userId = session.getAttribute("userId");
+        Object userId = session.getAttribute("CURRENT_USER_ID");
         if (userId instanceof Long) {
             return (Long) userId;
         }
@@ -101,14 +100,14 @@ public class ChatPollServlet extends HttpServlet {
 
     private void writeRespEntity(HttpServletResponse resp, RespEntity<?> respEntity) throws IOException {
         if (respEntity == null) {
-            writeJson(resp, R.error("服务器返回空响应"));
+            writeJson(resp, RespEntity.error("服务器返回空响应"));
             return;
         }
         if (respEntity.isError()) {
-            writeJson(resp, R.error(respEntity.getMessage()));
+            writeJson(resp, RespEntity.error(respEntity.getMessage()));
             return;
         }
-        writeJson(resp, R.success(respEntity.getData()));
+        writeJson(resp, RespEntity.success(respEntity.getData()));
     }
 
     private void writeJson(HttpServletResponse resp, Object body) throws IOException {

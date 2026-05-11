@@ -100,20 +100,40 @@ public class CacheUserDaoImpl implements IUserDao<User> {
         try {
             R result = userDao.doLogin(login);
             if (result.isSuccess()) {
-                evictUserCache(login.userId(), null);
-                cacheUserDoubleKey(User.forLogin(login));
+                User tmpUser = (User) result.data();
+                evictUserCache(tmpUser.userId(), tmpUser.userAccount());
+                cacheUserDoubleKey(User.forLogin(tmpUser));
             }
             return result;
         } catch (Exception e) {
-            logger.error("Login Failed", e);
-            return R.error("Login Failed");
+            logger.error("Cache login Failed!", e);
+            return R.error("Cache login Failed!");
         }
 
     }
 
     @Override
     public R doLogout(User currentUser) throws Exception {
-        return null;
+        // do logout
+        if (currentUser == null) {
+            return R.error("Illegal User");
+        }
+        try {
+            R result = userDao.doLogout(currentUser);
+            if (result.isSuccess()) {
+                User tmpUser = readCache(CacheKeyBuilder.build(KEY_PREFIX_ID, currentUser.userId()), User.class)
+                        .getData();
+                evictUserCache(currentUser.userId(), tmpUser != null ? tmpUser.userAccount() : null);
+                cacheUserDoubleKey(User.forLogout(currentUser));
+                return R.success("Logout Successful");
+            } else {
+                return R.error("Cache user logout Failed with DB logout failure!");
+            }
+        } catch (Exception e) {
+            logger.error("Cache user logout failed!", e);
+            return R.error("Cache user logout failed!");
+        }
+
     }
 
     @Override
@@ -150,8 +170,8 @@ public class CacheUserDaoImpl implements IUserDao<User> {
     }
 
     @Override
-    public R doSearch(String str)throws Exception{
-        return R.success("");
+    public R doSearch(String str) throws Exception {
+        return userDao.doSearch(str);
     }
 
     // ==================== 私有方法 ====================
@@ -197,11 +217,11 @@ public class CacheUserDaoImpl implements IUserDao<User> {
 
         String usernameKey = CacheKeyBuilder.build(KEY_PREFIX_USERNAME, username);
         String idKey = CacheKeyBuilder.build(KEY_PREFIX_ID, userId);
-        String json = JsonSerializer.serialize(user);
+        String json = JsonSerializer.serialize(user.withoutPasswd());
 
         if (json == null)
             return;
-
+        
         int ttl = randomTtl();
         pipelineSetex(usernameKey, json, idKey, json, ttl);
     }

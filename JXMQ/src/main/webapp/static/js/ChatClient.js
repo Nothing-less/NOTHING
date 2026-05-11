@@ -10,12 +10,18 @@ class ChatClient {
         this.connect();
     }
     
+    
     connect() {
-        const wsUrl = `ws://${location.host}/ws/chat/${this.userId}`;
+        // 修复：使用 data-api-base 作为 contextPath 的替代
+        var apiBase = document.body.dataset.apiBase || '';
+        
+        // 修复：如果全局 contextPath 存在则使用，否则用 apiBase
+        var path = (typeof contextPath !== 'undefined') ? contextPath : apiBase;
+        
+        const wsUrl = `ws://${location.host}${path}/ws/chat/${this.userId}`;
         this.ws = new WebSocket(wsUrl);
         
         this.ws.onopen = () => {
-            console.log('WebSocket 连接成功');
             this.reconnectAttempts = 0;
             this.startHeartbeat();
             this.emit('connected', { userId: this.userId });
@@ -153,6 +159,8 @@ class ChatClient {
 }
 
 // 使用示例
+/*
+
 const chat = new ChatClient(currentUserId);
 
 chat.on('message', (msg) => {
@@ -174,3 +182,5 @@ chat.on('disconnected', (e) => {
         showError('连接已断开，请刷新页面重试');
     }
 });
+
+*/

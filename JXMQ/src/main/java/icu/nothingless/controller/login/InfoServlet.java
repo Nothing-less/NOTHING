@@ -42,6 +42,6 @@ public class InfoServlet extends HttpServlet {
         userInfo.put("roleId", user.roleId());
         // 不要返回密码！
         
-        resp.getWriter().write(gson.toJson(RespEntity.success(userInfo)));
+        resp.getWriter().write(gson.toJson(RespEntity.success(user)));
     }
 }

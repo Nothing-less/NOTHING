@@ -101,7 +101,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
                 FriendshipBean f = new FriendshipBean();
                 f.setFsId((Long) map.get(FS_ID));
                 f.setUserId((Long) map.get(USER_ID));
-                f.setFriendId((String) map.get(FRIEND_ID));
+                f.setFriendId(""+map.get(FRIEND_ID));
 
                 Object statusObj = map.get(FS_STATUS);
                 f.setFsStatus(statusObj instanceof Number ? ((Number) statusObj).intValue() : null);
@@ -119,7 +119,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
 
                 result.add(toDto(f));
             }
-            return result.isEmpty() ? R.error("未找到好友关系") : R.success(result);
+            return result.isEmpty() ? R.success("未找到好友关系") : R.success(result);
         } catch (SQLException e) {
             throw new EngineException("Error occurred while executing function <getFriendship> : ", e);
         }
@@ -149,7 +149,10 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
         try {
             Long count = PDBUtil.queryForObject(sql.toString(), Long.class,
                     userId, friendId, friendId, userId);
-            return count != null && count == 2 ? R.success(true) : R.error("不是好友关系");
+            if(count == null) {
+                return R.error("查询好友关系失败");
+            }
+            return count == 2 ? R.success(2,"对方已经是您好友") : R.success(-2,"不是好友关系");
         } catch (SQLException e) {
             throw new EngineException("Error occurred while executing function <isFriend> : ", e);
         }
@@ -164,7 +167,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
                 .append("f.group_name, f.apply_msg, f.create_time, f.agree_time, ")
                 .append("u.user_id as friend_user_id, u.useraccount, u.nickname, u.user_status ")
                 .append("FROM t_friendship f ")
-                .append("JOIN users u ON f.friend_id = u.user_id ")
+                .append("JOIN users u ON f.friend_id = u.user_id::bigint ")
                 .append("WHERE f.user_id = ? AND f.fs_status = 1 ");
         params.add(userId);
 

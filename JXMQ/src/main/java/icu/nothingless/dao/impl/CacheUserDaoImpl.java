@@ -4,10 +4,13 @@ import icu.nothingless.commons.R;
 import icu.nothingless.dao.interfaces.IUserDao;
 import icu.nothingless.pojo.adapter.IUserAdapter;
 import icu.nothingless.pojo.dto.User;
+import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.cache.*;
-
 import static icu.nothingless.tools.cache.RedisCacheHelper.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 用户数据访问层 - Redis缓存代理实现
@@ -103,6 +106,7 @@ public class CacheUserDaoImpl implements IUserDao<User> {
                 User tmpUser = (User) result.data();
                 evictUserCache(tmpUser.userId(), tmpUser.userAccount());
                 cacheUserDoubleKey(User.forLogin(tmpUser));
+                ChatJedisUtil.setUserOnline(Long.valueOf(tmpUser.userId()), User.STATUS_ACTIVE_CODE);
             }
             return result;
         } catch (Exception e) {
@@ -123,6 +127,7 @@ public class CacheUserDaoImpl implements IUserDao<User> {
             if (result.isSuccess()) {
                 User tmpUser = readCache(CacheKeyBuilder.build(KEY_PREFIX_ID, currentUser.userId()), User.class)
                         .getData();
+                ChatJedisUtil.setUserOffline(Long.valueOf(currentUser.userId()), User.STATUS_INACTIVE_CODE);
                 evictUserCache(currentUser.userId(), tmpUser != null ? tmpUser.userAccount() : null);
                 cacheUserDoubleKey(User.forLogout(currentUser));
                 return R.success("Logout Successful");
@@ -221,7 +226,7 @@ public class CacheUserDaoImpl implements IUserDao<User> {
 
         if (json == null)
             return;
-        
+
         int ttl = randomTtl();
         pipelineSetex(usernameKey, json, idKey, json, ttl);
     }
@@ -302,4 +307,20 @@ public class CacheUserDaoImpl implements IUserDao<User> {
             return null;
         }
     }
+    @Override
+    public R doLogoutForAll() throws Exception {
+        R result = userDao.doLogoutForAll();
+        if(!result.isSuccess()){
+           return R.error("Logout For All Failed!");
+        }
+        List<Map<String, String>> onlineUsers = (List<Map<String, String>>) result.data();
+        for(Map<String, String> one: onlineUsers){
+            String userId = one.get("USERID");
+            String username = one.get("USERACCOUNT");
+            evictUserCache(userId, username);
+            ChatJedisUtil.setUserOffline(Long.valueOf(userId), User.STATUS_INACTIVE_CODE);
+        }
+        return R.success("All users have been kick off!");
+    }
+
 }

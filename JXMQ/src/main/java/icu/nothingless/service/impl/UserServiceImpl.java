@@ -38,7 +38,7 @@ public class UserServiceImpl implements IUserService<User> {
         IUserDao userDaoImpl = ServiceFactory.createInstance(IUserDao.class, "userDaoImpl");
         try {
             R result = userDaoImpl.doSearch(target);
-            if(result.isSuccess()){
+            if (result.isSuccess()) {
                 resultList = (List<User>) result.data();
             }
             if (resultList != null && !resultList.isEmpty()) {
@@ -52,7 +52,7 @@ public class UserServiceImpl implements IUserService<User> {
         } catch (Exception e) {
             logger.error("Error occurred in iUserService.doSerch :", e);
         }
-        
+
         return RespEntity.error("No users found");
     }
 
@@ -72,11 +72,11 @@ public class UserServiceImpl implements IUserService<User> {
                 // 未找到对应账号
                 return RespEntity.unauthorized("your account or password are not correct");
             }
-            User tmp = (User)ret.data();
-            User target_copy = User.forLogin(target,tmp.userId());
+            User tmp = (User) ret.data();
+            User target_copy = User.forLogin(target, tmp.userId());
             ret = userDao.doLogin(target_copy);
-            if(ret.isSuccess()){
-                User user = (User)ret.data();
+            if (ret.isSuccess()) {
+                User user = (User) ret.data();
                 return RespEntity.success(user);
             }
         } catch (final Exception e) {
@@ -103,7 +103,7 @@ public class UserServiceImpl implements IUserService<User> {
             R ret = userDao.doRegister(target);
             if (ret.isSuccess()) {
 
-                return RespEntity.success(""+ret.data(),target);
+                return RespEntity.success("" + ret.data(), target);
             }
 
         } catch (final Exception e) {
@@ -112,7 +112,6 @@ public class UserServiceImpl implements IUserService<User> {
 
         return RespEntity.error("Register Failed 〒▽〒");
     }
-
 
     @Override
     public RespEntity<User> doLogout(User target) {
@@ -136,6 +135,14 @@ public class UserServiceImpl implements IUserService<User> {
     public RespEntity<User> doUpdate(User target) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'doUpdate'");
+    }
+
+    public void doLogoutForAll() {
+        try {
+            userDao.doLogoutForAll();
+        } catch (Exception e) {
+            logger.error("Error occurred in UserServiceImpl.doLogoutForAll :", e);
+        }
     }
 
 }

@@ -228,6 +228,7 @@ public class Friendship implements java.io.Serializable, IFSBean {
             this.applyMsg = entity.getApplyMsg();
             this.createTime = entity.getCreateTime();
             this.agreeTime = entity.getAgreeTime();
+            this.unreadMsgCount = entity.getUnreadMsgCount();
             return this;
         }
 

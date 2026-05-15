@@ -18,7 +18,7 @@
         <!-- 好友列表动态加载 -->
     </div>
 </div>
-<script src="<c:url value='/static/js/ChatClient.js' />"></script>
+
 <script>
     // 加载好友列表
     function loadFriends(group = '', keyword = '') {
@@ -62,14 +62,27 @@
             const groupName = f.groupName || '默认分组';
             const unreadCount = f.unreadCount || f.unreadMsgCount || 0;
 
-            return '<div class="friend-item" onclick="openChat(' + userId + ', \'' + nickname + '\')" data-group="' + groupName + '">' +
+            // 修改点：添加聊天按钮，点击后通知父窗口打开聊天
+            return '<div class="friend-item" data-group="' + groupName + '">' +
                 '<div class="friend-info">' +
                     '<div class="nickname">' + remark + '</div>' +
                     '<div class="status ' + status + '">' + status + '</div>' +
                 '</div>' +
-                (unreadCount > 0 ? '<span class="badge">' + unreadCount + '</span>' : '') +
+                '<div class="friend-actions">' +
+                    (unreadCount > 0 ? '<span class="badge">' + unreadCount + '</span>' : '') +
+                    '<button class="btn-chat" onclick="openChatWindow(' + userId + ', \'' + nickname + '\')" title="发起聊天">💬</button>' +
+                '</div>' +
             '</div>';
         }).join('');
+    }
+
+    // 新增：通知父窗口打开聊天窗口（跨 iframe 通信）
+    function openChatWindow(friendId, nickname) {
+        window.parent.postMessage({
+            type: 'OPEN_CHAT',
+            friendId: friendId,
+            nickname: nickname
+        }, '*');
     }
 
     // 筛选好友
@@ -107,5 +120,4 @@
     // 初始化
     loadGroups();
     loadFriends();
-
 </script>

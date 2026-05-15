@@ -636,3 +636,212 @@ body {
         }
 
 /*------------------------------------------------------------------------------*/
+/* 好友列表样式补充 */
+.friend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.friend-item:hover {
+    background: #f5f5f5;
+}
+
+.friend-info {
+    flex: 1;
+}
+
+.friend-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-chat {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-chat:hover {
+    background: #45a049;
+    transform: scale(1.1);
+}
+
+.badge {
+    background: #ff4444;
+    color: white;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 12px;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* 聊天窗口在 iframe 中的适配 */
+ /* ========== 可拖动可调整大小的聊天窗口样式 ========== */
+.chat-window {
+    position: fixed;
+    display: none;
+    flex-direction: column;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.08);
+    overflow: hidden;
+    z-index: 1000;
+    min-width: 320px;
+    min-height: 240px;
+    /* 初始居中 */
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 480px;
+    height: 560px;
+}
+
+.chat-window.active {
+    display: flex;
+}
+
+/* 标题栏 - 拖动区域 */
+.chat-window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: move;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.chat-window-title {
+    font-size: 14px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.chat-window-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.chat-window-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.chat-window-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.chat-window-btn.close:hover {
+    background: #ff4444;
+}
+
+/* iframe 容器 */
+.chat-window-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.chat-window-body iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* 调整大小手柄 */
+.resize-handle {
+    position: absolute;
+    z-index: 10;
+}
+
+.resize-handle.n {
+    top: 0; left: 8px; right: 8px; height: 4px;
+    cursor: n-resize;
+}
+.resize-handle.s {
+    bottom: 0; left: 8px; right: 8px; height: 4px;
+    cursor: s-resize;
+}
+.resize-handle.w {
+    left: 0; top: 8px; bottom: 8px; width: 4px;
+    cursor: w-resize;
+}
+.resize-handle.e {
+    right: 0; top: 8px; bottom: 8px; width: 4px;
+    cursor: e-resize;
+}
+.resize-handle.nw {
+    top: 0; left: 0; width: 12px; height: 12px;
+    cursor: nw-resize;
+}
+.resize-handle.ne {
+    top: 0; right: 0; width: 12px; height: 12px;
+    cursor: ne-resize;
+}
+.resize-handle.sw {
+    bottom: 0; left: 0; width: 12px; height: 12px;
+    cursor: sw-resize;
+}
+.resize-handle.se {
+    bottom: 0; right: 0; width: 12px; height: 12px;
+    cursor: se-resize;
+}
+
+/* 拖动时的遮罩（防止 iframe 捕获鼠标事件） */
+.chat-window-drag-mask {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    display: none;
+}
+
+.chat-window-drag-mask.active {
+    display: block;
+}
+
+/* 窗口激活状态 */
+.chat-window.dragging,
+.chat-window.resizing {
+    box-shadow: 0 12px 48px rgba(0,0,0,0.3), 0 0 0 1px rgba(102,126,234,0.5);
+    transition: none;
+}
+
+/* 多窗口支持 */
+.chat-window:nth-child(2) { z-index: 1001; }
+.chat-window:nth-child(3) { z-index: 1002; }
+.chat-window:nth-child(4) { z-index: 1003; }
+.chat-window:nth-child(5) { z-index: 1004; }
+/*------------------------------------------------------------------------------*/

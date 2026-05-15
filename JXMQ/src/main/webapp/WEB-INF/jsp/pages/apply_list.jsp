@@ -1,5 +1,6 @@
 <!-- apply_list.jsp - 好友申请列表 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
 <div class="apply-panel" id="applyPanel" style="display:none;">
     <h3>好友申请</h3>
@@ -15,7 +16,7 @@ function loadApplyList() {
                 document.getElementById('applyPanel').style.display = 'block';
                 document.getElementById('applyList').innerHTML = res.data.map(function(a) {
                     return '<div class="apply-item">' +
-                        '<img src="' + (a.friendInfo.avatar || 'default-avatar.png') + '" class="avatar">' +
+//                        '<img src="' + (a.friendInfo.avatar || 'default-avatar.png') + '" class="avatar">' +
                         '<div class="apply-info">' +
                             '<div>' + a.friendInfo.nickname + ' (' + a.friendInfo.account + ')</div>' +
                             '<div class="apply-msg">' + a.applyMsg + '</div>' +

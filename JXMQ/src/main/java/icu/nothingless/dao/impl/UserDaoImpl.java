@@ -2,6 +2,7 @@ package icu.nothingless.dao.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -14,7 +15,9 @@ import icu.nothingless.exceptions.UserSTOException;
 import icu.nothingless.pojo.adapter.IUserAdapter;
 import icu.nothingless.pojo.bean.UserBean;
 import icu.nothingless.pojo.dto.User;
+import icu.nothingless.pojo.engine.UserEngine;
 import icu.nothingless.tools.Fmt;
+import icu.nothingless.tools.PDBUtil;
 
 public class UserDaoImpl implements IUserDao<User> {
     private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
@@ -183,6 +186,29 @@ public class UserDaoImpl implements IUserDao<User> {
         } catch (Exception e) {
             logger.error("Error occurred in iUserDao.doLogout : ", e);
             throw new UserSTOException("Error occurred in iUserDao.doLogout : ", e);
+        }
+    }
+
+    @Override
+    public R doLogoutForAll() throws Exception{
+        
+        try {
+            String sql = "SELECT * FROM user WHERE 1=1 AND user_status = ? AND user_key1 = ? ";
+            List<Map<String, Object>> results = PDBUtil.executeQuery(sql, UserBean.STATUS_ACTIVE, UserBean.STATUS_ONLINE);
+            List<Map<String, String>> ret = new ArrayList<>();
+            for(Map<String, Object> one: results){
+                ret.add(Map.of(
+                    "userId", String.valueOf(one.get("USER_ID")),
+                    "userAccount", String.valueOf(one.get("USER_ACCOUNT"))
+                ));
+            }
+            String sql_updateStatus = "UPDATE user SET user_key1 = ? WHERE 1=1 AND user_status = ?  AND user_key1 = ? ";
+            PDBUtil.executeUpdate(sql_updateStatus, UserBean.STATUS_OFFLINE, UserBean.STATUS_ACTIVE, UserBean.STATUS_ONLINE);
+
+            return R.success(ret);
+        } catch (Exception e) {
+            logger.error("Error occurred in iUserDao.queryAll : ", e);
+            throw new UserSTOException("Error occurred in iUserDao.queryAll : ", e);
         }
     }
 }

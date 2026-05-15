@@ -94,6 +94,7 @@ public class FriendServiceImpl implements IFriendService<Friendship, User> {
             }
 
             List<Friendship> list = ret.data();
+            List<Friendship> returnList = new ArrayList<>();
             if (list == null || list.isEmpty()) {
                 return RespEntity.success(new ArrayList<>());
             }
@@ -106,23 +107,19 @@ public class FriendServiceImpl implements IFriendService<Friendship, User> {
                 }
 
                 Integer status = ChatJedisUtil.getUserStatus(friend.userId());
-                if (status != null && status > 0) {
-                    friend = User.forLogin(friend);
-                } else {
-                    friend = User.forLogout(friend);
-                }
-                f.setFriendInfo(friend);
-
+                User _friend = User.forUpdateOnlineStatus(friend, (status != null && status > 0));
+                f.setFriendInfo(_friend);
                 try {
-                    if (friend.userId() != null) {
-                        Long friendIdValue = Long.parseLong(friend.userId());
+                    if (_friend.userId() != null) {
+                        Long friendIdValue = Long.parseLong(_friend.userId());
                         f.setUnreadMsgCount(ChatJedisUtil.getUnreadCount(userId, friendIdValue));
                     }
                 } catch (NumberFormatException nfe) {
-                    logger.warn("Invalid friend userId format: {}", friend.userId());
+                    logger.warn("Invalid friend userId format: {}", _friend.userId());
                 }
+                returnList.add(f);
             }
-            return RespEntity.success(list);
+            return RespEntity.success(returnList);
         } catch (Exception e) {
             logger.error("Error occurred while executing function <getFriendList>: ", e);
             return RespEntity.error("Get friend list failed");
@@ -238,7 +235,7 @@ public class FriendServiceImpl implements IFriendService<Friendship, User> {
                 return RespEntity.error("Get groups failed");
             }
             List<String> groups = ret.data();
-            if (groups == null) {
+            if (groups == null || groups.isEmpty()) {
                 groups = new ArrayList<>();
             }
             return RespEntity.success(groups);

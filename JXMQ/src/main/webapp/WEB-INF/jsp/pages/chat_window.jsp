@@ -1,38 +1,31 @@
-<!-- chat_window.jsp - 聊天窗口 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<c:set var="friendId" value="${requestScope.friendId}" />
+<c:set var="nickname" value="${requestScope.nickname}" />
+
 <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
-<div class="chat-container" id="chatContainer" style="display:none;">
-    <div class="chat-header">
-        <span id="chatTitle">好友昵称</span>
-        <button onclick="closeChat()">×</button>
-    </div>
-    <div class="chat-messages" id="messageArea">
+<div class="chat-container" id="chatContainer" style="display: flex; height: 100vh; flex-direction: column;">
+    <div class="chat-messages" id="messageArea" style="flex: 1; overflow-y: auto;">
         <!-- 消息记录 -->
     </div>
     <div class="chat-input">
-        <textarea id="msgInput" placeholder="输入消息..."></textarea>
+        <textarea id="msgInput" placeholder="输入消息..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
         <button onclick="sendMessage()">发送</button>
     </div>
 </div>
 
 <script>
-    let currentFriendId = null;
+    let currentFriendId = '${friendId}';
+    let currentFriendNickname = '${nickname}';
     let lastMsgId = null;
 
-    function openChat(friendId, nickname) {
-        currentFriendId = friendId;
-        document.getElementById('chatContainer').style.display = 'flex';
-        document.getElementById('chatTitle').textContent = nickname;
-        document.getElementById('messageArea').innerHTML = '';
-        lastMsgId = null;
-        
+    if (currentFriendId) {
         loadHistory();
-        // 标记已读
-        fetch('${pageContext.request.contextPath}/message/read?friendId=' + friendId, {method: 'POST'});
+        fetch('${pageContext.request.contextPath}/message/read?friendId=' + currentFriendId, {method: 'POST'});
     }
 
     function loadHistory() {
+        if (!currentFriendId) return;
         fetch('${pageContext.request.contextPath}/message/history?friendId=' + currentFriendId + '&lastMsgId=' + (lastMsgId || ''))
             .then(r => r.json())
             .then(res => {
@@ -49,11 +42,18 @@
 
     function appendMessage(msg) {
         const area = document.getElementById('messageArea');
-        const isSelf = msg.senderId === ${sessionScope.userId};
+        const currentUserId = '${sessionScope.CURRENT_USER_ID}';
+        const isSelf = String(msg.senderId) === String(currentUserId);
         const div = document.createElement('div');
         div.className = 'msg-item ' + (isSelf ? 'self' : 'other');
-        div.innerHTML = '<div class="msg-content">${msg.content}</div><div class="msg-time">${formatTime(msg.sendTime)}</div>';
+        div.innerHTML = '<div class="msg-content">' + escapeHtml(msg.content) + '</div><div class="msg-time">' + formatTime(msg.sendTime) + '</div>';
         area.appendChild(div);
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     function sendMessage() {
@@ -77,7 +77,6 @@
         });
     }
 
-    // 消息轮询
     function startMessagePolling() {
         function poll() {
             fetch('${pageContext.request.contextPath}/chat/poll')
@@ -85,21 +84,15 @@
                 .then(res => {
                     if (res.code === 200 && res.data.length > 0) {
                         res.data.forEach(msg => {
-                            if (msg.senderId === currentFriendId) {
+                            if (String(msg.senderId) === String(currentFriendId)) {
                                 appendMessage(msg);
-                                // 标记已读
                                 fetch('${pageContext.request.contextPath}/message/read?friendId=' + msg.senderId, {method: 'POST'});
-                            } else {
-                                // 显示未读提醒
-                                showNotification(msg);
-                                // 刷新好友列表显示未读数
-                                loadFriends();
                             }
                         });
                     }
                 })
                 .finally(() => {
-                    setTimeout(poll, 1000); // 继续轮询
+                    setTimeout(poll, 3000);
                 });
         }
         poll();
@@ -109,8 +102,12 @@
         return new Date(time).toLocaleTimeString();
     }
 
-    function closeChat() {
-        document.getElementById('chatContainer').style.display = 'none';
-        currentFriendId = null;
+    // 关闭时通知父窗口
+    function closeChatWindow() {
+        if (window.parent && window.parent.closeGlobalChat) {
+            window.parent.closeGlobalChat(currentFriendId);
+        }
     }
+
+    startMessagePolling();
 </script>

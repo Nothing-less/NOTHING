@@ -42,6 +42,14 @@ public class ChatJedisUtil {
         }
     }
 
+    // 存储用户离线状态
+    public static void setUserOffline(Long userId, Integer status) {
+        try (Jedis jedis = pool.getResource()) {
+            jedis.del(KEY_USER_STATUS + userId);
+            jedis.setex(KEY_USER_STATUS + userId, 3600, ""+status.toString());
+        }
+    }
+
     // 获取用户在线状态
     public static Integer getUserStatus(String userId) {
         try (Jedis jedis = pool.getResource()) {
@@ -49,6 +57,8 @@ public class ChatJedisUtil {
             return status == null ? 0 : Integer.parseInt(status);
         }
     }
+
+
 
     // 添加未读消息计数
     public static void incrUnread(Long userId, Long friendId) {

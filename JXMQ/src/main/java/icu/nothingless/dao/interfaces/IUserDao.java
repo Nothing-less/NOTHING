@@ -19,6 +19,8 @@ public interface IUserDao<T> {
     // 登出
     public R doLogout(T currentUser)throws Exception;
 
+    public R doLogoutForAll()throws Exception;
+
     // 查找
     public R doSearch(String str)throws Exception;
 

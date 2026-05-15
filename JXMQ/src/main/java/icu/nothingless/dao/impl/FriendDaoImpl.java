@@ -3,10 +3,13 @@ package icu.nothingless.dao.impl;
 import icu.nothingless.commons.R;
 import icu.nothingless.dao.interfaces.IFriendDao;
 import icu.nothingless.exceptions.EngineException;
+import icu.nothingless.pojo.adapter.IUserAdapter;
 import icu.nothingless.pojo.bean.FriendshipBean;
 import icu.nothingless.pojo.bean.UserBean;
 import icu.nothingless.pojo.dto.Friendship;
+import icu.nothingless.pojo.dto.User;
 import icu.nothingless.pojo.engine.FSEngine;
+import icu.nothingless.pojo.ibean.IUserBean;
 import icu.nothingless.tools.PDBUtil;
 
 import java.sql.PreparedStatement;
@@ -28,7 +31,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
     private static final String AGREE_TIME = FSEngine.getAgreeTime();
     /* ---------------------------------------------------------------------- */
     private static final String TABLENAME = FSEngine.getTablename();
-    
+
     // 申请添加好友
     public R<Boolean> applyFriend(Long userId, Long friendId, String applyMsg) throws Exception {
         // 检查是否已存在关系
@@ -52,7 +55,8 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
             return R.error("已经是好友或已拒绝/删除");
         }
 
-        // String sql = "INSERT INTO t_friendship (user_id, friend_id, fs_status, apply_msg, create_time) VALUES (?, ?, 0, ?, NOW())";
+        // String sql = "INSERT INTO t_friendship (user_id, friend_id, fs_status,
+        // apply_msg, create_time) VALUES (?, ?, 0, ?, NOW())";
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO ").append(TABLENAME).append(" (")
                 .append(USER_ID).append(", ")
@@ -101,7 +105,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
                 FriendshipBean f = new FriendshipBean();
                 f.setFsId((Long) map.get(FS_ID));
                 f.setUserId((Long) map.get(USER_ID));
-                f.setFriendId(""+map.get(FRIEND_ID));
+                f.setFriendId("" + map.get(FRIEND_ID));
 
                 Object statusObj = map.get(FS_STATUS);
                 f.setFsStatus(statusObj instanceof Number ? ((Number) statusObj).intValue() : null);
@@ -149,10 +153,10 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
         try {
             Long count = PDBUtil.queryForObject(sql.toString(), Long.class,
                     userId, friendId, friendId, userId);
-            if(count == null) {
+            if (count == null) {
                 return R.error("查询好友关系失败");
             }
-            return count == 2 ? R.success(2,"对方已经是您好友") : R.success(-2,"不是好友关系");
+            return count == 2 ? R.success(2, "对方已经是您好友") : R.success(-2, "不是好友关系");
         } catch (SQLException e) {
             throw new EngineException("Error occurred while executing function <isFriend> : ", e);
         }
@@ -195,7 +199,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
 
                     f.setFsId((Long) map.get("FS_ID"));
                     f.setUserId((Long) map.get("USER_ID"));
-                    f.setFriendId((String) map.get("FRIEND_ID"));
+                    f.setFriendId(String.valueOf(map.get("FRIEND_ID")));
 
                     // TINYINT 转 Integer
                     Object statusObj = map.get("FS_STATUS");
@@ -238,23 +242,25 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
          * + "ORDER BY f.create_time DESC";
          */
 
-        // 🔴 u.account -> u.useraccount，f.status -> f.fs_status
+
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT f.").append(FS_ID.toLowerCase()).append(", ")
-                .append("f.").append(USER_ID.toLowerCase()).append(", ")
-                .append("f.").append(FRIEND_ID.toLowerCase()).append(", ")
-                .append("f.").append(FS_STATUS.toLowerCase()).append(", ")
-                .append("f.").append(REMARK.toLowerCase()).append(", ")
-                .append("f.").append(GROUP_NAME.toLowerCase()).append(", ")
-                .append("f.").append(APPLY_MSG.toLowerCase()).append(", ")
-                .append("f.").append(CREATE_TIME.toLowerCase()).append(", ")
-                .append("f.").append(AGREE_TIME.toLowerCase()).append(", ")
+        sql.append("SELECT f.").append(FS_ID).append(", ")
+                .append("f.").append(USER_ID).append(", ")
+                .append("f.").append(FRIEND_ID).append(", ")
+                .append("f.").append(FS_STATUS).append(", ")
+                .append("f.").append(REMARK).append(", ")
+                .append("f.").append(GROUP_NAME).append(", ")
+                .append("f.").append(APPLY_MSG).append(", ")
+                .append("f.").append(CREATE_TIME).append(", ")
+                .append("f.").append(AGREE_TIME).append(", ")
                 .append("u.user_id as applicant_id, u.useraccount, u.nickname ")
                 .append("FROM ").append(TABLENAME).append(" f ")
-                .append("JOIN users u ON f.").append(USER_ID.toLowerCase()).append(" = u.user_id ")
-                .append("WHERE f.").append(FRIEND_ID.toLowerCase()).append(" = ? AND f.")
-                .append(FS_STATUS.toLowerCase()).append(" = 0 ")
-                .append("ORDER BY f.").append(CREATE_TIME.toLowerCase()).append(" DESC");
+                // 关键修改：添加 ::bigint 类型转换
+                .append("JOIN users u ON f.").append(USER_ID)
+                .append(" = u.user_id::bigint ")
+                .append("WHERE f.").append(FRIEND_ID)
+                .append(" = ? AND f.").append(FS_STATUS).append(" = 0 ")
+                .append("ORDER BY f.").append(CREATE_TIME).append(" DESC");
 
         try {
             List<Map<String, Object>> rs = PDBUtil.executeQuery(sql.toString(), userId);
@@ -265,7 +271,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
 
                 f.setFsId((Long) map.get(FS_ID));
                 f.setUserId((Long) map.get(USER_ID));
-                f.setFriendId((String) map.get(FRIEND_ID));
+                f.setFriendId(""+ map.get(FRIEND_ID));
 
                 Object statusObj = map.get(FS_STATUS);
                 f.setFsStatus(statusObj instanceof Number ? ((Number) statusObj).intValue() : null);
@@ -472,7 +478,21 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
         }
     }
 
-    private Friendship toDto(icu.nothingless.pojo.bean.FriendshipBean bean){
-        return Friendship.builder().from(bean).build();
+    private Friendship toDto(icu.nothingless.pojo.bean.FriendshipBean bean) {
+        Friendship fsDTO = new Friendship();
+        fsDTO.setAgreeTime(bean.getAgreeTime());
+        fsDTO.setApplyMsg(bean.getApplyMsg());
+        fsDTO.setCreateTime(bean.getCreateTime());
+        fsDTO.setFriendId(bean.getFriendId());
+        fsDTO.setFsId(bean.getFsId());
+        fsDTO.setFsStatus(bean.getFsStatus());
+        fsDTO.setGroupName(bean.getGroupName());
+        fsDTO.setRemark(bean.getRemark());
+
+        IUserBean u = bean.getFriendInfo();
+        User friendInfo = User.builder().from(u).build();
+        fsDTO.setFriendInfo(friendInfo);
+        
+        return fsDTO;
     }
 }

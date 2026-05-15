@@ -6,8 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.controller.ChatWebSocketServer;
+import icu.nothingless.dao.interfaces.IUserDao;
+import icu.nothingless.service.impl.UserServiceImpl;
 import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ChatRedisBus;
+import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.DBPools.PDBPoolManager;
 import icu.nothingless.tools.DBPools.RedisPoolManager;
 import jakarta.servlet.ServletContextEvent;
@@ -76,6 +79,13 @@ public class InfrastructureInitializer implements ServletContextListener {
             logger.info("Redis pool closed.");
         } catch (Exception e) {
             logger.error("Error closing Redis pool: ", e);
+        }
+        try {
+            IUserDao userDao = ServiceFactory.createInstance(IUserDao.class, "cacheUserDaoImpl");
+            userDao.doLogoutForAll();
+            logger.info("All users logged out.");
+        } catch (Exception e) {
+            logger.error("Error logging out all users: ", e);
         }
         logger.info("Infrastructure shutdown complete.");
     }

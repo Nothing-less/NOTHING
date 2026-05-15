@@ -84,7 +84,7 @@
     }
 
     function applyFriend(friendId, nickname) {
-        const applyMsg = prompt('发送验证消息:', '我是' + '${sessionScope.user.nickname}');
+        const applyMsg = prompt('发送验证消息:', '我是' + window.parent.CURRENT_USER.nickname);
         if (applyMsg === null) return;
         
         const params = new URLSearchParams();

@@ -31,7 +31,9 @@ public record User(
     
     // 用户状态
     public static final boolean STATUS_ACTIVE = true;
+    public static final int STATUS_ACTIVE_CODE = 1;
     public static final boolean STATUS_INACTIVE = false;
+    public static final int STATUS_INACTIVE_CODE = 0;
     
     // ==================== 紧凑构造器（校验 & 默认值）====================
     
@@ -203,6 +205,28 @@ public record User(
                 .userInfos(userInfos)
                 .build();
     }
+
+    public static User forUpdateOnlineStatus(User user, boolean isOnline) {
+        return User.builder()
+                .userId(user.userId())
+                .userAccount(user.userAccount())
+                .userPasswd(user.userPasswd())
+                .nickname(user.nickname())
+                .userInfos(user.userInfos())
+                .registerTime(user.registerTime())
+                .lastLoginTime(user.lastLoginTime())
+                .lastLoginIpAddr(user.lastLoginIpAddr())
+                .userStatus(user.userStatus())
+                .roleId(user.roleId())
+                .userKey1(isOnline ? IUserAdapter.STATUS_ONLINE : IUserAdapter.STATUS_OFFLINE)
+                .userKey2(user.userKey2())
+                .userKey3(user.userKey3())
+                .userKey4(user.userKey4())
+                .userKey5(user.userKey5())
+                .userKey6(user.userKey6())
+                .build();
+    }
+
     public static User forLogin(User user){
         return User.builder()
                 .userId(user.userId())

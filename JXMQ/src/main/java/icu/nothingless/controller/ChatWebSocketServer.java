@@ -21,6 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,8 +37,12 @@ public class ChatWebSocketServer {
     // 本地会话管理（仅当前服务器）
     private static final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
 
-    // Redis 消息总线（由 ServletContext 初始化时注入）
+    // Redis 消息总线（在 ServletContext 注入）
     private static ChatRedisBus redisBus;
+
+    public static void setRedisBus(ChatRedisBus bus) {
+        redisBus = bus;
+    }
 
     // WebSocket 等待消息队列（可供长轮询客户端读取）
     private static final int MAX_QUEUE_CAPACITY = 500;
@@ -46,19 +51,38 @@ public class ChatWebSocketServer {
     private static final IMessageService<Message> messageService = ServiceFactory.getSingleton(IMessageService.class);
     private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketServer.class);
 
+    // 消息字段 & 类型常量
+    private static final String KEY_TYPE = "type";
+    private static final String KEY_MESSAGE = "message";
+    private static final String KEY_USER_ID = "userId";
+    private static final String KEY_TIMESTAMP = "timestamp";
+    private static final String KEY_MESSAGE_ID = "messageId";
+    private static final String KEY_TO_USER_ID = "toUserId";
+    private static final String KEY_FROM_USER_ID = "fromUserId";
+    private static final String KEY_READ_BY = "readBy";
+    private static final String KEY_APPLY_MSG = "applyMsg";
+
+    private static final String TYPE_CONNECTED = "CONNECTED";
+    private static final String TYPE_HEARTBEAT = "HEARTBEAT";
+    private static final String TYPE_HEARTBEAT_ACK = "HEARTBEAT_ACK";
+    private static final String TYPE_CHAT = "CHAT";
+    private static final String TYPE_SENT_ACK = "SENT_ACK";
+    private static final String TYPE_READ_RECEIPT = "READ_RECEIPT";
+    private static final String TYPE_ERROR = "ERROR";
+    private static final String TYPE_READ_ACK = "READ_ACK";
+    private static final String TYPE_FRIEND_APPLY = "FRIEND_APPLY";
+
+    // 简化发送 JSON 的工具
+    private void sendJson(Map<String, Object> payload) {
+        sendMessage(JsonUtil.toJson(payload));
+    }
+
     // 心跳调度器
     private ScheduledExecutorService heartbeatScheduler;
 
     // 当前会话信息
     private String userId;
     private Session session;
-
-    /**
-     * 设置 RedisBus（由 ContextListener 调用初始化）
-     */
-    public static void setRedisBus(ChatRedisBus bus) {
-        redisBus = bus;
-    }
 
     @OnOpen
     public void onOpen(Session session, @PathParam("userId") String userId) {
@@ -70,9 +94,8 @@ public class ChatWebSocketServer {
         // 注册到 Redis 总线
         redisBus.userOnline(userId, this::onRedisMessage);
 
-        // ===== 新增：同步设置 JedisUtil 的在线状态 =====
+        // 同步设置 JedisUtil 的在线状态
         ChatJedisUtil.setUserOnline(Long.valueOf(userId), 1);
-        // =============================================
 
         startClientHeartbeatCheck();
         sendMessage(JsonUtil.toJson(Map.of(
@@ -143,9 +166,11 @@ public class ChatWebSocketServer {
         redisBus.heartbeat(userId);
 
         // 回复 pong
-        sendMessage(JsonUtil.toJson(Map.of(
-                "type", "HEARTBEAT_ACK",
-                "timestamp", System.currentTimeMillis())));
+        sendMessage(
+                JsonUtil.toJson(
+                        Map.of(
+                                "type", "HEARTBEAT_ACK",
+                                "timestamp", System.currentTimeMillis())));
     }
 
     /**
@@ -348,7 +373,7 @@ public class ChatWebSocketServer {
 
     private void saveMessageAsync(MessageBean message) {
         // 使用线程池异步保存
-        // MessageService.save(message);
+        
     }
 
     private void markAsReadAsync(String messageId) {

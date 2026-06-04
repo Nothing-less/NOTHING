@@ -155,26 +155,42 @@ public class ChatRedisBus {
     }
 
     // ==================== 3. 消息发布订阅 ====================
-
     public void sendMessage(String toUserId, String messageJson) {
+        // 方案：优先本地推送，本地不在线则走 Redis
         Consumer<String> localHandler = localSubscribers.get(toUserId);
+        boolean localSuccess = false;
+
         if (localHandler != null) {
             try {
                 localHandler.accept(messageJson);
-                return;
+                localSuccess = true;
+                logger.debug("本地推送成功: {}", toUserId);
             } catch (Exception e) {
-                // 本地推送失败，继续走 Redis
+                logger.warn("本地推送失败: {}", toUserId);
             }
         }
 
-        try (Jedis jedis = jedisPool.getResource()) {
-            String channel = String.format(KEY_USER_CHANNEL, toUserId);
-            if (isOnline(toUserId)) {
+        // 如果本地推送失败，走 Redis（可能是其他服务器或已离线）
+        // if (!localSuccess) {
+        //     try (Jedis jedis = jedisPool.getResource()) {
+        //         String channel = String.format(KEY_USER_CHANNEL, toUserId);
+        //         jedis.publish(channel, messageJson);
+        //     }
+        // }
+        if (!localSuccess) {
+        // 检查用户是否在线（任何服务器）
+        if (!isOnline(toUserId)) {
+            // 用户离线，存储离线消息
+            saveOfflineMessage(toUserId, messageJson);
+            logger.debug("用户离线，消息已存入离线队列: {}", toUserId);
+        } else {
+            // 用户在线但在其他服务器，走 Redis Publish
+            try (Jedis jedis = jedisPool.getResource()) {
+                String channel = String.format(KEY_USER_CHANNEL, toUserId);
                 jedis.publish(channel, messageJson);
-            } else {
-                saveOfflineMessage(toUserId, messageJson);
             }
         }
+    }
     }
 
     private void saveOfflineMessage(String userId, String messageJson) {

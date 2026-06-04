@@ -15,8 +15,8 @@
 </div>
 
 <script>
-    let currentFriendId = '${friendId}';
-    let currentFriendNickname = '${nickname}';
+    let currentFriendId = String('${friendId}');
+    let currentFriendNickname = String('${nickname}');
     let lastMsgId = null;
 
     if (currentFriendId) {
@@ -46,8 +46,9 @@
         const isSelf = String(msg.senderId) === String(currentUserId);
         const div = document.createElement('div');
         div.className = 'msg-item ' + (isSelf ? 'self' : 'other');
-        div.innerHTML = '<div class="msg-content">' + escapeHtml(msg.content) + '</div><div class="msg-time">' + formatTime(msg.sendTime) + '</div>';
+        div.innerHTML = '<div class="msg-content">' + escapeHtml(msg.contents) + '</div><div class="msg-time">' + formatTime(msg.sendTime) + '</div>';
         area.appendChild(div);
+        area.scrollTop = area.scrollHeight;
     }
 
     function escapeHtml(text) {
@@ -56,10 +57,35 @@
         return div.innerHTML;
     }
 
+    // ========== 【关键修改】通过 WebSocket 发送 ==========
     function sendMessage() {
         const content = document.getElementById('msgInput').value.trim();
         if (!content || !currentFriendId) return;
         
+        // 获取父窗口的 ChatClient 实例
+        const parentChat = window.parent.chatClient;
+        
+        if (parentChat && parentChat.ws && parentChat.ws.readyState === WebSocket.OPEN) {
+            // 通过 WebSocket 发送
+            parentChat.sendChat(currentFriendId, content);
+            
+            // 本地乐观显示
+            const optimisticMsg = {
+                senderId: '${sessionScope.CURRENT_USER_ID}',
+                receiverId: currentFriendId,
+                contents: content,
+                sendTime: new Date().toISOString(),
+                isSelf: true
+            };
+            appendMessage(optimisticMsg);
+            document.getElementById('msgInput').value = '';
+        } else {
+            // WebSocket 未连接，降级为 HTTP
+            sendByHttp(content);
+        }
+    }
+    
+    function sendByHttp(content) {
         const params = new URLSearchParams();
         params.append('receiverId', currentFriendId);
         params.append('content', content);
@@ -72,42 +98,43 @@
             if (res.code === 200) {
                 appendMessage(res.data);
                 document.getElementById('msgInput').value = '';
-                document.getElementById('messageArea').scrollTop = document.getElementById('messageArea').scrollHeight;
             }
         });
     }
+    // ===================================================
 
-    function startMessagePolling() {
-        function poll() {
-            fetch('${pageContext.request.contextPath}/chat/poll')
-                .then(r => r.json())
-                .then(res => {
-                    if (res.code === 200 && res.data.length > 0) {
-                        res.data.forEach(msg => {
-                            if (String(msg.senderId) === String(currentFriendId)) {
-                                appendMessage(msg);
-                                fetch('${pageContext.request.contextPath}/message/read?friendId=' + msg.senderId, {method: 'POST'});
-                            }
-                        });
-                    }
-                })
-                .finally(() => {
-                    setTimeout(poll, 3000);
-                });
+    // ========== 【关键修改】接收消息改为监听 postMessage ==========
+    window.addEventListener('message', function(event) {
+        // 安全：检查来源（生产环境建议加 origin 校验）
+        // if (event.origin !== window.location.origin) return;
+        
+        const data = event.data;
+        if (data && data.type === 'CHAT_MESSAGE') {
+            const msg = data.message;
+            // 只处理当前聊天好友的消息
+            if (String(msg.senderId) === String(currentFriendId)) {
+                appendMessage(msg);
+                // 标记已读
+                fetch('${pageContext.request.contextPath}/message/read?friendId=' + currentFriendId, {method: 'POST'});
+            }
         }
-        poll();
+        if (data && data.type === 'SENT_ACK') {
+        // 消息发送成功确认，可以移除"发送中"状态
+        console.log('Message sent successfully:', data.messageId);
     }
+    });
+    // ===================================================
 
     function formatTime(time) {
-        return new Date(time).toLocaleTimeString();
+        if (!time) return '';
+        const d = new Date(time);
+        if (isNaN(d.getTime())) return time;  // 如果解析失败，原样返回
+        return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
     }
 
-    // 关闭时通知父窗口
     function closeChatWindow() {
         if (window.parent && window.parent.closeGlobalChat) {
             window.parent.closeGlobalChat(currentFriendId);
         }
     }
-
-    startMessagePolling();
 </script>

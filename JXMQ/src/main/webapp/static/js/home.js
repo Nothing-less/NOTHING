@@ -14,7 +14,6 @@ var App = (function() {
             ]).then(function(results) {
                 self.config = results[0];
                 self.userInfo = results[1];
-                console.log('配置和用户信息加载成功:', self.config, self.userInfo);
                 return self.config;
             });
         },

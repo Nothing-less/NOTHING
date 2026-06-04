@@ -4,7 +4,9 @@ import icu.nothingless.controller.config.ChatConfigurator;
 import icu.nothingless.pojo.bean.MessageBean;
 import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.pojo.dto.User;
+import icu.nothingless.service.interfaces.IMessageService;
 import icu.nothingless.service.interfaces.IUserService;
+import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ChatRedisBus;
 import icu.nothingless.tools.JsonUtil;
 import icu.nothingless.tools.ServiceFactory;
@@ -18,7 +20,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -31,60 +32,56 @@ import java.util.concurrent.TimeUnit;
  */
 @ServerEndpoint(value = "/ws/chat/{userId}", configurator = ChatConfigurator.class)
 public class ChatWebSocketServer {
-    
+
     // 本地会话管理（仅当前服务器）
     private static final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
-    
+
     // Redis 消息总线（由 ServletContext 初始化时注入）
     private static ChatRedisBus redisBus;
-    
+
     // WebSocket 等待消息队列（可供长轮询客户端读取）
     private static final int MAX_QUEUE_CAPACITY = 500;
     private static final ConcurrentHashMap<Long, BlockingQueue<Message>> waitQueues = new ConcurrentHashMap<>();
 
+    private static final IMessageService<Message> messageService = ServiceFactory.getSingleton(IMessageService.class);
     private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketServer.class);
-    
+
     // 心跳调度器
     private ScheduledExecutorService heartbeatScheduler;
-    
+
     // 当前会话信息
     private String userId;
     private Session session;
-    
+
     /**
      * 设置 RedisBus（由 ContextListener 调用初始化）
      */
     public static void setRedisBus(ChatRedisBus bus) {
         redisBus = bus;
     }
-    
+
     @OnOpen
     public void onOpen(Session session, @PathParam("userId") String userId) {
         this.userId = userId;
         this.session = session;
-        
-        // 注册会话
         sessions.put(userId, session);
-        
-        // 如果用户通过 WebSocket 连接，则创建并维护对应的等待队列
         getWaitQueue(Long.valueOf(userId));
-        
+
         // 注册到 Redis 总线
         redisBus.userOnline(userId, this::onRedisMessage);
-        
-        // 启动客户端心跳检测（检查客户端是否活着）
+
+        // ===== 新增：同步设置 JedisUtil 的在线状态 =====
+        ChatJedisUtil.setUserOnline(Long.valueOf(userId), 1);
+        // =============================================
+
         startClientHeartbeatCheck();
-        
-        // 发送连接成功确认
         sendMessage(JsonUtil.toJson(Map.of(
-            "type", "CONNECTED",
-            "userId", userId,
-            "timestamp", System.currentTimeMillis()
-        )));
-        
+                "type", "CONNECTED",
+                "userId", userId,
+                "timestamp", System.currentTimeMillis())));
         logger.info("User: [{}] login ，Current Online number: [{}]", userId, sessions.size());
     }
-    
+
     @OnMessage
     @SuppressWarnings("unchecked")
     public void onMessage(String message, Session session) {
@@ -92,28 +89,28 @@ public class ChatWebSocketServer {
             // 解析消息
             Map<String, Object> msgMap = JsonUtil.fromJson(message, Map.class);
             String msgType = (String) msgMap.get("type");
-            
+
             switch (msgType) {
                 case "HEARTBEAT":
                     // 客户端心跳 pong
                     handleClientHeartbeat();
                     break;
-                    
+
                 case "CHAT":
                     // 聊天消息
                     handleChatMessage(msgMap);
                     break;
-                    
+
                 case "READ_ACK":
                     // 已读回执
                     handleReadAck(msgMap);
                     break;
-                    
+
                 case "FRIEND_APPLY":
                     // 好友申请（通过 WebSocket 实时通知）
                     handleFriendApply(msgMap);
                     break;
-                    
+
                 default:
                     sendError("未知消息类型: " + msgType);
             }
@@ -121,21 +118,21 @@ public class ChatWebSocketServer {
             sendError("消息处理失败: " + e.getMessage());
         }
     }
-    
+
     @OnClose
     public void onClose(CloseReason reason) {
         cleanup();
         logger.info("User: [{}] logout ，Reason: [{}]", userId, reason.getReasonPhrase());
     }
-    
+
     @OnError
     public void onError(Throwable error) {
         logger.error("WebSocket Error [{}]: {}", userId, error.getMessage(), error);
         cleanup();
     }
-    
+
     // ==================== 消息处理 ====================
-    
+
     /**
      * 处理客户端心跳
      */
@@ -144,50 +141,67 @@ public class ChatWebSocketServer {
         // 更新 Redis 心跳
         session.getUserProperties().put("lastHeartbeat", System.currentTimeMillis());
         redisBus.heartbeat(userId);
-        
+
         // 回复 pong
         sendMessage(JsonUtil.toJson(Map.of(
-            "type", "HEARTBEAT_ACK",
-            "timestamp", System.currentTimeMillis()
-        )));
+                "type", "HEARTBEAT_ACK",
+                "timestamp", System.currentTimeMillis())));
     }
-    
+
     /**
      * 处理聊天消息
      */
     private void handleChatMessage(Map<String, Object> msgMap) {
         String toUserId = (String) msgMap.get("toUserId");
         String content = (String) msgMap.get("content");
-        
-        // 构建消息对象
-        MessageBean message = new MessageBean();
-        message.setSenderId(Long.valueOf(userId));
-        message.setReceiverId(Long.valueOf(toUserId));
-        message.setContents(content);
-        message.setSendTime(LocalDateTime.now());
-        message.setMsgStatus(MessageBean.STATUS_UNREAD); // 未读
-        
-        // 保存到数据库（异步）
-        saveMessageAsync(message);
-        
-        // 推送给接收者
-        String msgJson = JsonUtil.toJson(Map.of(
-            "type", "CHAT",
-            "message", message
-        ));
-        
-        redisBus.sendMessage(toUserId, msgJson);
-        pushToWaitQueue(Long.valueOf(toUserId), message);
-        
-        // 发送回执给发送者
-        sendMessage(JsonUtil.toJson(Map.of(
-            "type", "SENT_ACK",
-            "messageId", message.getMsgId(),
-            "toUserId", toUserId,
-            "timestamp", System.currentTimeMillis()
-        )));
+
+        if (toUserId == null || content == null || content.isBlank()) {
+            sendError("消息格式错误: 缺少 toUserId 或 content");
+            return;
+        }
+
+        try {
+            // 第 1 步：保存到数据库
+            var respEntity = messageService.sendMessage(
+                    Long.valueOf(userId),
+                    Long.valueOf(toUserId),
+                    content,
+                    Message.TYPE_TEXT);
+
+            if (respEntity == null || respEntity.isError() || respEntity.getData() == null) {
+                sendError("消息保存失败: " + (respEntity != null ? respEntity.getMessage() : "空响应"));
+                return;
+            }
+
+            Message savedMsg = respEntity.getData();
+
+            // 第 2 步：推送到等待队列（供长轮询客户端拉取）
+            ChatWebSocketServer.pushToWaitQueue(savedMsg.receiverId(), savedMsg);
+
+            // 第 3 步：构建消息 JSON 并 Redis 发布
+            String msgJson = JsonUtil.toJson(Map.of(
+                    "type", "CHAT",
+                    "message", savedMsg));
+
+            redisBus.sendMessage(toUserId, msgJson);
+
+            // 第 4 步：发送成功回执
+            sendMessage(JsonUtil.toJson(Map.of(
+                    "type", "SENT_ACK",
+                    "messageId", savedMsg.msgId(),
+                    "toUserId", toUserId,
+                    "timestamp", System.currentTimeMillis())));
+
+            logger.debug("消息发送成功 [{}] -> [{}], msgId={}", userId, toUserId, savedMsg.msgId());
+
+        } catch (NumberFormatException e) {
+            sendError("用户ID格式错误");
+        } catch (Exception e) {
+            logger.error("发送消息异常", e);
+            sendError("发送失败: " + e.getMessage());
+        }
     }
-    
+
     /**
      * 处理 Redis 推送过来的消息
      */
@@ -195,43 +209,41 @@ public class ChatWebSocketServer {
         // 直接转发给客户端
         sendMessage(messageJson);
     }
-    
+
     /**
      * 处理已读回执
      */
     private void handleReadAck(Map<String, Object> msgMap) {
         String messageId = (String) msgMap.get("messageId");
         String fromUserId = (String) msgMap.get("fromUserId");
-        
+
         // 更新数据库消息状态
         markAsReadAsync(messageId);
-        
+
         // 通知发送者消息已读
         redisBus.sendMessage(fromUserId, JsonUtil.toJson(Map.of(
-            "type", "READ_RECEIPT",
-            "messageId", messageId,
-            "readBy", userId,
-            "timestamp", System.currentTimeMillis()
-        )));
+                "type", "READ_RECEIPT",
+                "messageId", messageId,
+                "readBy", userId,
+                "timestamp", System.currentTimeMillis())));
     }
-    
+
     /**
      * 处理好友申请（实时通知）
      */
     private void handleFriendApply(Map<String, Object> msgMap) {
         String toUserId = (String) msgMap.get("toUserId");
-        
+
         // 通知对方有新申请
         redisBus.sendMessage(toUserId, JsonUtil.toJson(Map.of(
-            "type", "FRIEND_APPLY",
-            "fromUserId", userId,
-            "applyMsg", msgMap.get("applyMsg"),
-            "timestamp", System.currentTimeMillis()
-        )));
+                "type", "FRIEND_APPLY",
+                "fromUserId", userId,
+                "applyMsg", msgMap.get("applyMsg"),
+                "timestamp", System.currentTimeMillis())));
     }
-    
+
     // ==================== 心跳检测 ====================
-    
+
     /**
      * 启动客户端心跳检测
      * 如果 90 秒未收到客户端心跳，认为断线
@@ -242,40 +254,40 @@ public class ChatWebSocketServer {
             t.setDaemon(true);
             return t;
         });
-        
-        final long[] lastHeartbeat = {System.currentTimeMillis()};
-        
+
+        final long[] lastHeartbeat = { System.currentTimeMillis() };
+
         // 记录最后一次心跳时间
         session.getUserProperties().put("lastHeartbeat", lastHeartbeat[0]);
-        
+
         heartbeatScheduler.scheduleAtFixedRate(() -> {
             Long last = (Long) session.getUserProperties().get("lastHeartbeat");
-            if (last == null) last = 0L;
-            
+            if (last == null)
+                last = 0L;
+
             logger.debug("Last heart beat: <{}>", last);
             // 90 秒无心跳则关闭连接
             if (System.currentTimeMillis() - last > 90000) {
                 logger.warn("Heartbeat Connect Time Out: [{}]", userId);
                 try {
                     session.close(new CloseReason(
-                        CloseReason.CloseCodes.GOING_AWAY,
-                        "Heartbeat timeout"
-                    ));
-                    
+                            CloseReason.CloseCodes.GOING_AWAY,
+                            "Heartbeat timeout"));
+
                 } catch (IOException e) {
                     logger.error("Close WebSocket Connection Failed [{}]: {}", userId, e.getMessage(), e);
                 }
                 heartbeatScheduler.shutdown();
                 // 处理用户下线
-                IUserService<User> userService = (IUserService<User>)ServiceFactory.getSingleton(IUserService.class);
+                IUserService<User> userService = (IUserService<User>) ServiceFactory.getSingleton(IUserService.class);
                 userService.doLogout(User.builder().userId(userId).build());
 
             }
         }, 30, 30, TimeUnit.SECONDS);
     }
-    
+
     // ==================== 工具方法 ====================
-    
+
     private void sendMessage(String message) {
         if (session != null && session.isOpen()) {
             try {
@@ -285,22 +297,25 @@ public class ChatWebSocketServer {
             }
         }
     }
-    
+
     private void sendError(String error) {
         sendMessage(JsonUtil.toJson(Map.of(
-            "type", "ERROR",
-            "message", error
-        )));
+                "type", "ERROR",
+                "message", error)));
     }
-    
+
     private void cleanup() {
-        // 移除会话
         sessions.remove(userId);
-        
-        // 通知 Redis 下线
         redisBus.userOffline(userId);
-        
-        // 停止心跳检测
+
+        // ===== 新增：同步设置 JedisUtil 的离线状态 =====
+        try {
+            ChatJedisUtil.setUserOffline(Long.valueOf(userId), 0);
+        } catch (Exception e) {
+            logger.warn("Failed to set user offline in JedisUtil: {}", e.getMessage());
+        }
+        // =============================================
+
         if (heartbeatScheduler != null) {
             heartbeatScheduler.shutdown();
         }
@@ -330,18 +345,18 @@ public class ChatWebSocketServer {
         }
         pushToWaitQueue(userId, Message.fromEntity(messageBean));
     }
-    
+
     private void saveMessageAsync(MessageBean message) {
         // 使用线程池异步保存
         // MessageService.save(message);
     }
-    
+
     private void markAsReadAsync(String messageId) {
         // 异步标记已读
     }
-    
+
     // ==================== 静态工具方法 ====================
-    
+
     /**
      * 主动推送消息给指定用户（供其他 Service 调用）
      */
@@ -355,7 +370,7 @@ public class ChatWebSocketServer {
             }
         }
     }
-    
+
     /**
      * 检查用户是否连接在当前服务器
      */
@@ -363,7 +378,7 @@ public class ChatWebSocketServer {
         Session s = sessions.get(userId);
         return s != null && s.isOpen();
     }
-    
+
     /**
      * 获取当前服务器在线人数
      */
@@ -371,20 +386,23 @@ public class ChatWebSocketServer {
         return sessions.size();
     }
 
-    public static void shutdown(){
+    public static void shutdown() {
         // 关闭所有会话
         sessions.values().forEach(session -> {
             try {
                 session.close(new CloseReason(
-                    CloseReason.CloseCodes.GOING_AWAY,
-                    "Server shutdown"
-                ));
+                        CloseReason.CloseCodes.GOING_AWAY,
+                        "Server shutdown"));
             } catch (IOException e) {
                 logger.error("Close WebSocket Connection Failed [{}]: {}", e.getMessage(), e);
             }
         });
         sessions.clear();
         redisBus.shutdown();
+    }
+
+    public static ChatRedisBus getRedisBus() {
+        return redisBus;
     }
 
 }

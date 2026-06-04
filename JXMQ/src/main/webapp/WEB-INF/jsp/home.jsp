@@ -245,10 +245,27 @@
             chatLog('DOM loaded, initializing chat system...');
 
             var contextPath = '<%= contextPath %>';
-            const chat = new ChatClient('<%= currentUser.userId() %>');
-            chat.on('connected', function() {
-                console.log('WebSocket connected');
+            
+            // ========== 【关键】将 chat 实例挂载到 window，供 iframe 访问 ==========
+            window.chatClient = new ChatClient('<%= currentUser.userId() %>');
+            const chat = window.chatClient;
+            // =====================================================================
+            
+            // home.jsp 中
+            chat.on('sent', function(msg) {
+                // 找到对应的聊天窗口，通知消息发送成功
+                const win = ChatWindowManager.windows[msg.toUserId];
+                if (win) {
+                    const iframe = win.querySelector('iframe');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({
+                            type: 'SENT_ACK',
+                            messageId: msg.messageId
+                        }, '*');
+                    }
+                }
             });
+            
             chat.on('disconnected', function(e) {
                 console.log('WebSocket disconnected');
                 if (e.permanent) {
@@ -256,17 +273,44 @@
                 }
             });
 
-            // 监听来自 iframe 的消息
+            // ========== 【关键】收到消息后转发给对应的聊天窗口 ==========
+            chat.on('message', function(msg) {
+                chatLog('Received message via WebSocket:', msg);
+                
+                // msg 的结构取决于后端发送格式
+                // ChatWebSocketServer 发送的是: {type: "CHAT", message: Message对象}
+                const actualMsg = msg.message || msg;
+                const senderId = actualMsg.senderId;
+                
+                // 找到对应的聊天窗口并转发
+                const win = ChatWindowManager.windows[senderId];
+                if (win) {
+                    const iframe = win.querySelector('iframe');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({
+                            type: 'CHAT_MESSAGE',
+                            message: actualMsg
+                        }, '*');
+                    }
+                    // 窗口闪烁或提示
+                    if (!win.classList.contains('focused')) {
+                        win.querySelector('.chat-window-header').style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                    }
+                } else {
+                    // 没有打开聊天窗口，更新好友列表未读数
+                    // 可以在这里调用 loadFriends() 或局部更新
+                    chatLog('Message from unopened chat, friendId:', senderId);
+                }
+            });
+            // =========================================================
+
+            // 监听来自 iframe 的消息（打开聊天窗口）
             window.addEventListener('message', function(event) {
                 chatLog('Received message from iframe:', event.data);
-
-                // 同源检查（开发时可放宽）
                 if (event.origin !== window.location.origin) {
-                    chatLog('Origin mismatch:', event.origin, 'vs', window.location.origin);
-                    // 开发环境可注释掉 return
+                    // 开发环境可注释
                     // return;
                 }
-
                 const data = event.data;
                 if (data && data.type === 'OPEN_CHAT') {
                     chatLog('Opening chat window for:', data.friendId, data.nickname);

@@ -1,13 +1,17 @@
 package icu.nothingless.controller;
 
 import java.io.IOException;
+import java.security.Provider.Service;
 import java.util.List;
+import java.util.Map;
 
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.service.impl.MessageServiceImpl;
 import icu.nothingless.service.interfaces.IMessageService;
+import icu.nothingless.tools.ChatRedisBus;
 import icu.nothingless.tools.JsonUtil;
+import icu.nothingless.tools.ServiceFactory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,7 +22,7 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet("/message/*")
 public class MessageServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private final IMessageService<Message> messageService = new MessageServiceImpl();
+    private final IMessageService<Message> messageService = ServiceFactory.getSingleton(IMessageService.class);
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -104,6 +108,24 @@ public class MessageServlet extends HttpServlet {
         }
 
         RespEntity<Message> respEntity = messageService.sendMessage(userId, receiverId, content, msgType);
+
+        if (respEntity != null && !respEntity.isError() && respEntity.getData() != null) {
+            Message savedMsg = respEntity.getData();
+
+            // 1. 推送到等待队列
+            ChatWebSocketServer.pushToWaitQueue(receiverId, savedMsg);
+
+            // 2. Redis 发布订阅（统一处理本地/集群/离线）
+            String msgJson = JsonUtil.toJson(Map.of(
+                    "type", "CHAT",
+                    "message", savedMsg));
+
+            ChatRedisBus redisBus = ChatWebSocketServer.getRedisBus();
+            if (redisBus != null) {
+                redisBus.sendMessage(String.valueOf(receiverId), msgJson);
+            }
+        }
+
         writeRespEntity(resp, respEntity);
     }
 

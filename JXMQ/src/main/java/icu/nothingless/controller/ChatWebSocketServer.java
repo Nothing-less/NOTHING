@@ -51,32 +51,6 @@ public class ChatWebSocketServer {
     private static final IMessageService<Message> messageService = ServiceFactory.getSingleton(IMessageService.class);
     private static final Logger logger = LoggerFactory.getLogger(ChatWebSocketServer.class);
 
-    // 消息字段 & 类型常量
-    private static final String KEY_TYPE = "type";
-    private static final String KEY_MESSAGE = "message";
-    private static final String KEY_USER_ID = "userId";
-    private static final String KEY_TIMESTAMP = "timestamp";
-    private static final String KEY_MESSAGE_ID = "messageId";
-    private static final String KEY_TO_USER_ID = "toUserId";
-    private static final String KEY_FROM_USER_ID = "fromUserId";
-    private static final String KEY_READ_BY = "readBy";
-    private static final String KEY_APPLY_MSG = "applyMsg";
-
-    private static final String TYPE_CONNECTED = "CONNECTED";
-    private static final String TYPE_HEARTBEAT = "HEARTBEAT";
-    private static final String TYPE_HEARTBEAT_ACK = "HEARTBEAT_ACK";
-    private static final String TYPE_CHAT = "CHAT";
-    private static final String TYPE_SENT_ACK = "SENT_ACK";
-    private static final String TYPE_READ_RECEIPT = "READ_RECEIPT";
-    private static final String TYPE_ERROR = "ERROR";
-    private static final String TYPE_READ_ACK = "READ_ACK";
-    private static final String TYPE_FRIEND_APPLY = "FRIEND_APPLY";
-
-    // 简化发送 JSON 的工具
-    private void sendJson(Map<String, Object> payload) {
-        sendMessage(JsonUtil.toJson(payload));
-    }
-
     // 心跳调度器
     private ScheduledExecutorService heartbeatScheduler;
 

@@ -31,7 +31,7 @@ public class MessageServiceImpl implements IMessageService<Message> {
             return RespEntity.badRequest("Message content is required");
         }
 
-        icu.nothingless.pojo.bean.MessageBean msgBean = new MessageBean();
+        MessageBean msgBean = new MessageBean();
         msgBean.setSenderId(senderId);
         msgBean.setReceiverId(receiverId);
         msgBean.setMsgType(msgType == null ? Message.TYPE_TEXT : msgType);
@@ -47,14 +47,14 @@ public class MessageServiceImpl implements IMessageService<Message> {
             msgBean.setMsgId(saveResult.data());
             Message message = Message.builder().from(msgBean).withCurrentUser(senderId).build();
 
+            // 只处理离线消息队列
             Integer receiverStatus = ChatJedisUtil.getUserStatus(String.valueOf(receiverId));
-            if (receiverStatus != null && receiverStatus == 1) {
-                ChatJedisUtil.incrUnread(receiverId, senderId);
-                ChatJedisUtil.cacheRecentMessage(receiverId, senderId, msgBean);
-            } else {
+            if (receiverStatus == null || receiverStatus != 1) {
+                // 接收方离线，存入离线队列（上线后投递）
                 ChatJedisUtil.pushOfflineMessage(receiverId, msgBean);
+                logger.debug("Receiver [{}] offline, message saved to offline queue", receiverId);
             }
-            ChatJedisUtil.cacheRecentMessage(senderId, receiverId, msgBean);
+            // 在线时不做任何 Redis 缓存，消息已通过 WebSocket 实时推送
             return RespEntity.success(message);
         } catch (Exception e) {
             logger.error("Error occurred while executing function <sendMessage>: ", e);
@@ -90,6 +90,7 @@ public class MessageServiceImpl implements IMessageService<Message> {
             R<List<Message>> ret = messageDao.getUnreadMessages(userId);
             List<Message> messages = (List<Message>)ret.data();
 
+            // 【保留】离线消息队列仍需处理
             List<MessageBean> offlineMsgs = ChatJedisUtil.popOfflineMessages(userId);
             if (offlineMsgs != null && !offlineMsgs.isEmpty()) {
                 List<Message> offlineMessages = convertMessages(offlineMsgs, userId);
@@ -140,7 +141,7 @@ public class MessageServiceImpl implements IMessageService<Message> {
         }
     }
 
-    private List<Message> convertMessages(List<icu.nothingless.pojo.bean.MessageBean> beans, Long currentUserId) {
+    private List<Message> convertMessages(List<MessageBean> beans, Long currentUserId) {
         List<Message> messages = new ArrayList<>();
         if (beans == null || beans.isEmpty()) {
             return messages;

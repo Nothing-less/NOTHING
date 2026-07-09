@@ -248,6 +248,13 @@
                         openChatWindow(data.friendId, data.nickname);
                         break;
                         
+                     case 'REFRESH_FRIEND_LIST':
+                        // 通知 contentFrame 刷新好友列表
+                        const contentFrame = document.getElementById('contentFrame');
+                        if (contentFrame && contentFrame.contentWindow && contentFrame.contentWindow.loadFriends) {
+                            contentFrame.contentWindow.loadFriends();
+                        }
+                        break;
                     case 'SEND_MESSAGE':
                         // chat_window 请求发送消息
                         if (data.toUserId && data.content) {

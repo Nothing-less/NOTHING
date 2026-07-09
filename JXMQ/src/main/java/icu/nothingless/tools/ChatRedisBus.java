@@ -9,6 +9,14 @@ import redis.clients.jedis.resps.ScanResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import icu.nothingless.controller.ChatWebSocketServer;
+import icu.nothingless.pojo.dto.User;
+import icu.nothingless.service.interfaces.IUserService;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.Session;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -151,7 +159,34 @@ public class ChatRedisBus {
     }
 
     private void onUserTimeout(String userId) {
-        // 清理相关资源
+        logger.info("User timeout detected by Redis: [{}]", userId);
+
+        // 1. 清理 Redis 在线状态
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.del(String.format(KEY_USER_ONLINE, userId));
+            jedis.zrem(KEY_HEARTBEAT_ZSET, userId);
+        }
+
+        // 2. 如果用户连接在当前服务器，强制关闭 WebSocket
+        Session sess = ChatWebSocketServer.getSessions().get(userId);
+        if (sess != null && sess.isOpen()) {
+            try {
+                sess.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Redis timeout"));
+            } catch (IOException e) {
+                logger.error("Close timeout session failed [{}]: {}", userId, e.getMessage());
+            }
+            ChatWebSocketServer.getSessions().remove(userId);
+        }
+
+        // 3. 同步 JedisUtil 状态
+        try {
+            ChatJedisUtil.setUserOffline(Long.valueOf(userId), 0);
+            IUserService<User> userService = (IUserService<User>) ServiceFactory
+                    .getSingleton(IUserService.class);
+            userService.doLogout(User.builder().userId(userId).build());
+        } catch (Exception e) {
+            logger.warn("Set offline failed: {}", e.getMessage());
+        }
     }
 
     // ==================== 3. 消息发布订阅 ====================
@@ -172,25 +207,25 @@ public class ChatRedisBus {
 
         // 如果本地推送失败，走 Redis（可能是其他服务器或已离线）
         // if (!localSuccess) {
-        //     try (Jedis jedis = jedisPool.getResource()) {
-        //         String channel = String.format(KEY_USER_CHANNEL, toUserId);
-        //         jedis.publish(channel, messageJson);
-        //     }
+        // try (Jedis jedis = jedisPool.getResource()) {
+        // String channel = String.format(KEY_USER_CHANNEL, toUserId);
+        // jedis.publish(channel, messageJson);
+        // }
         // }
         if (!localSuccess) {
-        // 检查用户是否在线（任何服务器）
-        if (!isOnline(toUserId)) {
-            // 用户离线，存储离线消息
-            saveOfflineMessage(toUserId, messageJson);
-            logger.debug("用户离线，消息已存入离线队列: {}", toUserId);
-        } else {
-            // 用户在线但在其他服务器，走 Redis Publish
-            try (Jedis jedis = jedisPool.getResource()) {
-                String channel = String.format(KEY_USER_CHANNEL, toUserId);
-                jedis.publish(channel, messageJson);
+            // 检查用户是否在线（任何服务器）
+            if (!isOnline(toUserId)) {
+                // 用户离线，存储离线消息
+                saveOfflineMessage(toUserId, messageJson);
+                logger.debug("用户离线，消息已存入离线队列: {}", toUserId);
+            } else {
+                // 用户在线但在其他服务器，走 Redis Publish
+                try (Jedis jedis = jedisPool.getResource()) {
+                    String channel = String.format(KEY_USER_CHANNEL, toUserId);
+                    jedis.publish(channel, messageJson);
+                }
             }
         }
-    }
     }
 
     private void saveOfflineMessage(String userId, String messageJson) {

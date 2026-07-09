@@ -20,6 +20,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -35,6 +36,9 @@ public class ChatWebSocketServer {
 
     // 本地会话管理（仅当前服务器）
     private static final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, Session> getSessions() {
+        return sessions;
+    }
 
     // Redis 消息总线（在 ServletContext 注入）
     private static ChatRedisBus redisBus;
@@ -57,10 +61,84 @@ public class ChatWebSocketServer {
     private String userId;
     private Session session;
 
+    // 【新增】全局连接健康扫描器
+    private static final ScheduledExecutorService globalHealthChecker = Executors
+            .newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "global-ws-health-checker");
+                t.setDaemon(true);
+                return t;
+            });
+
+    static {
+        // 启动全局健康扫描
+        globalHealthChecker.scheduleAtFixedRate(() -> {
+            long now = System.currentTimeMillis();
+            int checked = 0, closed = 0;
+
+            for (Map.Entry<String, Session> entry : sessions.entrySet()) {
+                String uid = entry.getKey();
+                Session sess = entry.getValue();
+                checked++;
+
+                try {
+                    if (!sess.isOpen()) {
+                        logger.warn("Found closed session not cleaned: [{}]", uid);
+                        cleanupSession(uid);
+                        closed++;
+                        continue;
+                    }
+
+                    Long lastActivity = (Long) sess.getUserProperties().get("lastHeartbeat");
+                    if (lastActivity == null)
+                        lastActivity = 0L;
+
+                    // 超过 90 秒无活动，强制关闭
+                    if (now - lastActivity > 90000) {
+                        logger.warn("Force closing zombie connection: [{}]", uid);
+                        try {
+                            sess.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Zombie connection"));
+                        } catch (IOException e) {
+                            logger.error("Force close failed [{}]: {}", uid, e.getMessage());
+                        }
+                        cleanupSession(uid);
+                        closed++;
+                    }
+                } catch (Exception e) {
+                    logger.error("Health check error for [{}]: {}", uid, e.getMessage());
+                }
+            }
+
+            if (checked > 0) {
+                logger.debug("Health check: {} sessions checked, {} closed", checked, closed);
+            }
+        }, 60, 60, TimeUnit.SECONDS);
+    }
+
+    // 【新增】静态 cleanup，供全局扫描使用
+    private static void cleanupSession(String uid) {
+        sessions.remove(uid);
+        if (redisBus != null) {
+            redisBus.userOffline(uid);
+        }
+
+        try {
+            ChatJedisUtil.setUserOffline(Long.valueOf(uid), 0);
+        } catch (Exception e) {
+            logger.warn("Set offline failed: {}", e.getMessage());
+        }
+    }
+
     @OnOpen
     public void onOpen(Session session, @PathParam("userId") String userId) {
         this.userId = userId;
         this.session = session;
+
+        // 【新增】设置 WebSocket 会话超时（Tomcat 特定）
+        if (session.getContainer() instanceof WebSocketContainer) {
+            // 设置空闲超时 60 秒
+            session.setMaxIdleTimeout(60000);
+        }
+
         sessions.put(userId, session);
         getWaitQueue(Long.valueOf(userId));
 
@@ -71,13 +149,13 @@ public class ChatWebSocketServer {
         ChatJedisUtil.setUserOnline(Long.valueOf(userId), 1);
 
         startClientHeartbeatCheck();
-        
+
         // 发送连接成功消息
         sendMessage(JsonUtil.toJson(Map.of(
                 "type", "CONNECTED",
                 "userId", userId,
                 "timestamp", System.currentTimeMillis())));
-        
+
         logger.info("User: [{}] login, Current Online: [{}]", userId, sessions.size());
     }
 
@@ -182,7 +260,7 @@ public class ChatWebSocketServer {
             ChatJedisUtil.incrUnread(toId, fromId);
 
             // 第 5 步：缓存最近消息
-            ChatJedisUtil.cacheRecentMessage(toId, fromId, MessageBean.fromDTO(savedMsg));
+            // ChatJedisUtil.cacheRecentMessage(toId, fromId, MessageBean.fromDTO(savedMsg));
 
             // 第 6 步：发送成功回执给发送方
             sendMessage(JsonUtil.toJson(Map.of(
@@ -268,8 +346,21 @@ public class ChatWebSocketServer {
         session.getUserProperties().put("lastHeartbeat", System.currentTimeMillis());
 
         heartbeatScheduler.scheduleAtFixedRate(() -> {
+
+            try {
+                // 【新增】主动发送 Ping 帧
+                if (session != null && session.isOpen()) {
+                    session.getAsyncRemote().sendPing(ByteBuffer.wrap(new byte[] { 0x01 }));
+                }
+            } catch (IOException e) {
+                logger.warn("Ping failed [{}], connection dead: {}", userId, e.getMessage());
+                cleanup();
+                return;
+            }
+
             Long last = (Long) session.getUserProperties().get("lastHeartbeat");
-            if (last == null) last = 0L;
+            if (last == null)
+                last = 0L;
 
             if (System.currentTimeMillis() - last > 90000) {
                 logger.warn("Heartbeat timeout: [{}]", userId);
@@ -281,10 +372,11 @@ public class ChatWebSocketServer {
                     logger.error("Close session failed [{}]: {}", userId, e.getMessage());
                 }
                 heartbeatScheduler.shutdown();
-                
+
                 // 处理用户下线
                 try {
-                    IUserService<User> userService = (IUserService<User>) ServiceFactory.getSingleton(IUserService.class);
+                    IUserService<User> userService = (IUserService<User>) ServiceFactory
+                            .getSingleton(IUserService.class);
                     userService.doLogout(User.builder().userId(userId).build());
                 } catch (Exception e) {
                     logger.error("Logout failed [{}]: {}", userId, e.getMessage());
@@ -334,7 +426,8 @@ public class ChatWebSocketServer {
     }
 
     public static void pushToWaitQueue(Long userId, Message message) {
-        if (userId == null || message == null) return;
+        if (userId == null || message == null)
+            return;
         BlockingQueue<Message> queue = getWaitQueue(userId);
         if (!queue.offer(message)) {
             queue.poll();
@@ -343,7 +436,8 @@ public class ChatWebSocketServer {
     }
 
     public static void pushToWaitQueue(Long userId, MessageBean messageBean) {
-        if (messageBean == null) return;
+        if (messageBean == null)
+            return;
         pushToWaitQueue(userId, Message.fromEntity(messageBean));
     }
 

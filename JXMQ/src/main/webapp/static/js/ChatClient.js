@@ -1,6 +1,6 @@
 class ChatClient {
     constructor(userId) {
-        this.userId = userId;
+        this.userId = String(userId);
         this.ws = null;
         this.heartbeatTimer = null;
         this.reconnectAttempts = 0;
@@ -10,47 +10,69 @@ class ChatClient {
         this.connect();
     }
     
-    
     connect() {
-        // 优先使用全局 contextPath，否则使用 data-api-base
-        var path = (typeof contextPath !== 'undefined' && contextPath) ? contextPath : (document.body.dataset.apiBase || '');
+        var path = '';
         
-        // 确保 path 不以 / 结尾，且前面有 /
-        if (path && !path.startsWith('/')) path = '/' + path;
+        if (typeof window !== 'undefined' && window.contextPath) {
+            path = window.contextPath;
+        } else if (document.body && document.body.dataset && document.body.dataset.apiBase) {
+            path = document.body.dataset.apiBase;
+        }
         
-        const wsUrl = `ws://${location.host}${path}/ws/chat/${this.userId}`;
-        console.log('[ChatClient] Connecting to:', wsUrl);  // 调试用
+        if (path) {
+            path = path.replace(/\/+$/, '');
+            if (!path.startsWith('/')) {
+                path = '/' + path;
+            }
+        }
+        
+        var protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        var wsUrl = protocol + '//' + location.host + path + '/ws/chat/' + this.userId;
+        
+        console.log('[ChatClient] Connecting to:', wsUrl);
         this.ws = new WebSocket(wsUrl);
         
-        this.ws.onopen = () => {
-            this.reconnectAttempts = 0;
-            this.startHeartbeat();
-            this.emit('connected', { userId: this.userId });
+        var self = this;
+        
+        this.ws.onopen = function() {
+            console.log('[ChatClient] Connected');
+            self.reconnectAttempts = 0;
+            self.startHeartbeat();
+            self.emit('connected', { userId: self.userId });
         };
         
-        this.ws.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            this.handleMessage(msg);
+        this.ws.onmessage = function(event) {
+            try {
+                var msg = JSON.parse(event.data);
+                self.handleMessage(msg);
+            } catch (e) {
+                console.error('[ChatClient] Failed to parse message:', e);
+            }
         };
         
-        this.ws.onclose = (event) => {
-            console.log('WebSocket 关闭:', event.code, event.reason);
-            this.stopHeartbeat();
-            this.attemptReconnect();
+        this.ws.onclose = function(event) {
+            console.log('[ChatClient] WebSocket closed:', event.code, event.reason);
+            self.stopHeartbeat();
+            if (!event.wasClean) {
+                self.attemptReconnect();
+            }
         };
         
-        this.ws.onerror = (error) => {
-            console.error('WebSocket 错误:', error);
+        this.ws.onerror = function(error) {
+            console.error('[ChatClient] WebSocket error:', error);
+            self.emit('error', { type: 'websocket_error', error: error });
         };
     }
     
-    // 启动心跳（每 25 秒发送一次）
     startHeartbeat() {
-        this.heartbeatTimer = setInterval(() => {
-            this.send({
-                type: 'HEARTBEAT',
-                timestamp: Date.now()
-            });
+        var self = this;
+        this.heartbeatTimer = setInterval(function() {
+            if (self.ws && self.ws.readyState === WebSocket.OPEN) {
+                self.send({
+                    type: 'HEARTBEAT',
+                    timestamp: Date.now()
+                });
+            }
         }, 25000);
     }
     
@@ -61,126 +83,133 @@ class ChatClient {
         }
     }
     
-    // 自动重连（指数退避）
     attemptReconnect() {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.error('重连次数耗尽');
-            this.emit('disconnected', { permanent: true });
+            console.error('[ChatClient] Max reconnect attempts reached');
+            this.emit('disconnected', { permanent: true, reason: 'max_reconnect' });
             return;
         }
         
-        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+        var delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
         this.reconnectAttempts++;
         
-        console.log(`${delay}ms 后尝试第 ${this.reconnectAttempts} 次重连`);
+        console.log('[ChatClient] Reconnecting in ' + delay + 'ms (attempt ' + this.reconnectAttempts + ')');
+        this.emit('reconnecting', { attempt: this.reconnectAttempts, delay: delay });
         
-        setTimeout(() => this.connect(), delay);
+        var self = this;
+        setTimeout(function() { self.connect(); }, delay);
     }
     
-    // 发送消息
     send(message) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(message));
+            return true;
         } else {
-            console.warn('WebSocket 未连接，消息待发送:', message);
-            // 可加入消息队列，重连后发送
+            console.warn('[ChatClient] WebSocket not open, message queued:', message);
+            this.emit('pending', message);
+            return false;
         }
     }
     
-    // 发送聊天消息
     sendChat(toUserId, content) {
-        this.send({
+        return this.send({
             type: 'CHAT',
-            toUserId: toUserId,
+            toUserId: String(toUserId),
             content: content,
             timestamp: Date.now()
         });
     }
     
-    // 发送已读回执
     sendReadReceipt(messageId, fromUserId) {
         this.send({
             type: 'READ_ACK',
-            messageId: messageId,
-            fromUserId: fromUserId
+            messageId: String(messageId),
+            fromUserId: String(fromUserId)
         });
     }
     
-    // 处理收到的消息
+    sendFriendApply(toUserId, applyMsg) {
+        this.send({
+            type: 'FRIEND_APPLY',
+            toUserId: String(toUserId),
+            applyMsg: applyMsg,
+            timestamp: Date.now()
+        });
+    }
+    
     handleMessage(msg) {
         switch (msg.type) {
+            case 'CONNECTED':
+                // 连接成功确认，不需要特殊处理
+                console.log('[ChatClient] Server confirmed connection');
+                break;
+                
             case 'HEARTBEAT_ACK':
-                // 服务器心跳响应
+                this.emit('heartbeat', msg);
                 break;
                 
             case 'CHAT':
-                this.emit('message', msg.message);
-                // 自动发送已读回执
-                this.sendReadReceipt(msg.message.msgId, msg.message.senderId);
+                this.emit('message', msg);
+                if (msg.message && msg.message.msgId && msg.message.senderId) {
+                    this.sendReadReceipt(msg.message.msgId, msg.message.senderId);
+                }
                 break;
                 
             case 'FRIEND_APPLY':
-                // 收到好友申请
                 this.emit('friendApply', msg);
                 break;
                 
             case 'SENT_ACK':
-                // 发送成功回执
                 this.emit('sent', msg);
                 break;
                 
             case 'READ_RECEIPT':
-                // 对方已读
                 this.emit('read', msg);
                 break;
                 
             case 'ERROR':
-                console.error('服务器错误:', msg.message);
+                console.error('[ChatClient] Server error:', msg.message);
                 this.emit('error', msg);
                 break;
+                
+            default:
+                console.log('[ChatClient] Unknown message type:', msg.type, msg);
         }
     }
     
-    // 事件监听
     on(event, callback) {
-        this.listeners.set(event, callback);
+        if (!this.listeners.has(event)) {
+            this.listeners.set(event, []);
+        }
+        this.listeners.get(event).push(callback);
+        
+        var self = this;
+        return function() {
+            var callbacks = self.listeners.get(event);
+            if (callbacks) {
+                var index = callbacks.indexOf(callback);
+                if (index > -1) callbacks.splice(index, 1);
+            }
+        };
     }
     
     emit(event, data) {
-        const callback = this.listeners.get(event);
-        if (callback) callback(data);
+        var callbacks = this.listeners.get(event);
+        if (callbacks) {
+            callbacks.forEach(function(cb) {
+                try {
+                    cb(data);
+                } catch (e) {
+                    console.error('[ChatClient] Error in listener:', e);
+                }
+            });
+        }
     }
     
-    // 关闭连接
     close() {
         this.stopHeartbeat();
-        this.ws.close();
+        if (this.ws) {
+            this.ws.close(1000, 'Client closed');
+        }
     }
 }
-
-// 使用示例
-/*
-
-const chat = new ChatClient(currentUserId);
-
-chat.on('message', (msg) => {
-    console.log('收到消息:', msg);
-    displayMessage(msg);
-});
-
-chat.on('friendApply', (apply) => {
-    showNotification(`收到来自 ${apply.fromUserId} 的好友申请`);
-});
-
-chat.on('connected', () => {
-    updateOnlineStatus(true);
-});
-
-chat.on('disconnected', (e) => {
-    updateOnlineStatus(false);
-    if (e.permanent) {
-        showError('连接已断开，请刷新页面重试');
-    }
-});
-
-*/

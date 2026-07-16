@@ -29,13 +29,13 @@ class ChatClient {
         var protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
         var wsUrl = protocol + '//' + location.host + path + '/ws/chat/' + this.userId;
         
-        console.log('[ChatClient] Connecting to:', wsUrl);
+        // console.log('[ChatClient] Connecting to:', wsUrl);
         this.ws = new WebSocket(wsUrl);
         
         var self = this;
         
         this.ws.onopen = function() {
-            console.log('[ChatClient] Connected');
+            // console.log('[ChatClient] Connected');
             self.reconnectAttempts = 0;
             self.startHeartbeat();
             self.emit('connected', { userId: self.userId });

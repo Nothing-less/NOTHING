@@ -1,8 +1,7 @@
 package icu.nothingless.commons;
 
 /**
- * Daoo层 与 Service层的统一响应对象，包含状态码、状态信息(fixed)、详细信息和数据
- * 
+ * Daoo层与Service层的统一响应对象
  * @param code 状态码，1表示成功，0表示失败
  */
 public record R<T>(

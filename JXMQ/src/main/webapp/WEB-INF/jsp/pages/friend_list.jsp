@@ -62,7 +62,7 @@
             const groupName = f.groupName || '默认分组';
             const unreadCount = f.unreadCount || f.unreadMsgCount || 0;
 
-            // 修改点：添加聊天按钮，点击后通知父窗口打开聊天
+            // 添加聊天按钮，点击后通知父窗口打开聊天
             return '<div class="friend-item" data-group="' + groupName + '">' +
                 '<div class="friend-info">' +
                     '<div class="nickname">' + remark + '</div>' +

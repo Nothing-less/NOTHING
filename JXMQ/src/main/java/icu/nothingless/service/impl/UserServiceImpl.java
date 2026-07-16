@@ -102,7 +102,6 @@ public class UserServiceImpl implements IUserService<User> {
             }
             R ret = userDao.doRegister(target);
             if (ret.isSuccess()) {
-
                 return RespEntity.success("" + ret.data(), target);
             }
 

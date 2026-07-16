@@ -13,13 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 用户数据访问层 - Redis缓存代理实现
- * 
- * 设计原则：
- * 纯粹代理：对调用方透明，无额外副作用
- * 极简一致：同步双删，失败即抛异常
- * 安全并发：原子加锁、防击穿、防穿透
- * 无状态：支持多实例或单例
+ * 用户数据访问层 - Redis缓存代理
  */
 public class CacheUserDaoImpl implements IUserDao<User> {
 

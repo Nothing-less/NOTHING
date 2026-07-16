@@ -34,6 +34,9 @@ public record User(
     public static final int STATUS_ACTIVE_CODE = 1;
     public static final boolean STATUS_INACTIVE = false;
     public static final int STATUS_INACTIVE_CODE = 0;
+
+    // 用户权限
+    public static final String ROLE_SUPER_ADMIN = "Super Administrator";
     
     // ==================== 紧凑构造器（校验 & 默认值）====================
     

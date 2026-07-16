@@ -51,9 +51,17 @@ var App = (function() {
     
     // 图标映射
     var ICON_MAP = {
-        orders: '📦', users: '👥', products: '🛍️',
-        dashboard: '📊', analytics: '📈', settings: '⚙️',
-        default: '📄'
+        default: '📄',
+        // 菜单图标映射
+        dashboard: '📊',
+        settings: '⚙️',
+        friend_list: '👥',
+        friend_search: '🔍',
+        apply_list: '📋',
+        user_create: '👤',
+        myProfile: '📝',
+        // 其他图标映射
+        
     };
     
     // 状态
@@ -293,6 +301,7 @@ var App = (function() {
     */
    
     var timeManager = {
+        intervals: [],
         init: function(config) { this.apiUrl = config.contextPath + '/api/time'; },
         start: function() {
             var self = this;
@@ -397,8 +406,10 @@ var App = (function() {
             menuManager.init(config);
             pageLoader.init(config);
             timeManager.init(config);
-            // ... 其他初始化
             menuManager.loadMenuData();
+            timeManager.start();
+        }).catch(function(error) {
+            console.error('Initialize server time failed:', error);
         });
         // 3. 这些可以立即执行，不依赖 config
         uiEffects.createParticles();

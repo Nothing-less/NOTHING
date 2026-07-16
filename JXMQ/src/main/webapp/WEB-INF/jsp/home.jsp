@@ -123,9 +123,7 @@
                     <span id="breadcrumbCurrent">加载中...</span>
                 </div>
             </div>
-            <div class="server-time" id="serverTime" data-timestamp="<%= serverTimestamp %>">
-                <%= serverDateTime %>
-            </div>
+            <div class="server-time" id="serverTime">···· ·· ·· ··:··:··</div>
         </div>
         <div class="content-wrapper" id="contentWrapper">
             <div class="iframe-loading" id="iframeLoading">
@@ -150,14 +148,54 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             chatLog('DOM loaded, initializing chat system...');
+
+        // ========== 服务器时间自动更新 ==========
+        /*
+        function initServerTime() {
+            const timeEl = document.getElementById('serverTime');
+            if (!timeEl) return;
             
+            // 获取服务器初始时间戳
+            const serverTimestamp = parseInt(timeEl.dataset.timestamp, 10);
+            if (isNaN(serverTimestamp)) return;
+            
+            // 记录本地启动时间，用于计算偏移
+            const localStart = Date.now();
+            
+            function updateTime() {
+                // 计算当前服务器时间 = 初始时间 + (本地经过的时间)
+                const elapsed = Date.now() - localStart;
+                const currentServerTime = serverTimestamp + elapsed;
+                
+                const date = new Date(currentServerTime);
+                const formatted = date.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                }).replace(/\//g, '-');
+                
+                timeEl.textContent = formatted;
+            }
+            
+            // 立即更新一次
+            updateTime();
+            
+            // 每秒更新
+            setInterval(updateTime, 1000);
+        }
+        */
+
             // 【关键】将 chat 实例挂载到 window，供 iframe 访问
             window.chatClient = new ChatClient('<%= currentUser.userId() %>');
             const chat = window.chatClient;
             
             // ========== 连接状态监听 ==========
             chat.on('connected', function(e) {
-                console.log('[Home] WebSocket connected, userId:', e.userId);
+                // console.log('[Home] WebSocket connected, userId:', e.userId);
             });
             
             chat.on('disconnected', function(e) {
@@ -318,11 +356,13 @@
                 win.style.zIndex = ++this.zIndexBase;
 
                 const safeNickname = escapeHtml(nickname);
+                console.log('[ChatWindow] safeNickname:', JSON.stringify(safeNickname));
 
+                // 【修复】先创建结构，不设置标题文本
                 win.innerHTML = `
                     <div class="chat-window-drag-mask" id="${windowId}-mask"></div>
                     <div class="chat-window-header" id="${windowId}-header">
-                        <span class="chat-window-title">💬 ${safeNickname}</span>
+                        <span class="chat-window-title"></span>
                         <div class="chat-window-controls">
                             <button class="chat-window-btn minimize" title="最小化">−</button>
                             <button class="chat-window-btn close" title="关闭">×</button>
@@ -340,6 +380,10 @@
                     <div class="resize-handle sw" data-dir="sw"></div>
                     <div class="resize-handle se" data-dir="se"></div>
                 `;
+
+                // 【修复】用 textContent 设置标题，避免模板字符串问题
+                const titleSpan = win.querySelector('.chat-window-title');
+                titleSpan.textContent = '💬 ' + safeNickname;
 
                 container.appendChild(win);
 

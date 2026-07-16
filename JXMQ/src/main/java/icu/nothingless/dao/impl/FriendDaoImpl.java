@@ -3,7 +3,6 @@ package icu.nothingless.dao.impl;
 import icu.nothingless.commons.R;
 import icu.nothingless.dao.interfaces.IFriendDao;
 import icu.nothingless.exceptions.EngineException;
-import icu.nothingless.pojo.adapter.IUserAdapter;
 import icu.nothingless.pojo.bean.FriendshipBean;
 import icu.nothingless.pojo.bean.UserBean;
 import icu.nothingless.pojo.dto.Friendship;

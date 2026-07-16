@@ -1,5 +1,6 @@
 package icu.nothingless.dao.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +16,6 @@ import icu.nothingless.exceptions.UserSTOException;
 import icu.nothingless.pojo.adapter.IUserAdapter;
 import icu.nothingless.pojo.bean.UserBean;
 import icu.nothingless.pojo.dto.User;
-import icu.nothingless.pojo.engine.UserEngine;
 import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.PDBUtil;
 
@@ -33,7 +33,7 @@ public class UserDaoImpl implements IUserDao<User> {
             List<IUserAdapter> results = tmp.query();
             if (results == null || results.isEmpty()) {
                 logger.error("User({}) Not Found!", username);
-                throw new UserSTOException(Fmt.of("User({}) Not Found!", username));
+                return new R<>(0, "User Not Found", Fmt.of("User({}) Not Found!", username), null);
             }
             for (IUserAdapter one : results) {
                 if (one != null && username.equals(one.getUserAccount())) {
@@ -41,7 +41,7 @@ public class UserDaoImpl implements IUserDao<User> {
                     return R.success(User.from(one));
                 }
             }
-            return R.error("");
+            return R.error(Fmt.of("User({}) Not Found!", username));
         } catch (Exception e) {
             logger.error("Error occurred in iUserDao.findByUsername : ", e);
             throw new UserSTOException("Error occurred in iUserDao.findByUsername : ", e);
@@ -134,11 +134,11 @@ public class UserDaoImpl implements IUserDao<User> {
         String last_login_time = Optional.ofNullable(register.lastLoginTime())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
-                .orElse("");
+                .orElse("1970-01-01 00:00:00");
         String last_login_ip = Optional.ofNullable(register.lastLoginIpAddr())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
-                .orElse("");
+                .orElse("192.168.0.1");
         if (Objects.equals("", last_login_ip)
                 || Objects.equals("", last_login_time)
                 || Objects.equals("", password)
@@ -151,6 +151,9 @@ public class UserDaoImpl implements IUserDao<User> {
         tmp.setLastLoginIpAddr(last_login_ip);
         tmp.setLastLoginTime(last_login_time);
         tmp.setRegisterTime(last_login_time);
+        if(!Fmt.isEmpty(register.roleId())){
+            tmp.setRoleId(register.roleId());
+        }
         long result = tmp.save();
         if (result > 0L) {
             logger.info("User({}) Regisiter Successful!", username);

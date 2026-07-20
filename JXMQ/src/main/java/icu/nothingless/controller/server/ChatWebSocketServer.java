@@ -1,4 +1,4 @@
-package icu.nothingless.controller;
+package icu.nothingless.controller.server;
 
 import icu.nothingless.controller.config.ChatConfigurator;
 import icu.nothingless.pojo.bean.MessageBean;

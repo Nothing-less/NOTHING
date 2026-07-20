@@ -153,17 +153,16 @@ public class CacheUserDaoImpl implements IUserDao<User> {
 
     @Override
     public R doUpdate(User newTarget) throws Exception {
-        if (isBlank(newTarget.userAccount()) || isBlank(newTarget.userPasswd())) {
+        if(newTarget == null || isBlank(newTarget.userId())) {
             return R.error("Illegal Update");
         }
-
-        final String normalizedUsername = newTarget.userAccount().trim();
-        String userId = getUserIdByUsernameQuietly(normalizedUsername);
+        final String nickname = newTarget.nickname().trim();
+        String userName = getUsernameByUserIdQuietly(newTarget.userId());
 
         R result = userDao.doUpdate(newTarget);
 
         if (result.isSuccess()) {
-            evictUserCache(userId, normalizedUsername);
+            evictUserCache(newTarget.userId(), userName);
         }
         return R.success(newTarget);
     }

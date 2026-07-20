@@ -24,7 +24,7 @@ public class UserDaoImpl implements IUserDao<User> {
 
     @Override
     public R findByUsername(String username) throws Exception {
-        if (username == null || "".equals(username)) {
+        if (Fmt.isEmpty(username)) {
             return R.error("Empty UserName");
         }
         IUserAdapter tmp = new icu.nothingless.pojo.bean.UserBean();
@@ -49,8 +49,8 @@ public class UserDaoImpl implements IUserDao<User> {
     }
 
     @Override
-    public R doSearch(String str)throws Exception{
-                if (str == null || "".equals(str)) {
+    public R doSearch(String str) throws Exception {
+        if (Fmt.isEmpty(str)) {
             return R.error("Empty Search");
         }
         IUserAdapter tmp1 = new icu.nothingless.pojo.bean.UserBean();
@@ -67,7 +67,7 @@ public class UserDaoImpl implements IUserDao<User> {
                 throw new UserSTOException(Fmt.of("Keyword({}) Not Found!", str));
             }
             List<User> ret = new ArrayList<>();
-            for(IUserAdapter one: results){
+            for (IUserAdapter one : results) {
                 ret.add(User.from(one));
             }
             return R.success(ret);
@@ -151,7 +151,7 @@ public class UserDaoImpl implements IUserDao<User> {
         tmp.setLastLoginIpAddr(last_login_ip);
         tmp.setLastLoginTime(last_login_time);
         tmp.setRegisterTime(last_login_time);
-        if(!Fmt.isEmpty(register.roleId())){
+        if (!Fmt.isEmpty(register.roleId())) {
             tmp.setRoleId(register.roleId());
         }
         long result = tmp.save();
@@ -165,8 +165,76 @@ public class UserDaoImpl implements IUserDao<User> {
 
     @Override
     public R doUpdate(User newTarget) throws Exception {
-        // TODO doUpdate
-        return null;
+        if (newTarget == null || Fmt.isEmpty(newTarget.userId())) {
+            return R.error("Illegal Update");
+        }
+        IUserAdapter tmp = new UserBean();
+
+        tmp.setUserId(newTarget.userId());
+
+        /*
+         * if(!Fmt.isEmpty(newTarget.userAccount())){
+         * tmp.setUserAccount(newTarget.userAccount());
+         * }
+         * if(!Fmt.isEmpty(newTarget.userPasswd())){
+         * tmp.setUserPasswd(newTarget.userPasswd());
+         * }
+         * 
+         */
+
+        if (!Fmt.isEmpty(newTarget.nickname())) {
+            tmp.setNickname(newTarget.nickname());
+        }
+        if (!Fmt.isEmpty(newTarget.userInfos())) {
+            tmp.setUserInfos(newTarget.userInfos());
+        }
+        if (!Fmt.isEmpty(newTarget.userKey2())) {
+            tmp.setUserKey2(newTarget.userKey2()); // userKey2 is used for avatar URL
+        }
+        /*
+         * if (!Fmt.isEmpty(newTarget.userKey3())) {
+         * tmp.setUserKey3(newTarget.userKey3());
+         * }
+         * if (!Fmt.isEmpty(newTarget.userKey4())) {
+         * tmp.setUserKey4(newTarget.userKey4());
+         * }
+         * if (!Fmt.isEmpty(newTarget.userKey5())) {
+         * tmp.setUserKey5(newTarget.userKey5());
+         * }
+         * if (!Fmt.isEmpty(newTarget.userKey6())) {
+         * tmp.setUserKey6(newTarget.userKey6());
+         * }
+         * 
+         */
+        if (Fmt.isAllEmpty(
+                newTarget.userAccount(),
+                newTarget.userPasswd(),
+                newTarget.nickname(),
+                newTarget.userInfos(),
+                newTarget.lastLoginTime(),
+                newTarget.lastLoginIpAddr(),
+                newTarget.registerTime(),
+                newTarget.roleId(),
+                newTarget.userKey1(),
+                newTarget.userKey2(),
+                newTarget.userKey3(),
+                newTarget.userKey4(),
+                newTarget.userKey5(),
+                newTarget.userKey6())) {
+            return R.error("No fields to update");
+        }
+        try {
+            long result = tmp.save();
+            if (result > 0L) {
+                logger.info("User({}) Update Successful!", newTarget.userId());
+                return R.success(Fmt.of("User({}) Update Successful!", newTarget.userId()));
+            }
+            logger.error("User({}) Can't Update!", newTarget.userId());
+            return R.error(Fmt.of("User({}) Can't Update!", newTarget.userId()));
+        } catch (Exception e) {
+            logger.error("Error occurred in iUserDao.doUpdate : ", e);
+            throw new UserSTOException("Error occurred in iUserDao.doUpdate : ", e);
+        }
     }
 
     @Override
@@ -193,20 +261,21 @@ public class UserDaoImpl implements IUserDao<User> {
     }
 
     @Override
-    public R doLogoutForAll() throws Exception{
-        
+    public R doLogoutForAll() throws Exception {
+
         try {
             String sql = "SELECT * FROM user WHERE 1=1 AND user_status = ? AND user_key1 = ? ";
-            List<Map<String, Object>> results = PDBUtil.executeQuery(sql, UserBean.STATUS_ACTIVE, UserBean.STATUS_ONLINE);
+            List<Map<String, Object>> results = PDBUtil.executeQuery(sql, UserBean.STATUS_ACTIVE,
+                    UserBean.STATUS_ONLINE);
             List<Map<String, String>> ret = new ArrayList<>();
-            for(Map<String, Object> one: results){
+            for (Map<String, Object> one : results) {
                 ret.add(Map.of(
-                    "userId", String.valueOf(one.get("USER_ID")),
-                    "userAccount", String.valueOf(one.get("USER_ACCOUNT"))
-                ));
+                        "userId", String.valueOf(one.get("USER_ID")),
+                        "userAccount", String.valueOf(one.get("USER_ACCOUNT"))));
             }
             String sql_updateStatus = "UPDATE user SET user_key1 = ? WHERE 1=1 AND user_status = ?  AND user_key1 = ? ";
-            PDBUtil.executeUpdate(sql_updateStatus, UserBean.STATUS_OFFLINE, UserBean.STATUS_ACTIVE, UserBean.STATUS_ONLINE);
+            PDBUtil.executeUpdate(sql_updateStatus, UserBean.STATUS_OFFLINE, UserBean.STATUS_ACTIVE,
+                    UserBean.STATUS_ONLINE);
 
             return R.success(ret);
         } catch (Exception e) {

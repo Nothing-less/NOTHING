@@ -1,4 +1,4 @@
-package icu.nothingless.controller;
+package icu.nothingless.controller.server;
 
 import java.io.IOException;
 import java.util.List;

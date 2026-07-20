@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.controller.ChatWebSocketServer;
+import icu.nothingless.controller.server.ChatWebSocketServer;
 import icu.nothingless.service.impl.UserServiceImpl;
 import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.ChatJedisUtil;

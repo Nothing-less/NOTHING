@@ -103,17 +103,64 @@ var App = (function() {
     };
     
     // 用户渲染
+    const userRenderer = {
+        /**
+         * 渲染用户信息到页面元素
+         * @param {Object} userInfo - 用户信息对象
+         * @param {string} [userInfo.nickname] - 用户昵称
+         * @param {string} [userInfo.userKey2] - 用户头像 URL
+         * @param {string} [userInfo.roleId] - 用户角色 ID
+         */
+        render(userInfo) {
+            if (!userInfo) return;
+
+            const safeNickname = utils.escapeHtml(userInfo.nickname);
+            const avatarUrl = userInfo.userKey2
+            ? utils.escapeHtml(userInfo.userKey2)
+            : 'static/images/default-avatar.png';
+
+            const avatarStyle = [
+            'width: 100px',
+            'height: 100px',
+            'border-radius: 50%',
+            'object-fit: cover',
+            'border: 3px solid rgba(99,102,241,0.5)',
+            'cursor: pointer'
+            ].join('; ');
+
+            elements.userAvatar.innerHTML = 
+            '<img src="${avatarUrl}" ' +
+            '    style="${avatarStyle}" '+
+            '    alt="${userInfo.userKey2 ? "头像" : "默认"}" '+
+            '    class="avatar-img">';
+
+            elements.userName.textContent = safeNickname;
+            elements.userRole.textContent = utils.escapeHtml(userInfo.roleId || '-');
+            document.title = `主页 - ${safeNickname}`;
+        }
+    };
+    /*
     var userRenderer = {
         render: function(userInfo) {
             if (!userInfo) return;
             // console.log('渲染用户信息:', userInfo);
             var safeAccount = utils.escapeHtml(userInfo.nickname);
-            elements.userAvatar.textContent = utils.getInitial(safeAccount);
+            if(userInfo.userKey2){
+                // 如果有头像链接，则显示头像图片
+                elements.userAvatar.innerHTML = '<img src="' + utils.escapeHtml(userInfo.userKey2) + '" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(99,102,241,0.5); cursor: pointer;"' + '" alt="头像" class="avatar-img">';
+            }else{
+                // 否则显示昵称首字母
+                // elements.userAvatar.textContent = utils.getInitial(safeAccount);
+                // 否则显示默认头像
+                elements.userAvatar.innerHTML = '<img src="static/images/default-avatar.png"'+'style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(99,102,241,0.5); cursor: pointer;"'+' alt="默认" class="avatar-img">';
+            }
+            
             elements.userName.textContent = safeAccount;
             elements.userRole.textContent = utils.escapeHtml(userInfo.roleId || '-');
             document.title = '主页 - ' + safeAccount;
         }
     };
+    */
     
     // 菜单管理
     var menuManager = {

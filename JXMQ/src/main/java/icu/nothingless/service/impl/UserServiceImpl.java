@@ -12,6 +12,7 @@ import icu.nothingless.commons.RespEntity;
 import icu.nothingless.dao.interfaces.IUserDao;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
+import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.ServiceFactory;
 
 /**
@@ -28,8 +29,7 @@ public class UserServiceImpl implements IUserService<User> {
 
     @Override
     public RespEntity<List<User>> doSearch(String target) {
-        if (target == null || Objects.isNull(target)
-                || Objects.isNull(target)) {
+        if (target == null || Fmt.isAnyEmpty(target)) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }
@@ -59,8 +59,7 @@ public class UserServiceImpl implements IUserService<User> {
     @Override
     public RespEntity<User> doLogin(User target) {
 
-        if (target == null || Objects.isNull(target.userAccount())
-                || Objects.isNull(target.userPasswd())) {
+        if (target == null || Fmt.isAnyEmpty(target.userAccount(), target.userPasswd())) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }
@@ -87,9 +86,7 @@ public class UserServiceImpl implements IUserService<User> {
 
     @Override
     public RespEntity<User> doRegister(User target) {
-        if (target == null
-                || Objects.isNull(target.userAccount())
-                || Objects.isNull(target.userPasswd())) {
+        if (target == null || Fmt.isAnyEmpty(target.userAccount(), target.userPasswd())) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }
@@ -115,7 +112,7 @@ public class UserServiceImpl implements IUserService<User> {
     @Override
     public RespEntity<User> doLogout(User target) {
 
-        if (target == null) {
+        if (target == null || Fmt.isAnyEmpty(target.userAccount(), target.userId())) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }
@@ -132,8 +129,18 @@ public class UserServiceImpl implements IUserService<User> {
 
     @Override
     public RespEntity<User> doUpdate(User target) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'doUpdate'");
+        if (target == null || Fmt.isEmpty(target.userId())) {
+            return RespEntity.badRequest("illegal target");
+        }
+        try {
+            R result = userDao.doUpdate(target);
+            if (result.isSuccess()) {
+                return RespEntity.success((User) result.data());
+            }
+        } catch (final Exception e) {
+            logger.error("Error occurred in iUserService.doUpdate :", e);
+        }
+        return RespEntity.error("Error occurred in Update 〒▽〒");
     }
 
     public void doLogoutForAll() {

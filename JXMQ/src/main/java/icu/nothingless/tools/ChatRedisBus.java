@@ -10,7 +10,7 @@ import redis.clients.jedis.resps.ScanResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.controller.ChatWebSocketServer;
+import icu.nothingless.controller.server.ChatWebSocketServer;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
 import jakarta.websocket.CloseReason;

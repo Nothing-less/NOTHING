@@ -114,11 +114,11 @@ public class UserAvatarServlet extends HttpServlet {
                 .userId(currentUser.userId())
                 .userKey2(avatarUrl)
                 .build();
-            Thread.sleep(30*1000); // 模拟延迟，确保文件写入完成
             var result = userService.doUpdate(updateUser);
             
             if (result.isSuccess() && result.getData() != null) {
-                session.setAttribute("CURRENT_USER", result.getData());
+                User freshUser = result.getData();
+                session.setAttribute("CURRENT_USER", freshUser);
                 writeJson(resp, RespEntity.success(avatarUrl));
             } else {
                 Files.deleteIfExists(filePath);

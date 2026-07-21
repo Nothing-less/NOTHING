@@ -128,11 +128,13 @@ var App = (function() {
             'cursor: pointer'
             ].join('; ');
 
-            elements.userAvatar.innerHTML = 
-            '<img src="${avatarUrl}" ' +
-            '    style="${avatarStyle}" '+
-            '    alt="${userInfo.userKey2 ? "头像" : "默认"}" '+
-            '    class="avatar-img">';
+            const altText = userInfo.userKey2 ? '头像' : '默认';
+
+            elements.userAvatar.innerHTML =
+                '<img src="' + avatarUrl + '" ' +
+                'style="' + avatarStyle + '" ' +
+                'alt="' + altText + '" ' +
+                'class="avatar-img">';
 
             elements.userName.textContent = safeNickname;
             elements.userRole.textContent = utils.escapeHtml(userInfo.roleId || '-');

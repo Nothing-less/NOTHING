@@ -1,6 +1,5 @@
 package icu.nothingless.dao.impl;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -227,7 +226,14 @@ public class UserDaoImpl implements IUserDao<User> {
             long result = tmp.save();
             if (result > 0L) {
                 logger.info("User({}) Update Successful!", newTarget.userId());
-                return R.success(Fmt.of("User({}) Update Successful!", newTarget.userId()));
+                IUserAdapter updatedUser = new UserBean();
+                updatedUser.setUserId(tmp.getUserId());
+                IUserAdapter fetchedUser = updatedUser.query().stream()
+                        .filter(user -> Objects.equals(user.getUserId(), tmp.getUserId()))
+                        .findFirst()
+                        .orElse(null);
+                
+                return R.success(User.from(fetchedUser));
             }
             logger.error("User({}) Can't Update!", newTarget.userId());
             return R.error(Fmt.of("User({}) Can't Update!", newTarget.userId()));

@@ -55,4 +55,9 @@ public class AvatarAccessServlet extends HttpServlet {
         Files.copy(filePath, resp.getOutputStream());
         resp.getOutputStream().flush();
     }
+    @Override
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) 
+            throws ServletException, IOException {
+        doGet(req, resp);
+    }
 }

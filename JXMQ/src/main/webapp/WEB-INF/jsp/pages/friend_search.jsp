@@ -1,78 +1,104 @@
-<!-- friend_search.jsp - 搜索添加好友 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
-<div class="modal" id="searchModal" >
+
+<!-- 搜索弹窗 -->
+<div class="modal" id="searchModal">
     <div class="modal-content">
-        <h3>添加好友</h3>
-        <input type="text" id="searchInput" placeholder="输入账号或昵称" onkeyup="doSearch()">
-        <div class="search-results" id="searchResults"></div>
-        <button onclick="closeSearchModal()">关闭</button>
+        <div class="modal-header">
+            <h3>添加好友</h3>
+            <button class="btn-modal-close" onclick="closeSearchModal()">关闭</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text"
+                   id="searchInput"
+                   placeholder="输入账号或昵称"
+                   onkeyup="doSearch()">
+        </div>
+
+        <div class="search-results" id="searchResults">
+            <div class="search-tip">请输入账号或昵称</div>
+        </div>
     </div>
 </div>
-<script src="<c:url value='/static/js/ChatClient.js' />" ></script>
-    <script>
+
+<script src="<c:url value='/static/js/ChatClient.js' />"></script>
+<script>
     function showSearchModal() {
-        document.getElementById('searchModal').style.display = 'flex';
-        document.getElementById('searchInput').focus();
+        document.getElementById('searchModal').classList.add('active');
+        setTimeout(() => {
+            document.getElementById('searchInput').focus();
+        }, 100);
     }
 
     function closeSearchModal() {
-        document.getElementById('searchModal').style.display = 'none';
+        document.getElementById('searchModal').classList.remove('active');
     }
 
     let searchTimer;
     function doSearch() {
         clearTimeout(searchTimer);
-        const keyword = document.getElementById('searchInput').value;
-        if (keyword.length < 2) return;
-        
+        const keyword = document.getElementById('searchInput').value.trim();
+        if (keyword.length < 2) {
+            document.getElementById('searchResults').innerHTML =
+                '<div class="search-tip">请输入至少 2 个字符开始搜索</div>';
+            return;
+        }
+
         searchTimer = setTimeout(() => {
-            fetch('${pageContext.request.contextPath}/friend/search?keyword=' + keyword)
+            fetch('${pageContext.request.contextPath}/friend/search?keyword=' + encodeURIComponent(keyword))
                 .then(r => r.json())
                 .then(res => {
                     if (res.code === 200) {
                         renderSearchResults(res.data);
+                    } else {
+                        document.getElementById('searchResults').innerHTML =
+                            '<div class="search-tip">搜索失败：' + (res.message || '未知错误') + '</div>';
                     }
+                })
+                .catch(() => {
+                    document.getElementById('searchResults').innerHTML =
+                        '<div class="search-tip">网络错误，请重试</div>';
                 });
         }, 300);
     }
 
     function renderSearchResults(users) {
         const container = document.getElementById('searchResults');
-        
+
         if (!users || users.length === 0) {
-            container.innerHTML = '<div class="no-result">未找到用户</div>';
+            container.innerHTML = '<div class="search-tip">未找到用户</div>';
             return;
         }
-        
-        // 生成 HTML，使用 data-* 属性存储数据
+
         container.innerHTML = users.map(function(u) {
-            var statusClass = (u.userKey1 === 'ONLINE') ? 'online' : 'offline';
-            var avatar = u.avatar || 'default-avatar.png';
-            
+            const statusClass = (u.userKey1 === 'ONLINE') ? 'online' : 'offline';
+            const statusText  = (u.userKey1 === 'ONLINE') ? '在线' : '离线';
+
+            const defaultAvatar = '${pageContext.request.contextPath}/static/images/default-avatar.png';
+            const avatarUrl = (u.userKey2 || '').trim() ? u.userKey2 : defaultAvatar;
+
             return '<div class="user-item" data-uid="' + u.userId + '" data-nick="' + escapeHtml(u.nickname) + '">' +
-                '<img src="' + avatar + '" class="avatar">' +
+                '<img src="' + avatarUrl + '" class="user-avatar" ' +
+                     'onerror="this.src=\'' + defaultAvatar + '\'">' +
                 '<div class="user-info">' +
-                    '<div>' + escapeHtml(u.nickname) + ' (' + escapeHtml(u.userAccount) + ')</div>' +
-                    '<div class="status ' + statusClass + '">' + u.userKey1 + '</div>' +
+                    '<div class="user-name">' + escapeHtml(u.nickname) + '</div>' +
+                    '<div class="user-account">' + escapeHtml(u.userAccount) + '</div>' +
+                    '<div class="status ' + statusClass + '">' + statusText + '</div>' +
                 '</div>' +
-                '<button class="add-friend-btn">添加</button>' +
+                '<button class="btn-add-friend" onclick="applyFriendFromButton(this)">添加</button>' +
             '</div>';
         }).join('');
-        
-        // 事件委托绑定点击事件
-        container.querySelectorAll('.add-friend-btn').forEach(function(btn) {
-            btn.onclick = function() {
-                var item = this.closest('.user-item');
-                var friendId = item.getAttribute('data-uid');
-                var nickname = item.getAttribute('data-nick');
-                applyFriend(friendId, nickname);
-            };
-        });
     }
 
-    // HTML 转义函数，防止特殊字符破坏属性
+    function applyFriendFromButton(btn) {
+        const item = btn.closest('.user-item');
+        const friendId = item.getAttribute('data-uid');
+        const nickname = item.getAttribute('data-nick');
+        applyFriend(friendId, nickname);
+    }
+
     function escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -84,18 +110,23 @@
     }
 
     function applyFriend(friendId, nickname) {
-        const applyMsg = prompt('发送验证消息:', '我是' + window.parent.CURRENT_USER.nickname);
+        const applyMsg = prompt('发送验证消息:', '我是 ' + (window.parent.CURRENT_USER && window.parent.CURRENT_USER.nickname || ''));
         if (applyMsg === null) return;
-        
+
         const params = new URLSearchParams();
         params.append('friendId', friendId);
         params.append('applyMsg', applyMsg);
-        
+
         fetch('${pageContext.request.contextPath}/friend/apply', {
             method: 'POST',
             body: params
-        }).then(r => r.json()).then(res => {
-            alert(res.code === 200 ? '申请已发送' : res.msg);
+        })
+        .then(r => r.json())
+        .then(res => {
+            alert(res.code === 200 ? '✅ 申请已发送' : (res.message || '申请失败'));
+        })
+        .catch(() => {
+            alert('网络错误，请重试');
         });
     }
 </script>

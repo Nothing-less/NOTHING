@@ -5,6 +5,7 @@ import icu.nothingless.dao.interfaces.IUserDao;
 import icu.nothingless.pojo.adapter.IUserAdapter;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.tools.ChatJedisUtil;
+import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.cache.*;
 import static icu.nothingless.tools.cache.RedisCacheHelper.*;
@@ -156,15 +157,14 @@ public class CacheUserDaoImpl implements IUserDao<User> {
         if(newTarget == null || isBlank(newTarget.userId())) {
             return R.error("Illegal Update");
         }
-        final String nickname = newTarget.nickname().trim();
         String userName = getUsernameByUserIdQuietly(newTarget.userId());
-
         R result = userDao.doUpdate(newTarget);
 
         if (result.isSuccess()) {
             evictUserCache(newTarget.userId(), userName);
+            return R.success(result.data());
         }
-        return R.success(newTarget);
+        return R.error(Fmt.of("User {}Update Failed", newTarget.userId()));
     }
 
     @Override

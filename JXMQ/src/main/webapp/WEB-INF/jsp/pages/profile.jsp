@@ -110,7 +110,7 @@
         var formData = new FormData();
         formData.append('avatar', file);
 
-        fetch('${pageContext.request.contextPath}/user/avatar', {
+        fetch('${pageContext.request.contextPath}/upload/avatar', {
             method: 'POST',
             body: formData
         })
@@ -125,6 +125,9 @@
                 if (sidebarAvatar && sidebarAvatar.tagName === 'IMG') {
                     sidebarAvatar.src = res.data + '?t=' + Date.now();
                 }
+                setTimeout(() => {
+                    location.reload();
+                }, 900);
             } else {
                 showMessage('✗ ' + (res.message || '上传失败'), 'error');
             }

@@ -34,9 +34,6 @@ public class LoginServlet extends HttpServlet {
 
         String username = req.getParameter("username");
         String password = req.getParameter("pwd_entrypted");
-
-        logger.warn("UserName:<{}>----PassWord:<{}>",username,password);
-
         User bean = User.builder()
                     .userAccount(username).userPasswd(password)
                     .loginNow(getClientIP(req))
@@ -46,7 +43,7 @@ public class LoginServlet extends HttpServlet {
 
         RespEntity<User> respEntity = userService.doLogin(bean);
         if(respEntity.isSuccess()){
-            logger.error("Login Success! User:<{}>",(User)(respEntity.getData()));
+            logger.info("Login Success! User:<{}>",(User)(respEntity.getData()));
             RedirectUtil.redirect(req, resp, "/home", Map.of("CURRENT_USER", (User)respEntity.getData(),"MENU",MENU));
         }else{
             ViewUtil.render(req, resp, "error_page",Map.of("respEntity",respEntity));

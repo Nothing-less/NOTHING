@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.exceptions.EngineException;
@@ -22,10 +23,11 @@ public class PageItemEngine extends BaseEngine<IPageItemAdpter, PageItemEngine> 
     /* ---------------------------------------------------------------------- */
     private static final String TABLE_NAME = "PAGES";
 
+    private static final Logger logger = LoggerFactory.getLogger(PageItemEngine.class);
+
     @Override
     public List<IPageItemAdpter> query(IPageItemAdpter bean) throws Exception {
         List<IPageItemAdpter> results = new ArrayList<>();
-
         Map<String, Object> beanMap = toMap(bean);
         beanMap.remove(PAGE_STATUS);
 
@@ -38,6 +40,8 @@ public class PageItemEngine extends BaseEngine<IPageItemAdpter, PageItemEngine> 
             Object[] params = beanMap.values().stream()
                     .map(v -> v == null ? null : "%" + v.toString() + "%")
                     .toArray();
+            logger.info("SQL: {}", sql.toString());
+            logger.info("Params: {}", (Object) params);
             List<Map<String, Object>> queryResults = PDBUtil.executeQuery(sql.toString(), params);
             queryResults.forEach(row -> {
                 IPageItemAdpter resultBean;
@@ -45,12 +49,12 @@ public class PageItemEngine extends BaseEngine<IPageItemAdpter, PageItemEngine> 
                     resultBean = toBean(row);
                     results.add(resultBean);
                 } catch (Exception e) {
-                    LoggerFactory.getLogger(PageItemEngine.class)
-                            .error("Error occurred while executing function <toBean> in function <query>: ", e);
+                    logger.error("Error occurred while executing function <toBean> in function <query>: ", e);
                 }
             });
             return results;
         } catch (Exception e) {
+            logger.error("Error occurred while executing function <fuzzyQuery> : ", e);
             throw new EngineException("Error occurred while executing function <fuzzyQuery> : ", e);
         }
 

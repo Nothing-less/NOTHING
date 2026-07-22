@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/user/avatar/*")
 public class AvatarAccessServlet extends HttpServlet {
     
-    // 【必须和 UserAvatarServlet 完全一致】
+    // 和 UserAvatarServlet 完全一致
     private static final String AVATAR_DIR = "C:\\Shengde\\Repo\\NOTHING\\JXMQ\\upload\\avatar\\";
 
     @Override

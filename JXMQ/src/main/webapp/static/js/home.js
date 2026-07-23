@@ -51,9 +51,17 @@ var App = (function() {
     
     // 图标映射
     var ICON_MAP = {
-        orders: '📦', users: '👥', products: '🛍️',
-        dashboard: '📊', analytics: '📈', settings: '⚙️',
-        default: '📄'
+        default: '📄',
+        // 菜单图标映射
+        dashboard: '📊',
+        settings: '⚙️',
+        friend_list: '👥',
+        friend_search: '🔍',
+        apply_list: '📋',
+        user_create: '👤',
+        myProfile: '📝',
+        // 其他图标映射
+        
     };
     
     // 状态
@@ -95,16 +103,66 @@ var App = (function() {
     };
     
     // 用户渲染
+    const userRenderer = {
+        /**
+         * 渲染用户信息到页面元素
+         * @param {Object} userInfo - 用户信息对象
+         * @param {string} [userInfo.nickname] - 用户昵称
+         * @param {string} [userInfo.userKey2] - 用户头像 URL
+         * @param {string} [userInfo.roleId] - 用户角色 ID
+         */
+        render(userInfo) {
+            if (!userInfo) return;
+
+            const safeNickname = utils.escapeHtml(userInfo.nickname);
+            const avatarUrl = userInfo.userKey2
+            ? utils.escapeHtml(userInfo.userKey2)
+            : 'static/images/default-avatar.png';
+
+            const avatarStyle = [
+            'width: 100px',
+            'height: 100px',
+            'border-radius: 50%',
+            'object-fit: cover',
+            'border: 3px solid rgba(99,102,241,0.5)',
+            'cursor: pointer'
+            ].join('; ');
+
+            const altText = userInfo.userKey2 ? '头像' : '默认';
+
+            elements.userAvatar.innerHTML =
+                '<img src="' + avatarUrl + '" ' +
+                'style="' + avatarStyle + '" ' +
+                'alt="' + altText + '" ' +
+                'class="avatar-img">';
+
+            elements.userName.textContent = safeNickname;
+            elements.userRole.textContent = utils.escapeHtml(userInfo.roleId || '-');
+            document.title = `主页 - ${safeNickname}`;
+        }
+    };
+    /*
     var userRenderer = {
         render: function(userInfo) {
             if (!userInfo) return;
+            // console.log('渲染用户信息:', userInfo);
             var safeAccount = utils.escapeHtml(userInfo.nickname);
-            elements.userAvatar.textContent = utils.getInitial(safeAccount);
+            if(userInfo.userKey2){
+                // 如果有头像链接，则显示头像图片
+                elements.userAvatar.innerHTML = '<img src="' + utils.escapeHtml(userInfo.userKey2) + '" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(99,102,241,0.5); cursor: pointer;"' + '" alt="头像" class="avatar-img">';
+            }else{
+                // 否则显示昵称首字母
+                // elements.userAvatar.textContent = utils.getInitial(safeAccount);
+                // 否则显示默认头像
+                elements.userAvatar.innerHTML = '<img src="static/images/default-avatar.png"'+'style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(99,102,241,0.5); cursor: pointer;"'+' alt="默认" class="avatar-img">';
+            }
+            
             elements.userName.textContent = safeAccount;
             elements.userRole.textContent = utils.escapeHtml(userInfo.roleId || '-');
             document.title = '主页 - ' + safeAccount;
         }
     };
+    */
     
     // 菜单管理
     var menuManager = {
@@ -253,6 +311,9 @@ var App = (function() {
     };
     
     // 时间管理
+    /* 
+     * 之前的实现会在页面加载时等待时间 API 响应，导致首页显示延迟。
+     * 现在改为先从 DOM 读取初始时间戳，立即显示时间，然后在后台静默同步服务器时间，确保用户体验流畅。
     var timeManager = {
         intervals: [],
         apiUrl: '', syncTime: 30000,
@@ -284,6 +345,40 @@ var App = (function() {
                 elements.serverTime.textContent = utils.formatDateTime(now);
             }, 1000));
             this.intervals.push(setInterval(function() { self.fetchServerTime(); }, this.syncTime));
+        }
+    };
+    */
+   
+    var timeManager = {
+        intervals: [],
+        init: function(config) { this.apiUrl = config.contextPath + '/api/time'; },
+        start: function() {
+            var self = this;
+            // 从 DOM 读取初始时间戳，无需等待 API
+            var el = elements.serverTime;
+            var initialTimestamp = parseInt(el.dataset.timestamp);
+            if (initialTimestamp) {
+                state.serverTimeOffset = initialTimestamp - Date.now();
+            }
+            this.startClock();
+            // 后台静默同步，不阻塞显示
+            this.syncInBackground();
+        },
+        startClock: function() {
+            var self = this;
+            this.intervals.push(setInterval(function() {
+                var now = new Date(Date.now() + state.serverTimeOffset);
+                elements.serverTime.textContent = utils.formatDateTime(now);
+            }, 1000));
+        },
+        syncInBackground: function() {
+            var self = this;
+            setInterval(function() {
+                fetch(self.apiUrl).then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.timestamp) state.serverTimeOffset = data.timestamp - Date.now();
+                    }).catch(function() {});
+            }, 30000);
         }
     };
     
@@ -332,6 +427,8 @@ var App = (function() {
     
     // 初始化
     var init = function() {
+        /*
+
         configManager.init().then(function(config) {
             userRenderer.render(configManager.getUserInfo());
             menuManager.init(config);
@@ -347,6 +444,29 @@ var App = (function() {
             console.error('初始化失败:', error);
             elements.dynamicMenu.innerHTML = '<div class="menu-error">系统初始化失败</div>';
         });
+        */
+
+        // 优化初始化流程，先渲染用户信息和界面，再加载菜单和页面，提升首屏速度
+        // 1. 先显示本地时间（不等待 API）
+        elements.serverTime.textContent = utils.formatDateTime(new Date());
+        // 2. 并行初始化，不阻塞 UI
+        configManager.init().then(function(config) {
+            userRenderer.render(configManager.getUserInfo());
+            menuManager.init(config);
+            pageLoader.init(config);
+            timeManager.init(config);
+            menuManager.loadMenuData();
+            timeManager.start();
+        }).catch(function(error) {
+            console.error('Initialize server time failed:', error);
+        });
+        // 3. 这些可以立即执行，不依赖 config
+        uiEffects.createParticles();
+        uiEffects.initFadeIn();
+        keyboardShortcuts.init();
+        window.addEventListener('resize', function() { pageLoader.resizeIframe(); });
+
+
     };
     
     return {

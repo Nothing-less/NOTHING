@@ -1,8 +1,10 @@
 package icu.nothingless.pojo.bean;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import icu.nothingless.pojo.adapter.IMSGAdapter;
+import icu.nothingless.pojo.dto.Message;
 
 public class MessageBean implements java.io.Serializable, IMSGAdapter {
 
@@ -94,6 +96,28 @@ public class MessageBean implements java.io.Serializable, IMSGAdapter {
     }
 
     // ==================== Builder 模式 ====================
+
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public static MessageBean fromDTO(Message message) {
+        if (message == null) {
+            return null;
+        }
+        MessageBean bean = new MessageBean();
+        bean.setMsgId(message.msgId());
+        bean.setSenderId(message.senderId());
+        bean.setReceiverId(message.receiverId());
+        bean.setMsgType(message.msgType());
+        bean.setContents(message.contents());
+        bean.setMsgStatus(message.msgStatus());
+        bean.setSendTime(parseTime(message.sendTime()));
+        bean.setReadTime(parseTime(message.readTime()));
+        return bean;
+    }
+
+    private static LocalDateTime parseTime(String time) {
+        return time == null || time.isBlank() ? null : LocalDateTime.parse(time, FORMATTER);
+    }
 
     public static Builder builder() {
         return new Builder();

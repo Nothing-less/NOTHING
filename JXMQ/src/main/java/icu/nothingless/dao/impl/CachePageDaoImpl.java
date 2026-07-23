@@ -15,7 +15,7 @@ import java.util.List;
 import static icu.nothingless.tools.cache.RedisCacheHelper.*;
 
 /**
- * Page数据访问层 - Redis缓存代理实现
+ * Page数据访问层 - Redis缓存代理
  */
 public class CachePageDaoImpl implements IPageDao<IPageItemAdpter> {
 

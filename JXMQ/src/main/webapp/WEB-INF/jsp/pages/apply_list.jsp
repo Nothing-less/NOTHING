@@ -1,5 +1,7 @@
 <!-- apply_list.jsp - 好友申请列表 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
 <div class="apply-panel" id="applyPanel" style="display:none;">
     <h3>好友申请</h3>
     <div id="applyList"></div>
@@ -8,31 +10,35 @@
 <script>
 function loadApplyList() {
     fetch('${pageContext.request.contextPath}/friend/requests')
-        .then(r => r.json())
-        .then(res => {
-            if (res.code === 0 && res.data.length > 0) {
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res.code === 200 && res.data.length > 0) {
                 document.getElementById('applyPanel').style.display = 'block';
-                document.getElementById('applyList').innerHTML = res.data.map(a => `
-                    <div class="apply-item">
-                        <img src="${a.friendInfo.avatar || 'default-avatar.png'}" class="avatar">
-                        <div class="apply-info">
-                            <div>${a.friendInfo.nickname} (${a.friendInfo.account})</div>
-                            <div class="apply-msg">${a.applyMsg}</div>
-                        </div>
-                        <div class="apply-actions">
-                            <button onclick="handleApply(${a.friendInfo.userId}, true)">同意</button>
-                            <button onclick="handleApply(${a.friendInfo.userId}, false)">拒绝</button>
-                        </div>
-                        <div class="remark-input" id="remark_${a.friendInfo.userId}" style="display:none;">
-                            <input type="text" placeholder="备注名" id="input_remark_${a.friendInfo.userId}">
-                            <select id="input_group_${a.friendInfo.userId}">
-                                <option value="我的好友">我的好友</option>
-                            </select>
-                            <button onclick="confirmAgree(${a.friendInfo.userId})">确认</button>
-                        </div>
-                    </div>
-                `).join('');
+                document.getElementById('applyList').innerHTML = res.data.map(function(a) {
+                    return '<div class="apply-item">' +
+                        '<div class="apply-info">' +
+                            '<div>' + a.friendInfo.nickname + ' (' + a.friendInfo.account + ')</div>' +
+                            '<div class="apply-msg">' + a.applyMsg + '</div>' +
+                        '</div>' +
+                        '<div class="apply-actions">' +
+                            '<button onclick="handleApply(' + a.friendInfo.userId + ', true)">同意</button>' +
+                            '<button onclick="handleApply(' + a.friendInfo.userId + ', false)">拒绝</button>' +
+                        '</div>' +
+                        '<div class="remark-input" id="remark_' + a.friendInfo.userId + '" style="display:none;">' +
+                            '<input type="text" placeholder="备注名" id="input_remark_' + a.friendInfo.userId + '">' +
+                            '<select id="input_group_' + a.friendInfo.userId + '">' +
+                                '<option value="我的好友">我的好友</option>' +
+                            '</select>' +
+                            '<button onclick="confirmAgree(' + a.friendInfo.userId + ')">确认</button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+            } else {
+                document.getElementById('applyPanel').style.display = 'none';
             }
+        })
+        .catch(function(err) {
+            console.error('Load apply list failed:', err);
         });
 }
 
@@ -44,15 +50,17 @@ function handleApply(friendId, isAgree) {
         fetch('${pageContext.request.contextPath}/friend/reject', {
             method: 'POST',
             body: new URLSearchParams({friendId: friendId})
-        }).then(() => loadApplyList());
+        })
+        .then(function() { loadApplyList(); })
+        .catch(function(err) { console.error('Reject failed:', err); });
     }
 }
 
 function confirmAgree(friendId) {
-    const remark = document.getElementById('input_remark_' + friendId).value;
-    const groupName = document.getElementById('input_group_' + friendId).value;
+    var remark = document.getElementById('input_remark_' + friendId).value;
+    var groupName = document.getElementById('input_group_' + friendId).value;
     
-    const params = new URLSearchParams();
+    var params = new URLSearchParams();
     params.append('friendId', friendId);
     params.append('remark', remark);
     params.append('groupName', groupName);
@@ -60,10 +68,41 @@ function confirmAgree(friendId) {
     fetch('${pageContext.request.contextPath}/friend/agree', {
         method: 'POST',
         body: params
-    }).then(() => {
-        loadApplyList();
-        loadFriends(); // 刷新好友列表
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(res) {
+        if (res.code === 200) {
+            loadApplyList();
+            // 【修复】通知父窗口刷新好友列表
+            refreshFriendList();
+        } else {
+            alert('同意失败：' + (res.message || '未知错误'));
+        }
+    })
+    .catch(function(err) {
+        console.error('Agree failed:', err);
+        alert('网络错误，请重试');
     });
+}
+
+// 【新增】刷新好友列表（通过父窗口中转）
+function refreshFriendList() {
+    try {
+        // 方法1：直接尝试调用 contentFrame 中的 loadFriends
+        var contentFrame = window.parent.document.getElementById('contentFrame');
+        if (contentFrame && contentFrame.contentWindow && typeof contentFrame.contentWindow.loadFriends === 'function') {
+            contentFrame.contentWindow.loadFriends();
+            console.log('[ApplyList] Refreshed friend list via contentFrame');
+        } else {
+            // 方法2：通过 postMessage 通知父窗口
+            window.parent.postMessage({ type: 'REFRESH_FRIEND_LIST' }, '*');
+            console.log('[ApplyList] Sent REFRESH_FRIEND_LIST message');
+        }
+    } catch (e) {
+        console.error('[ApplyList] Failed to refresh friend list:', e);
+        // 备用：postMessage
+        window.parent.postMessage({ type: 'REFRESH_FRIEND_LIST' }, '*');
+    }
 }
 
 // 定期检查新申请

@@ -3,11 +3,10 @@ package icu.nothingless.tools.DBPools;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.tools.ChatRedisBus;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -41,21 +40,37 @@ public class RedisPoolManager {
                     props.getProperty("redis.pool.maxidle", "10")));
             config.setMinIdle(5);
 
+            config.setTestOnBorrow(true); // 获取连接时检测
+            config.setTestWhileIdle(true); // 空闲时检测
+            config.setTestOnReturn(false); // 归还时不检测（减少开销）
+
+            // 驱逐线程配置（清理无效连接）
+            config.setTimeBetweenEvictionRuns(
+                    Duration.ofMillis(30000)); // 30秒检测一次
+            config.setMinEvictableIdleDuration(
+                    Duration.ofMillis(60000)); // 空闲60秒可驱逐
+
+            int connectionTimeout = Integer.parseInt(
+                    props.getProperty("redis.pool.timeout", "3000"));
+            int soTimeout = Integer.parseInt(
+                    props.getProperty("redis.pool.sotimeout", "10000"));
+
             String host = props.getProperty("redis.host", "localhost");
             int port = Integer.parseInt(props.getProperty("redis.port", "6379"));
             String password = props.getProperty("redis.password");
             int database = Integer.parseInt(props.getProperty("redis.database", "0"));
 
             if (password != null && !password.isEmpty()) {
-                jedisPool = new JedisPool(config, host, port, 3000, password, database);
+                jedisPool = new JedisPool(config, host, port, connectionTimeout, password, database);
             } else {
-                jedisPool = new JedisPool(config, host, port, 3000, null, database);
+                jedisPool = new JedisPool(config, host, port, connectionTimeout, null, database);
             }
 
             // 测试连接
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.ping();
-                logger.info("Redis Pool initialized: " + host + ":" + port);
+                logger.info("Redis Pool initialized: {}:{}, connectionTimeout={}, soTimeout={}",
+                        host, port, connectionTimeout, soTimeout);
             }
         }
     }

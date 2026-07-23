@@ -8,11 +8,12 @@ import icu.nothingless.commons.R;
 import icu.nothingless.dao.interfaces.IMessageDao;
 import icu.nothingless.exceptions.EngineException;
 import icu.nothingless.pojo.adapter.IMSGAdapter;
+import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.pojo.engine.BaseEngine;
 import icu.nothingless.pojo.engine.MSGEngine;
 import icu.nothingless.tools.PDBUtil;
 
-public class MessageDaoImpl implements IMessageDao<IMSGAdapter> {
+public class MessageDaoImpl implements IMessageDao<Message> {
 
     private static final String MSG_ID = MSGEngine.getMsgId();
     private static final String SENDER_ID = MSGEngine.getSenderId();
@@ -31,7 +32,7 @@ public class MessageDaoImpl implements IMessageDao<IMSGAdapter> {
 
     // 保存消息
     @Override
-    public R<Long> saveMessage(IMSGAdapter msg) throws Exception {
+    public R<Long> saveMessage(Message msg) throws Exception {
         String sql = "INSERT INTO " + TABLE_NAME + " ("
                 + SENDER_ID + ", "
                 + RECEIVER_ID + ", "
@@ -41,10 +42,10 @@ public class MessageDaoImpl implements IMessageDao<IMSGAdapter> {
 
         try {
             return R.success(PDBUtil.executeInsert(sql,
-                    msg.getSenderId(),
-                    msg.getReceiverId(),
-                    msg.getMsgType(),
-                    msg.getContents()));
+                    msg.senderId(),
+                    msg.receiverId(),
+                    msg.msgType(),
+                    msg.contents()));
         } catch (SQLException e) {
             throw new EngineException("Error occurred while executing function <saveMessage> : ", e);
         }
@@ -70,7 +71,7 @@ public class MessageDaoImpl implements IMessageDao<IMSGAdapter> {
 
     // 获取聊天记录(分页)
     @Override
-    public R<List<IMSGAdapter>> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit) throws Exception {
+    public R<List<Message>> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit) throws Exception {
         StringBuilder sql = new StringBuilder(SELECT_BASE);
         sql.append(" WHERE (")
                 .append(SENDER_ID).append(" = ? AND ")
@@ -104,7 +105,7 @@ public class MessageDaoImpl implements IMessageDao<IMSGAdapter> {
 
     // 获取未读消息列表
     @Override
-    public R<List<IMSGAdapter>> getUnreadMessages(Long userId) throws Exception {
+    public R<List<Message>> getUnreadMessages(Long userId) throws Exception {
         String sql = SELECT_BASE
                 + " WHERE " + RECEIVER_ID + " = ? AND " + MSG_STATUS + " = ?"
                 + " ORDER BY " + SEND_TIME + " ASC, " + MSG_ID + " ASC";
@@ -133,12 +134,12 @@ public class MessageDaoImpl implements IMessageDao<IMSGAdapter> {
         }
     }
 
-    private List<IMSGAdapter> queryMessages(String sql, Object... params) throws SQLException {
+    private List<Message> queryMessages(String sql, Object... params) throws SQLException {
         List<Map<String, Object>> rows = PDBUtil.executeQuery(sql, params);
-        List<IMSGAdapter> list = new ArrayList<>();
+        List<Message> list = new ArrayList<>();
         for (Map<String, Object> row : rows) {
             try {
-                list.add(toBean(row));
+                list.add(toDto(toBean(row)));
             } catch (Exception e) {
                 throw new SQLException("Failed to map message row", e);
             }
@@ -148,6 +149,9 @@ public class MessageDaoImpl implements IMessageDao<IMSGAdapter> {
 
     private IMSGAdapter toBean(Map<String, Object> map) throws Exception {
         return BaseEngine.getInstance(MSGEngine.class).toBean(map);
+    }
+    private Message toDto(IMSGAdapter bean){
+        return Message.fromEntity(bean);
     }
 
 }

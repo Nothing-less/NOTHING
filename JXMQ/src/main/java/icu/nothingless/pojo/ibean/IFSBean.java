@@ -1,6 +1,5 @@
 package icu.nothingless.pojo.ibean;
 
-import icu.nothingless.pojo.adapter.IUserAdapter;
 
 public interface IFSBean {
     // Getters

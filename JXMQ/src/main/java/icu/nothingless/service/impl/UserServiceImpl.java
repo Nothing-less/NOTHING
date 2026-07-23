@@ -1,21 +1,17 @@
 package icu.nothingless.service.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import icu.nothingless.commons.R;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.dao.interfaces.IUserDao;
-import icu.nothingless.pojo.adapter.IUserAdapter;
-import icu.nothingless.pojo.bean.UserBean;
 import icu.nothingless.pojo.dto.User;
-import icu.nothingless.pojo.ibean.IUserBean;
 import icu.nothingless.service.interfaces.IUserService;
+import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.ServiceFactory;
 
 /**
@@ -31,9 +27,8 @@ public class UserServiceImpl implements IUserService<User> {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
-    public RespEntity<List<User>> doSearch(User target) {
-        if (target == null || Objects.isNull(target.getUserAccount())
-                || Objects.isNull(target.getUserPasswd())) {
+    public RespEntity<List<User>> doSearch(String target) {
+        if (target == null || Fmt.isAnyEmpty(target)) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }
@@ -41,58 +36,46 @@ public class UserServiceImpl implements IUserService<User> {
 
         IUserDao userDaoImpl = ServiceFactory.createInstance(IUserDao.class, "userDaoImpl");
         try {
-            List<IUserAdapter> result = userDaoImpl.fuzzyQuery(target.getNickname());
-            if (result != null && !result.isEmpty()) {
-                result.forEach(
-                    one ->{
-                        if(!Objects.equals(one.getUserId(), target.getUserId())) {
-                            // 不返回自己的信息
-                        resultList.add(this.bean_to_dto(one));
-                        }
-                    }
-                );
-                return RespEntity.success(resultList);
+            R result = userDaoImpl.doSearch(target);
+            if (result.isSuccess()) {
+                resultList = (List<User>) result.data();
+            }
+            if (resultList != null && !resultList.isEmpty()) {
+                List<User> returnList = new ArrayList<>();
+                for (User user : resultList) {
+                    returnList.add(user.withoutPasswd());
+                }
+                return RespEntity.success(returnList);
             }
 
         } catch (Exception e) {
             logger.error("Error occurred in iUserService.doSerch :", e);
         }
-        
+
         return RespEntity.error("No users found");
     }
 
     @Override
     public RespEntity<User> doLogin(User target) {
 
-        if (target == null || Objects.isNull(target.getUserAccount())
-                || Objects.isNull(target.getUserPasswd())) {
+        if (target == null || Fmt.isAnyEmpty(target.userAccount(), target.userPasswd())) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }
 
-        IUserBean result;
         try {
-            result = (IUserBean)userDao.findByUsername(target.getUserAccount());
+            R ret = userDao.findByUsername(target.userAccount());
 
-            if (result == null) {
+            if (!ret.isSuccess()) {
                 // 未找到对应账号
                 return RespEntity.unauthorized("your account or password are not correct");
             }
-
-            if (!Objects.equals(target.getUserPasswd(), result.getUserPasswd())) {
-                // 密码不一致
-                return RespEntity.unauthorized("your account or password are not correct");
-            }
-
-            /* *------------------------ 密码一致 ------------------------* */
-            // 更新登录信息(通过主键更新登录时间和登录地址)
-            result.setLastLoginIpAddr(target.getLastLoginIpAddr());
-            result.setLastLoginTime(target.getLastLoginTime());
-            
-            final Boolean b_result = userDao.doLogin(result);
-            if (Boolean.TRUE.equals(b_result)) {
-                final User ret = this.bean_to_dto(result);
-                return RespEntity.success(ret);
+            User tmp = (User) ret.data();
+            User target_copy = User.forLogin(target, tmp.userId());
+            ret = userDao.doLogin(target_copy);
+            if (ret.isSuccess()) {
+                User user = (User) ret.data();
+                return RespEntity.success(user);
             }
         } catch (final Exception e) {
             logger.error("Error occurred in iUserService.doLogin :", e);
@@ -101,32 +84,21 @@ public class UserServiceImpl implements IUserService<User> {
     }
 
     @Override
-    public RespEntity<User> doRegister(final User target) {
-        if (target == null
-                || Objects.isNull(target.getUserAccount())
-                || Objects.isNull(target.getUserPasswd())) {
+    public RespEntity<User> doRegister(User target) {
+        if (target == null || Fmt.isAnyEmpty(target.userAccount(), target.userPasswd())) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }
-        IUserBean result;
         try {
-            result = (IUserBean)userDao.findByUsername(target.getUserAccount());
+            R result = userDao.findByUsername(target.userAccount());
 
-            if (result != null) {
+            if (result.isSuccess()) {
                 // 当前账号已被注册
                 return RespEntity.badRequest("The current username is already in use");
             }
-            final Map<String, String> params = new HashMap<>() {
-                {
-                    this.put("username", target.getUserAccount());
-                    this.put("password", target.getUserPasswd());
-                    this.put("last_login_time", target.getLastLoginTime());
-                    this.put("last_login_ip", target.getLastLoginIpAddr());
-                }
-            };
-            Boolean ret = userDao.doRegister(params);
-            if (Boolean.TRUE.equals(ret)) {
-                // TODO register new user
+            R ret = userDao.doRegister(target);
+            if (ret.isSuccess()) {
+                return RespEntity.success("" + ret.data(), target);
             }
 
         } catch (final Exception e) {
@@ -136,36 +108,16 @@ public class UserServiceImpl implements IUserService<User> {
         return RespEntity.error("Register Failed 〒▽〒");
     }
 
-    private User bean_to_dto(final IUserBean bean) {
-        return User.builder()
-                .userId(bean.getUserId())
-                .userAccount(bean.getUserAccount())
-                .userPasswd(null)
-                .nickname(bean.getNickname())
-                .registerTime(bean.getRegisterTime())
-                .lastLoginIpAddr(bean.getLastLoginIpAddr())
-                .lastLoginTime(bean.getLastLoginTime())
-                .userStatus(bean.getUserStatus())
-                .roleId(bean.getRoleId())
-                .userKey1(bean.getUserKey1())
-                .userKey2(bean.getUserKey2())
-                .userKey3(bean.getUserKey3())
-                .userKey4(bean.getUserKey4())
-                .userKey5(bean.getUserKey5())
-                .userKey6(bean.getUserKey6())
-                .build();
-    }
-
     @Override
     public RespEntity<User> doLogout(User target) {
 
-        if (target == null || Objects.isNull(target.getUserAccount())) {
+        if (target == null || Fmt.isAnyEmpty(target.userAccount(), target.userId())) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
         }
         try {
-            Boolean result = (Boolean)userDao.doLogout(dto_to_bean(target));
-            if (Boolean.TRUE.equals(result)) {
+            R result = userDao.doLogout((target));
+            if (result.isSuccess()) {
                 return RespEntity.success(target);
             }
         } catch (final Exception e) {
@@ -176,27 +128,26 @@ public class UserServiceImpl implements IUserService<User> {
 
     @Override
     public RespEntity<User> doUpdate(User target) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'doUpdate'");
+        if (target == null || Fmt.isEmpty(target.userId())) {
+            return RespEntity.badRequest("illegal target");
+        }
+        try {
+            R result = userDao.doUpdate(target);
+            if (result.isSuccess()) {
+                return RespEntity.success((User) result.data());
+            }
+        } catch (final Exception e) {
+            logger.error("Error occurred in iUserService.doUpdate :", e);
+        }
+        return RespEntity.error("Error occurred in Update 〒▽〒");
     }
-    private IUserBean dto_to_bean(final User dto) {
-        IUserBean bean = new UserBean();
-        bean.setUserId(dto.getUserId());
-        bean.setUserAccount(dto.getUserAccount());
-        bean.setUserPasswd(dto.getUserPasswd());
-        bean.setNickname(dto.getNickname());
-        bean.setRegisterTime(dto.getRegisterTime());
-        bean.setLastLoginIpAddr(dto.getLastLoginIpAddr());
-        bean.setLastLoginTime(dto.getLastLoginTime());
-        bean.setUserStatus(dto.getUserStatus());
-        bean.setRoleId(dto.getRoleId());
-        bean.setUserKey1(dto.getUserKey1());
-        bean.setUserKey2(dto.getUserKey2());
-        bean.setUserKey3(dto.getUserKey3());
-        bean.setUserKey4(dto.getUserKey4());
-        bean.setUserKey5(dto.getUserKey5());
-        bean.setUserKey6(dto.getUserKey6());
-        return bean;
+
+    public void doLogoutForAll() {
+        try {
+            userDao.doLogoutForAll();
+        } catch (Exception e) {
+            logger.error("Error occurred in UserServiceImpl.doLogoutForAll :", e);
+        }
     }
 
 }

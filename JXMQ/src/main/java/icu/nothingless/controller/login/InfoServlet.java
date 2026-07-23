@@ -37,11 +37,11 @@ public class InfoServlet extends HttpServlet {
         
         // 只返回必要字段，过滤敏感信息
         Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("userId", user.getUserId());
-        userInfo.put("userAccount", user.getUserAccount());
-        userInfo.put("roleId", user.getRoleId());
+        userInfo.put("userId", user.userId());
+        userInfo.put("userAccount", user.userAccount());
+        userInfo.put("roleId", user.roleId());
         // 不要返回密码！
         
-        resp.getWriter().write(gson.toJson(RespEntity.success(userInfo)));
+        resp.getWriter().write(gson.toJson(RespEntity.success(user)));
     }
 }

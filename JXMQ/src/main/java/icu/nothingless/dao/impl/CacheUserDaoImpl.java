@@ -1,29 +1,24 @@
 package icu.nothingless.dao.impl;
 
+import icu.nothingless.commons.R;
 import icu.nothingless.dao.interfaces.IUserDao;
 import icu.nothingless.pojo.adapter.IUserAdapter;
-import icu.nothingless.pojo.bean.UserBean;
-import icu.nothingless.pojo.ibean.IUserBean;
+import icu.nothingless.pojo.dto.User;
+import icu.nothingless.tools.ChatJedisUtil;
+import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.cache.*;
+import static icu.nothingless.tools.cache.RedisCacheHelper.*;
 
 import java.util.List;
 import java.util.Map;
 
-import static icu.nothingless.tools.cache.RedisCacheHelper.*;
-
 /**
- * 用户数据访问层 - Redis缓存代理实现
- * 
- * 设计原则：
- * 纯粹代理：对调用方透明，无额外副作用
- * 极简一致：同步双删，失败即抛异常
- * 安全并发：原子加锁、防击穿、防穿透
- * 无状态：支持多实例或单例
+ * 用户数据访问层 - Redis缓存代理
  */
-public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
+public class CacheUserDaoImpl implements IUserDao<User> {
 
-    private final IUserDao userDao;
+    private final IUserDao userDao = ServiceFactory.createInstance(IUserDao.class, "userDaoImpl");
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(CacheUserDaoImpl.class);
 
     // Key前缀配置
@@ -31,30 +26,14 @@ public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
     private static final String KEY_PREFIX_ID = "user:id:";
     private static final String KEY_PREFIX_LOCK = "user:lock:";
 
-    // ==================== 构造器 ====================
-
-    public CacheUserDaoImpl() {
-        this.userDao = ServiceFactory.createInstance(IUserDao.class, "userDaoImpl");
-    }
-
-    public CacheUserDaoImpl(IUserDao userDao) {
-        this.userDao = userDao;
-    }
-
     // ==================== 核心业务方法 ====================
 
     @Override
-    public IUserBean findByUsername(String username) throws Exception {
+    public R findByUsername(String username) throws Exception {
         if (isBlank(username)) {
-            return UserQueryResult.paramError("用户名不能为空").getUser();
+            return R.error("Empty Name");
         }
-        IUserBean result = (IUserBean) userDao.findByUsername(username);
-
-        if (result != null) {
-            return result;
-        } else {
-            return UserQueryResult.notFound().getUser();
-        }
+        return userDao.findByUsername(username);
     }
     /*
      * 
@@ -111,54 +90,86 @@ public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
      * }
      */
 
-    public Boolean doLogin(IUserBean login) throws Exception {
-        if (login == null || isBlank(login.getUserId())) {
-            return false;
+    @Override
+    public R doLogin(User login) throws Exception {
+        if (login == null) {
+            return R.error("Illegal User");
+        }
+        try {
+            R result = userDao.doLogin(login);
+            if (result.isSuccess()) {
+                User tmpUser = (User) result.data();
+                evictUserCache(tmpUser.userId(), tmpUser.userAccount());
+                cacheUserDoubleKey(User.forLogin(tmpUser));
+                ChatJedisUtil.setUserOnline(Long.valueOf(tmpUser.userId()), User.STATUS_ACTIVE_CODE);
+            }
+            return result;
+        } catch (Exception e) {
+            logger.error("Cache login Failed!", e);
+            return R.error("Cache login Failed!");
         }
 
-        Boolean result = userDao.doLogin(login);
-
-        if (Boolean.TRUE.equals(result)) {
-            // evictUserCache(login.getUserId(), null);
-            login.setUserKey1(UserBean.STATUS_ONLINE);
-            cacheUserDoubleKey(login);
-        }
-
-        return result;
     }
 
     @Override
-    public Boolean doRegister(Map<String, String> register) throws Exception {
-        if (register == null || register.isEmpty()) {
-            return false;
+    public R doLogout(User currentUser) throws Exception {
+        // do logout
+        if (currentUser == null) {
+            return R.error("Illegal User");
+        }
+        try {
+            R result = userDao.doLogout(currentUser);
+            if (result.isSuccess()) {
+                User tmpUser = readCache(CacheKeyBuilder.build(KEY_PREFIX_ID, currentUser.userId()), User.class)
+                        .getData();
+                ChatJedisUtil.setUserOffline(Long.valueOf(currentUser.userId()), User.STATUS_INACTIVE_CODE);
+                evictUserCache(currentUser.userId(), tmpUser != null ? tmpUser.userAccount() : null);
+                cacheUserDoubleKey(User.forLogout(currentUser));
+                return R.success("Logout Successful");
+            } else {
+                return R.error("Cache user logout Failed with DB logout failure!");
+            }
+        } catch (Exception e) {
+            logger.error("Cache user logout failed!", e);
+            return R.error("Cache user logout failed!");
         }
 
-        Boolean result = userDao.doRegister(register);
+    }
 
-        String username = register.get("username");
-        if (Boolean.TRUE.equals(result) && !isBlank(username)) {
+    @Override
+    public R doRegister(User register) throws Exception {
+        if (register == null) {
+            return R.error("Illegal Register");
+        }
+
+        R result = userDao.doRegister(register);
+
+        String username = register.userAccount();
+        if (result.isSuccess() && !isBlank(username)) {
             safeDel(CacheKeyBuilder.build(KEY_PREFIX_USERNAME, username.trim()));
         }
 
-        return result;
+        return R.success(username + " Register Successful ");
     }
 
     @Override
-    public Boolean updatePwd(String username, String newPassword) throws Exception {
-        if (isBlank(username) || isBlank(newPassword)) {
-            return false;
+    public R doUpdate(User newTarget) throws Exception {
+        if(newTarget == null || isBlank(newTarget.userId())) {
+            return R.error("Illegal Update");
         }
+        String userName = getUsernameByUserIdQuietly(newTarget.userId());
+        R result = userDao.doUpdate(newTarget);
 
-        final String normalizedUsername = username.trim();
-        String userId = getUserIdByUsernameQuietly(normalizedUsername);
-
-        Boolean result = userDao.updatePwd(normalizedUsername, newPassword);
-
-        if (Boolean.TRUE.equals(result)) {
-            evictUserCache(userId, normalizedUsername);
+        if (result.isSuccess()) {
+            evictUserCache(newTarget.userId(), userName);
+            return R.success(result.data());
         }
+        return R.error(Fmt.of("User {}Update Failed", newTarget.userId()));
+    }
 
-        return result;
+    @Override
+    public R doSearch(String str) throws Exception {
+        return userDao.doSearch(str);
     }
 
     // ==================== 私有方法 ====================
@@ -190,13 +201,12 @@ public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
     /**
      * 双Key缓存用户数据
      */
-    private void cacheUserDoubleKey(IUserBean user) throws Exception {
+    private void cacheUserDoubleKey(User user) throws Exception {
         if (user == null)
             return;
 
-        String username = user.getUserAccount();
-        String userId = user.getUserId();
-        user.setUserPasswd(null);
+        String username = user.userAccount();
+        String userId = user.userId();
 
         if (isBlank(username) || isBlank(userId)) {
             logger.warn("User data is missing key fields and cannot be cached");
@@ -205,7 +215,7 @@ public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
 
         String usernameKey = CacheKeyBuilder.build(KEY_PREFIX_USERNAME, username);
         String idKey = CacheKeyBuilder.build(KEY_PREFIX_ID, userId);
-        String json = JsonSerializer.serialize(user);
+        String json = JsonSerializer.serialize(user.withoutPasswd());
 
         if (json == null)
             return;
@@ -240,14 +250,15 @@ public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
      * 查询数据库并回填缓存
      */
     @SuppressWarnings("unused")
-    private UserQueryResult queryDBAndCache(String username) throws Exception {
-        IUserBean user = (IUserBean) userDao.findByUsername(username);
-        if (user != null) {
+    private User queryDBAndCache(String username) throws Exception {
+        R queryResult = userDao.findByUsername(username);
+        if (queryResult.isSuccess()) {
+            User user = (User) queryResult.data();
             cacheUserDoubleKey(user);
-            return UserQueryResult.success(user);
+            return user;
         } else {
             cacheEmpty(CacheKeyBuilder.build(KEY_PREFIX_USERNAME, username));
-            return UserQueryResult.notFound();
+            return null;
         }
     }
 
@@ -257,13 +268,13 @@ public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
             String json = safeGet(cacheKey);
 
             if (json != null && !isEmptyPlaceholder(json)) {
-                IUserBean user = JsonSerializer.deserialize(json, IUserAdapter.class);
+                User user = JsonSerializer.deserialize(json, User.class);
                 if (user != null)
-                    return user.getUserId();
+                    return user.userId();
             }
+            R user = userDao.findByUsername(username);
 
-            IUserBean user = (IUserBean) userDao.findByUsername(username);
-            return user != null ? user.getUserId() : null;
+            return user.isSuccess() ? "" + user.data() : null;
         } catch (Exception e) {
             logger.error("Get user data failed，username={}", username, e);
             return null;
@@ -279,7 +290,7 @@ public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
             String json = safeGet(cacheKey);
 
             if (json != null && !isEmptyPlaceholder(json)) {
-                IUserBean user = JsonSerializer.deserialize(json, IUserAdapter.class);
+                IUserAdapter user = JsonSerializer.deserialize(json, IUserAdapter.class);
                 if (user != null)
                     return user.getUserAccount();
             }
@@ -289,62 +300,20 @@ public class CacheUserDaoImpl implements IUserDao<IUserAdapter> {
             return null;
         }
     }
-
-    // ==================== 内部结果类 ====================
-
-    public static class UserQueryResult {
-        public enum Status {
-            SUCCESS, NOT_FOUND, PARAM_ERROR, SYSTEM_ERROR
-        }
-
-        private final Status status;
-        private final IUserBean user;
-        private final String message;
-
-        private UserQueryResult(Status status, IUserBean user, String message) {
-            this.status = status;
-            this.user = user;
-            this.message = message;
-        }
-
-        public static UserQueryResult success(IUserBean user) {
-            return new UserQueryResult(Status.SUCCESS, user, null);
-        }
-
-        public static UserQueryResult notFound() {
-            return new UserQueryResult(Status.NOT_FOUND, null, "User not Exists");
-        }
-
-        public static UserQueryResult paramError(String message) {
-            return new UserQueryResult(Status.PARAM_ERROR, null, message);
-        }
-
-        public Status getStatus() {
-            return status;
-        }
-
-        public IUserBean getUser() {
-            return user;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-    }
-
     @Override
-    public List<IUserAdapter> fuzzyQuery(String keyword) throws Exception {
-        return userDao.fuzzyQuery(keyword);
+    public R doLogoutForAll() throws Exception {
+        R result = userDao.doLogoutForAll();
+        if(!result.isSuccess()){
+           return R.error("Logout For All Failed!");
+        }
+        List<Map<String, String>> onlineUsers = (List<Map<String, String>>) result.data();
+        for(Map<String, String> one: onlineUsers){
+            String userId = one.get("USERID");
+            String username = one.get("USERACCOUNT");
+            evictUserCache(userId, username);
+            ChatJedisUtil.setUserOffline(Long.valueOf(userId), User.STATUS_INACTIVE_CODE);
+        }
+        return R.success("All users have been kick off!");
     }
 
-    @Override
-    public Boolean doLogout(IUserBean currentUser) throws Exception {
-        if (currentUser == null || isBlank(currentUser.getUserId())) {
-            return false;
-        }
-        evictUserCache(currentUser.getUserId(), currentUser.getUserAccount());
-        currentUser.setUserKey1(UserBean.STATUS_OFFLINE);
-        cacheUserDoubleKey(currentUser);
-        return (Boolean) userDao.doLogout(currentUser);
-    }
 }

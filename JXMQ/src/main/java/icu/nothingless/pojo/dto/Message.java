@@ -3,7 +3,8 @@ package icu.nothingless.pojo.dto;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import icu.nothingless.pojo.bean.MessageBean;
+
+import icu.nothingless.pojo.adapter.IMSGAdapter;
 
 /**
  * Message DTO 类
@@ -179,7 +180,7 @@ public record Message(
         /**
          * 从 Entity 构建（自动转换时间格式）
          */
-        public Builder from(MessageBean entity) {
+        public Builder from(IMSGAdapter entity) {
             this.msgId = entity.getMsgId();
             this.senderId = entity.getSenderId();
             this.receiverId = entity.getReceiverId();
@@ -228,14 +229,14 @@ public record Message(
     /**
      * 从 Entity 快速创建（基础字段）
      */
-    public static Message fromEntity(MessageBean entity) {
+    public static Message fromEntity(IMSGAdapter entity) {
         return Message.builder().from(entity).build();
     }
 
     /**
      * 从 Entity 创建（带当前用户视角）
      */
-    public static Message fromEntity(MessageBean entity, Long currentUserId) {
+    public static Message fromEntity(IMSGAdapter entity, Long currentUserId) {
         return Message.builder()
                 .from(entity)
                 .withCurrentUser(currentUserId)

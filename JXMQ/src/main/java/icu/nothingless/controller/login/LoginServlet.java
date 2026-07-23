@@ -1,8 +1,6 @@
 package icu.nothingless.controller.login;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -10,7 +8,6 @@ import org.slf4j.Logger;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
-import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.ViewUtil;
@@ -36,66 +33,26 @@ public class LoginServlet extends HttpServlet {
     protected void doPost( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException{
 
         String username = req.getParameter("username");
-        logger.warn("TEST-TEST:::{}",req.getParameter("password"));
         String password = req.getParameter("pwd_entrypted");
-        logger.error("UserName::{}----PassWord::{}",username,password);
+        User bean = User.builder()
+                    .userAccount(username).userPasswd(password)
+                    .loginNow(getClientIP(req))
+                    .roleId("Super Administrator")
+                    .userStatus(true)
+                    .build();
 
-        User bean = new User();
-        bean.setUserAccount(username);
-        bean.setUserPasswd(password);
-
-        bean.setLastLoginIpAddr(getClientIP(req));
-        bean.setLastLoginTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        bean.setRoleId("Admin");
-        bean.setUserId("7");
-        bean.setUserStatus(true);
         RespEntity<User> respEntity = userService.doLogin(bean);
         if(respEntity.isSuccess()){
-            RedirectUtil.redirect(req, resp, "/home", Map.of("CURRENT_USER", respEntity.getData(),"MENU",MENU));
+            logger.info("Login Success! User:<{}>",(User)(respEntity.getData()));
+            RedirectUtil.redirect(req, resp, "/home", Map.of("CURRENT_USER", (User)respEntity.getData(),"MENU",MENU));
         }else{
             ViewUtil.render(req, resp, "error_page",Map.of("respEntity",respEntity));
         }
 
     }
-    protected void _doPost( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException {
-        String username = req.getParameter("username");
-        String password = req.getParameter("password");
-        String pwd_entrypted = req.getParameter("pwd_entrypted");
 
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String text = now.format(fmt);
-        String token = "Testing token" + text;
-        logger.error(token);
-        User bean = new User();
-        bean.setUserAccount(username);
-        bean.setUserPasswd(password);
-        String clientIP = getClientIP(req);
 
-        bean.setLastLoginIpAddr(clientIP);
-        bean.setLastLoginTime(now.format(fmt));
-        bean.setRoleId("Admin");
-        bean.setUserId("7");
-        bean.setUserStatus(false);
-        var loginResult = userService.doLogin(bean);
-        if(loginResult.isSuccess()){
-            ViewUtil.render(req, resp, "example/index");
-        }
-        logger.error("username :"+username);
-        logger.error("password: "+password);
-        logger.error("pwd_entrypted :"+pwd_entrypted);
-        User signed = new User();
-        signed.setUserId("7");
-        signed.setUserAccount("Shengde.Yi");
-        signed.setRoleId("Super Administrator");
-        ChatJedisUtil.setUserOnline(Long.parseLong(signed.getUserId()), 1);
-        RedirectUtil.redirect(req, resp, "/home", Map.of("CURRENT_USER", signed,"MENU",MENU));
-        // ViewUtil.render(req, resp, view,Map.of("CURRENT_USER",signed));
-        
-        // ViewUtil.render(req, resp, "error_page",Map.of("resp",RespEntity.error("错误错误！登录失败！无法登录！系统网络异常！")));
-        
-    }
-        private String getClientIP(HttpServletRequest request) {
+    private String getClientIP(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {

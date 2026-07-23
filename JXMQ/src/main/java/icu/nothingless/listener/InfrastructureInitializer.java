@@ -5,20 +5,21 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.controller.ChatWebSocketServer;
+import icu.nothingless.controller.server.ChatWebSocketServer;
+import icu.nothingless.service.impl.UserServiceImpl;
+import icu.nothingless.service.interfaces.IUserService;
+import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ChatRedisBus;
+import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.DBPools.PDBPoolManager;
 import icu.nothingless.tools.DBPools.RedisPoolManager;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 public class InfrastructureInitializer implements ServletContextListener {
     private static final Logger logger = LoggerFactory.getLogger(InfrastructureInitializer.class);
     private static Boolean switch_flag = true;
-
-    private ChatRedisBus redisBus;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -33,6 +34,7 @@ public class InfrastructureInitializer implements ServletContextListener {
             logger.info("Redis connection pool initialized.");
 
             initializeChatRedisBus(sce);
+            initChatJedisUtil(sce);
             logger.info("Infrastructure initialized successfully.");
 
         } catch (IOException e) {
@@ -44,15 +46,51 @@ public class InfrastructureInitializer implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        if (switch_flag) {
-            logger.info("Shutting down Infrastructure...");
+        if (!switch_flag)
+            return;
+
+        logger.info("Shutting down Infrastructure...");
+        // 1. 先关闭 ChatRedisBus（需要在线程池关闭前取消订阅）
+        try {
+            ChatRedisBus redisBus = (ChatRedisBus) sce.getServletContext().getAttribute("chatRedisBus");
             if (redisBus != null) {
                 redisBus.shutdown();
+                logger.info("ChatRedisBus shutdown.");
             }
-            PDBPoolManager.close();
-            RedisPoolManager.close();
-            logger.info("Infrastructure shutdown complete.");
+        } catch (Exception e) {
+            logger.error("Error shutting down ChatRedisBus: ", e);
         }
+        // 2. 关闭 WebSocket
+        try {
+            ChatWebSocketServer.shutdown();
+            logger.info("WebSocket server shutdown.");
+        } catch (Exception e) {
+            logger.error("Error shutting down WebSocket server: ", e);
+        }
+        // 3. 关闭连接池
+        try {
+            PDBPoolManager.close();
+            logger.info("PostgreSQL pool closed.");
+        } catch (Exception e) {
+            logger.error("Error closing PostgreSQL pool: ", e);
+        }
+        try {
+            RedisPoolManager.close();
+            logger.info("Redis pool closed.");
+        } catch (Exception e) {
+            logger.error("Error closing Redis pool: ", e);
+        }
+        try {
+            IUserService userService = ServiceFactory.createInstance(IUserService.class, "userServiceImpl");
+            if (userService instanceof UserServiceImpl) {
+                ((UserServiceImpl) userService).doLogoutForAll();
+                logger.info("All users logged out.");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error logging out all users: ", e);
+        }
+        logger.info("Infrastructure shutdown complete.");
     }
 
     private void initializeChatRedisBus(ServletContextEvent sce) {
@@ -61,7 +99,7 @@ public class InfrastructureInitializer implements ServletContextListener {
 
         // 初始化 Redis 消息总线
         String serverId = sce.getServletContext().getContextPath() + "-" + System.currentTimeMillis();
-        redisBus = new ChatRedisBus(RedisPoolManager.getJedisPool(), serverId);
+        ChatRedisBus redisBus = new ChatRedisBus(RedisPoolManager.getJedisPool(), serverId);
 
         // 注入到 WebSocket Server
         ChatWebSocketServer.setRedisBus(redisBus);
@@ -71,5 +109,10 @@ public class InfrastructureInitializer implements ServletContextListener {
         sce.getServletContext().setAttribute("jedisPool", jedisPool);
 
         logger.info("Chat service initialization completed，ServerId: " + serverId);
+    }
+
+    private void initChatJedisUtil(ServletContextEvent sce) {
+        JedisPool jedisPool = (JedisPool) sce.getServletContext().getAttribute("jedisPool");
+        ChatJedisUtil.init(jedisPool);
     }
 }

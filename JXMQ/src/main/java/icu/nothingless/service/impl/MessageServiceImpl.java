@@ -1,81 +1,154 @@
 package icu.nothingless.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import icu.nothingless.commons.R;
+import icu.nothingless.commons.RespEntity;
 import icu.nothingless.dao.interfaces.IMessageDao;
 import icu.nothingless.pojo.bean.MessageBean;
+import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.service.interfaces.IMessageService;
 import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ServiceFactory;
 
-public class MessageServiceImpl implements IMessageService {
-    private IMessageDao messageDao = ServiceFactory.getSingleton(IMessageDao.class);
-    
+@SuppressWarnings("unchecked")
+public class MessageServiceImpl implements IMessageService<Message> {
+    private static final Logger logger = LoggerFactory.getLogger(MessageServiceImpl.class);
+    private static final IMessageDao<Message> messageDao = (IMessageDao<Message>) ServiceFactory
+            .getSingleton(IMessageDao.class);
+
     // 发送消息
     @Override
-    public MessageBean sendMessage(Long senderId, Long receiverId, String content, Integer msgType) {
-        MessageBean msg = new MessageBean();
-        msg.setSenderId(senderId);
-        msg.setReceiverId(receiverId);
-        msg.setMsgType(msgType);
-        msg.setContent(content);
-        msg.setStatus(MessageBean.STATUS_UNREAD);
-        
-        Long msgId = messageDao.saveMessage(msg);
-        if (msgId != null) {
-            msg.setMsgId(msgId);
-            
-            // 检查接收者是否在线
-            Integer receiverStatus = ChatJedisUtil.getUserStatus("" + receiverId);
-            
-            if (receiverStatus == 1) {
-                // 在线：增加未读计数
-                ChatJedisUtil.incrUnread(receiverId, senderId);
-                // 缓存到最近消息
-                ChatJedisUtil.cacheRecentMessage(receiverId, senderId, msg);
-            } else {
-                // 离线：存入离线队列
-                ChatJedisUtil.pushOfflineMessage(receiverId, msg);
-            }
-            
-            // 同时缓存到发送者的最近消息
-            ChatJedisUtil.cacheRecentMessage(senderId, receiverId, msg);
-            
-            return msg;
+    public RespEntity<Message> sendMessage(Long senderId, Long receiverId, String content, Integer msgType) {
+        if (senderId == null || receiverId == null) {
+            return RespEntity.badRequest("Sender id and receiver id are required");
         }
-        return null;
+        if (content == null || content.isBlank()) {
+            return RespEntity.badRequest("Message content is required");
+        }
+
+        MessageBean msgBean = new MessageBean();
+        msgBean.setSenderId(senderId);
+        msgBean.setReceiverId(receiverId);
+        msgBean.setMsgType(msgType == null ? Message.TYPE_TEXT : msgType);
+        msgBean.setContents(content);
+        msgBean.setMsgStatus(MessageBean.STATUS_UNREAD);
+
+        try {
+            R<Long> saveResult = messageDao.saveMessage(Message.fromEntity(msgBean));
+            if (!saveResult.isSuccess() || saveResult.data() == null) {
+                return RespEntity.error("Send message failed");
+            }
+
+            msgBean.setMsgId(saveResult.data());
+            Message message = Message.builder().from(msgBean).withCurrentUser(senderId).build();
+
+            // 只处理离线消息队列
+            Integer receiverStatus = ChatJedisUtil.getUserStatus(String.valueOf(receiverId));
+            if (receiverStatus == null || receiverStatus != 1) {
+                // 接收方离线，存入离线队列（上线后投递）
+                ChatJedisUtil.pushOfflineMessage(receiverId, msgBean);
+                logger.debug("Receiver [{}] offline, message saved to offline queue", receiverId);
+            }
+            // 在线时不做任何 Redis 缓存，消息已通过 WebSocket 实时推送
+            return RespEntity.success(message);
+        } catch (Exception e) {
+            logger.error("Error occurred while executing function <sendMessage>: ", e);
+            return RespEntity.error("Send message failed");
+        }
     }
-    
+
     // 获取聊天记录
     @Override
-    public List<MessageBean> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit) {
-        return messageDao.getChatHistory(userId, friendId, lastMsgId, limit);
+    public RespEntity<List<Message>> getChatHistory(Long userId, Long friendId, Long lastMsgId, int limit) {
+        if (userId == null || friendId == null) {
+            return RespEntity.badRequest("User id and friend id are required");
+        }
+        try {
+            R<List<Message>> ret = messageDao.getChatHistory(userId, friendId, lastMsgId, limit);
+            if (!ret.isSuccess()) {
+                return RespEntity.error("Get chat history failed");
+            }
+            return RespEntity.success((List<Message>)(ret.data()));
+        } catch (Exception e) {
+            logger.error("Error occurred while executing function <getChatHistory>: ", e);
+            return RespEntity.error("Get chat history failed");
+        }
     }
-    
+
     // 获取未读消息(登录时拉取)
     @Override
-    public List<MessageBean> getUnreadMessages(Long userId) {
-        List<MessageBean> list = messageDao.getUnreadMessages(userId);
-        
-        // 同时获取Redis中的离线消息
-        List<MessageBean> offlineMsgs = ChatJedisUtil.popOfflineMessages(userId);
-        if (!offlineMsgs.isEmpty()) {
-            list.addAll(0, offlineMsgs);
+    public RespEntity<List<Message>> getUnreadMessages(Long userId) {
+        if (userId == null) {
+            return RespEntity.badRequest("User id is required");
         }
-        
-        return list;
+        try {
+            R<List<Message>> ret = messageDao.getUnreadMessages(userId);
+            List<Message> messages = (List<Message>)ret.data();
+
+            // 【保留】离线消息队列仍需处理
+            List<MessageBean> offlineMsgs = ChatJedisUtil.popOfflineMessages(userId);
+            if (offlineMsgs != null && !offlineMsgs.isEmpty()) {
+                List<Message> offlineMessages = convertMessages(offlineMsgs, userId);
+                offlineMessages.addAll(messages);
+                messages = offlineMessages;
+            }
+            return RespEntity.success(messages);
+        } catch (Exception e) {
+            logger.error("Error occurred while executing function <getUnreadMessages>: ", e);
+            return RespEntity.error("Get unread messages failed");
+        }
     }
-    
+
     // 标记已读
     @Override
-    public void markAsRead(Long userId, Long friendId) {
-        messageDao.markAsRead(userId, friendId);
-        ChatJedisUtil.clearUnread(userId, friendId);
+    public RespEntity<Void> markAsRead(Long userId, Long friendId) {
+        if (userId == null || friendId == null) {
+            return RespEntity.badRequest("User id and friend id are required");
+        }
+        try {
+            R<Boolean> ret = messageDao.markAsRead(userId, friendId);
+            if (!ret.isSuccess() || !Boolean.TRUE.equals(ret.data())) {
+                return RespEntity.error("Mark as read failed");
+            }
+            ChatJedisUtil.clearUnread(userId, friendId);
+            return RespEntity.success("Messages marked as read", null);
+        } catch (Exception e) {
+            logger.error("Error occurred while executing function <markAsRead>: ", e);
+            return RespEntity.error("Mark as read failed");
+        }
     }
-    
+
     // 撤回消息
     @Override
-    public boolean recallMessage(Long msgId, Long userId) {
-        return messageDao.recallMessage(msgId, userId);
+    public RespEntity<Void> recallMessage(Long msgId, Long userId) {
+        if (msgId == null || userId == null) {
+            return RespEntity.badRequest("Message id and user id are required");
+        }
+        try {
+            R<Boolean> ret = messageDao.recallMessage(msgId, userId);
+            if (!ret.isSuccess() || !Boolean.TRUE.equals(ret.data())) {
+                return RespEntity.error("Recall message failed");
+            }
+            return RespEntity.success("Message recalled", null);
+        } catch (Exception e) {
+            logger.error("Error occurred while executing function <recallMessage>: ", e);
+            return RespEntity.error("Recall message failed");
+        }
+    }
+
+    private List<Message> convertMessages(List<MessageBean> beans, Long currentUserId) {
+        List<Message> messages = new ArrayList<>();
+        if (beans == null || beans.isEmpty()) {
+            return messages;
+        }
+        for (MessageBean bean : beans) {
+            messages.add(Message.fromEntity(bean, currentUserId));
+        }
+        return messages;
     }
 }

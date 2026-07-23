@@ -2,36 +2,35 @@ package icu.nothingless.service.interfaces;
 
 import java.util.List;
 
-import icu.nothingless.pojo.bean.FriendshipBean;
-import icu.nothingless.pojo.dto.User;
+import icu.nothingless.commons.RespEntity;
 
-public interface IFriendService {
+public interface IFriendService<T,E> {
 
     // 搜索用户
-    List<User> searchUsers(Long userId, String keyword);
+    RespEntity<List<E>> searchUsers(Long userId, String keyword);
 
     // 申请添加好友
-    boolean applyFriend(Long userId, Long friendId, String applyMsg);
+    RespEntity<Void> applyFriend(Long userId, Long friendId, String applyMsg);
 
     // 获取好友列表
-    List<FriendshipBean> getFriendList(Long userId, String group, String keyword);
+    RespEntity<List<T>> getFriendList(Long userId, String group, String keyword);
 
     // 获取好友申请列表
-    List<FriendshipBean> getPendingRequests(Long userId);
+    RespEntity<List<T>> getPendingRequests(Long userId);
 
     // 同意好友申请
-    boolean agreeFriend(Long userId, Long friendId, String remark, String groupName);
+    RespEntity<Void> agreeFriend(Long userId, Long friendId, String remark, String groupName);
 
     // 拒绝好友申请
-    boolean rejectFriend(Long userId, Long friendId);
+    RespEntity<Void> rejectFriend(Long userId, Long friendId);
 
     // 删除好友
-    boolean deleteFriend(Long userId, Long friendId);
+    RespEntity<Void> deleteFriend(Long userId, Long friendId);
 
     // 修改好友信息
-    boolean updateFriendInfo(Long userId, Long friendId, String remark, String groupName);
+    RespEntity<Void> updateFriendInfo(Long userId, Long friendId, String remark, String groupName);
 
     // 获取分组列表
-    List<String> getGroups(Long userId);
+    RespEntity<List<String>> getGroups(Long userId);
 
 }

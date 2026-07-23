@@ -23,9 +23,6 @@ public class UserDaoImpl implements IUserDao<User> {
 
     @Override
     public R findByUsername(String username) throws Exception {
-        if (Fmt.isEmpty(username)) {
-            return R.error("Empty UserName");
-        }
         IUserAdapter tmp = new icu.nothingless.pojo.bean.UserBean();
         tmp.setUserAccount(username);
         try {
@@ -49,9 +46,6 @@ public class UserDaoImpl implements IUserDao<User> {
 
     @Override
     public R doSearch(String str) throws Exception {
-        if (Fmt.isEmpty(str)) {
-            return R.error("Empty Search");
-        }
         IUserAdapter tmp1 = new icu.nothingless.pojo.bean.UserBean();
         tmp1.setUserAccount(str);
         IUserAdapter tmp2 = new icu.nothingless.pojo.bean.UserBean();
@@ -78,10 +72,6 @@ public class UserDaoImpl implements IUserDao<User> {
 
     @Override
     public R doLogin(User login_user) throws Exception {
-        if (login_user == null) {
-            logger.error("Empty User!");
-            throw new UserSTOException("Empty User!");
-        }
         R query = findByUsername(login_user.userAccount());
         if (!query.isSuccess()) {
             logger.error("User({}) Not Found", login_user.userAccount());
@@ -118,10 +108,6 @@ public class UserDaoImpl implements IUserDao<User> {
 
     @Override
     public R doRegister(User register) throws Exception {
-        if (register == null) {
-            logger.error("Empty Register!");
-            throw new UserSTOException("Empty Register!");
-        }
         String username = Optional.ofNullable(register.userAccount())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
@@ -164,11 +150,8 @@ public class UserDaoImpl implements IUserDao<User> {
 
     @Override
     public R doUpdate(User newTarget) throws Exception {
-        if (newTarget == null || Fmt.isEmpty(newTarget.userId())) {
-            return R.error("Illegal Update");
-        }
-        IUserAdapter tmp = new UserBean();
 
+        IUserAdapter tmp = new UserBean();
         tmp.setUserId(newTarget.userId());
 
         /*

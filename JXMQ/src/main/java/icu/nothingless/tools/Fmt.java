@@ -13,6 +13,9 @@ public class Fmt {
     public static Boolean isEmpty(String str) {
         return StrUtil.isEmpty(str,false);
     }
+    public static Boolean isStrictEmpty(String str) {
+        return StrUtil.isEmpty(str,true);
+    }
 
     public static boolean isAnyEmpty(String... strs) {
         return StrUtil.isAnyEmpty(strs);

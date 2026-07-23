@@ -1,9 +1,9 @@
 package icu.nothingless.controller;
 
+import icu.nothingless.dao.FileShareDao;
 import icu.nothingless.dao.UserFileDao;
 import icu.nothingless.dao.impl.FileShareDaoImpl;
 import icu.nothingless.dao.impl.UserFileDaoImpl;
-import icu.nothingless.dao.interfaces.FileShareDao;
 import icu.nothingless.entity.FileShare;
 import icu.nothingless.entity.UserFile;
 import icu.nothingless.util.JsonResponse;

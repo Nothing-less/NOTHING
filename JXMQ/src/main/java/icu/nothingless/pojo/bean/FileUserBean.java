@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 /**
  * 用户文件仓库实体
  */
-public class UserFileBean {
+public class FileUserBean {
 
     private Long id;
     private Long userId;

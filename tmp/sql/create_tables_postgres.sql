@@ -63,5 +63,25 @@ ALTER TABLE file_share
 -- ============================================================
 -- 测试数据（可选）
 -- ============================================================
--- INSERT INTO user_file(user_id, file_name, stored_name, file_path, file_size, mime_type)
--- VALUES (1, '测试文档.pdf', 'abc123.pdf', '/home/user/MuSong/files/1/abc123.pdf', 102400, 'application/pdf');
+INSERT INTO file_user(user_id, file_name, stored_name, file_path, file_size, mime_type)
+ VALUES (1, '测试文档.pdf', 'abc123.pdf', '/home/user/MuSong/files/1/abc123.pdf', 102400, 'application/pdf');
+
+insert into file_share(sender_id, receiver_id, file_id)
+ values (1, 2, 1);
+
+            SELECT fs.*, uf.file_name, uf.file_size,
+                   su.nickname AS sender_name, ru.nickname AS receiver_name
+            FROM file_share fs
+            JOIN file_user uf ON fs.file_id = uf.id
+            JOIN users su ON fs.sender_id = su.user_id::bigint
+            JOIN users ru ON fs.receiver_id = ru.user_id::bigint
+            WHERE fs.id = 1;
+
+
+            SELECT fs.*, uf.file_name, uf.file_size,
+                   su.nickname AS sender_name 
+            FROM file_share fs 
+            JOIN file_user uf ON fs.file_id = uf.id
+            JOIN users su ON fs.sender_id = su.user_id::bigint
+            WHERE fs.file_status AND uf.file_status AND fs.receiver_id = 8 AND fs.is_revoked = 0
+            ORDER BY fs.send_time DESC

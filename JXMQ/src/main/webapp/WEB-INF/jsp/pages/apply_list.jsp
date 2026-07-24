@@ -85,7 +85,7 @@ function confirmAgree(friendId) {
     });
 }
 
-// 【新增】刷新好友列表（通过父窗口中转）
+// 刷新好友列表（通过父窗口中转）
 function refreshFriendList() {
     try {
         // 方法1：直接尝试调用 contentFrame 中的 loadFriends

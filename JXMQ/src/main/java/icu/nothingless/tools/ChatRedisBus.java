@@ -1,11 +1,17 @@
 package icu.nothingless.tools;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPubSub;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Pipeline;
-import redis.clients.jedis.params.ScanParams;
-import redis.clients.jedis.resps.ScanResult;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +21,12 @@ import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.Session;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 /**
  * Redis 消息总线
@@ -45,6 +51,9 @@ public class ChatRedisBus {
     private final String serverId;
     private final ExecutorService subscribeExecutor;
     private volatile boolean running = true;
+
+    // 保存 subscribe 佔用的 Jedis 連接，用於強制斷開
+    private final ConcurrentHashMap<String, Jedis> activeJedisConnections = new ConcurrentHashMap<>();
 
     // ========== 新增：维护线程池和订阅引用，用于关闭 ==========
     private ScheduledExecutorService heartbeatScheduler;
@@ -258,7 +267,9 @@ public class ChatRedisBus {
      */
     private void subscribeUserChannel(String userId) {
         subscribeExecutor.submit(() -> {
-            try (Jedis jedis = jedisPool.getResource()) {
+            Jedis jedis = null; // ★ 改為手動管理
+            try {
+                jedis = jedisPool.getResource();
                 String channel = String.format(KEY_USER_CHANNEL, userId);
 
                 JedisPubSub pubSub = new JedisPubSub() {
@@ -278,14 +289,13 @@ public class ChatRedisBus {
                     @Override
                     public void onUnsubscribe(String channel, int subscribedChannels) {
                         logger.info("取消订阅: {}", channel);
-                        activePubSubs.remove(userId); // 清理引用
+                        activePubSubs.remove(userId);
                     }
                 };
 
-                // 保存引用，用于后续取消订阅
                 activePubSubs.put(userId, pubSub);
+                activeJedisConnections.put(userId, jedis); // ★ 保存連接引用
 
-                // 阻塞订阅，直到调用 unsubscribe()
                 jedis.subscribe(pubSub, channel);
 
             } catch (Exception e) {
@@ -294,6 +304,10 @@ public class ChatRedisBus {
                 }
             } finally {
                 activePubSubs.remove(userId);
+                activeJedisConnections.remove(userId);
+                if (jedis != null) {
+                    jedis.close(); // 確保歸還/關閉
+                }
             }
         });
     }
@@ -359,13 +373,13 @@ public class ChatRedisBus {
     }
 
     /**
-     * 关闭资源 — 关键修复
+     * 关闭资源
      */
     public void shutdown() {
         logger.info("ChatRedisBus 正在关闭...");
         running = false;
 
-        // 1. 取消所有 Redis 订阅（让阻塞线程退出）
+        // 1. 取消所有 Redis 订阅
         for (Map.Entry<String, JedisPubSub> entry : activePubSubs.entrySet()) {
             try {
                 JedisPubSub pubSub = entry.getValue();
@@ -376,6 +390,19 @@ public class ChatRedisBus {
                 logger.warn("取消订阅失败 [{}]: {}", entry.getKey(), e.getMessage());
             }
         }
+
+        // ★ 新增：強制關閉 subscribe 佔用的 Jedis 連接（中斷 socket 阻塞）
+        for (Map.Entry<String, Jedis> entry : activeJedisConnections.entrySet()) {
+            try {
+                Jedis jedis = entry.getValue();
+                if (jedis != null) {
+                    jedis.close(); // 強制斷開 socket，讓阻塞線程拋異常退出
+                }
+            } catch (Exception e) {
+                logger.warn("强制关闭 Jedis 连接失败 [{}]: {}", entry.getKey(), e.getMessage());
+            }
+        }
+        activeJedisConnections.clear();
         activePubSubs.clear();
 
         // 取消全局订阅
@@ -387,11 +414,8 @@ public class ChatRedisBus {
         if (heartbeatScheduler != null && !heartbeatScheduler.isShutdown()) {
             heartbeatScheduler.shutdownNow();
             try {
-                if (!heartbeatScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                    heartbeatScheduler.shutdownNow();
-                }
+                heartbeatScheduler.awaitTermination(3, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                heartbeatScheduler.shutdownNow();
                 Thread.currentThread().interrupt();
             }
         }
@@ -400,11 +424,8 @@ public class ChatRedisBus {
         if (subscribeExecutor != null && !subscribeExecutor.isShutdown()) {
             subscribeExecutor.shutdownNow();
             try {
-                if (!subscribeExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    subscribeExecutor.shutdownNow();
-                }
+                subscribeExecutor.awaitTermination(3, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                subscribeExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
             }
         }

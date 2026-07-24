@@ -5,14 +5,15 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import icu.nothingless.controller.config.GlobalConfig;
 import icu.nothingless.controller.server.ChatWebSocketServer;
 import icu.nothingless.service.impl.UserServiceImpl;
 import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ChatRedisBus;
-import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.DBPools.PDBPoolManager;
 import icu.nothingless.tools.DBPools.RedisPoolManager;
+import icu.nothingless.tools.ServiceFactory;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import redis.clients.jedis.JedisPool;
@@ -25,6 +26,12 @@ public class InfrastructureInitializer implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         try {
             logger.info("Initializing Infrastructure...");
+
+            GlobalConfig.CONFIG_MAP.size();
+            // GlobalConfig.CONFIG_MAP.forEach(
+            // (k, v) -> logger.error(Fmt.of("({})--({})",k, v))
+            // );
+
             // 初始化 PostgreSQL 连接池
             PDBPoolManager.init("PostrgeConfig.properties");
             logger.info("PostgreSQL connection pool initialized.");
@@ -82,14 +89,28 @@ public class InfrastructureInitializer implements ServletContextListener {
         }
         try {
             IUserService userService = ServiceFactory.createInstance(IUserService.class, "userServiceImpl");
-            if (userService instanceof UserServiceImpl) {
-                ((UserServiceImpl) userService).doLogoutForAll();
+            if (userService instanceof UserServiceImpl userServiceImpl) {
+                userServiceImpl.doLogoutForAll();
                 logger.info("All users logged out.");
             }
-
         } catch (Exception e) {
             logger.error("Error logging out all users: ", e);
         }
+
+        // ★ 新增：強制註銷由當前 WebApp 加載的 JDBC 驅動
+        try {
+            java.util.Enumeration<java.sql.Driver> drivers = java.sql.DriverManager.getDrivers();
+            while (drivers.hasMoreElements()) {
+                java.sql.Driver driver = drivers.nextElement();
+                if (driver.getClass().getClassLoader() == Thread.currentThread().getContextClassLoader()) {
+                    java.sql.DriverManager.deregisterDriver(driver);
+                    logger.info("JDBC driver deregistered: {}", driver.getClass().getName());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error deregistering JDBC drivers: ", e);
+        }
+
         logger.info("Infrastructure shutdown complete.");
     }
 

@@ -57,7 +57,7 @@ public class UserDaoImpl implements IUserDao<User> {
             results.addAll(results_2);
             if (results == null || results.isEmpty()) {
                 logger.error("Keyword({}) Not Found!", str);
-                throw new UserSTOException(Fmt.of("Keyword({}) Not Found!", str));
+                return R.error(Fmt.of("Keyword({}) Not Found!", str));
             }
             List<User> ret = new ArrayList<>();
             for (IUserAdapter one : results) {

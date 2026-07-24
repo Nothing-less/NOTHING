@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.R;
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.controller.config.GlobalConfig;
 import icu.nothingless.dao.interfaces.FileShareDao;
 import icu.nothingless.dao.interfaces.FileUserDao;
 import icu.nothingless.pojo.bean.FileShareBean;
@@ -30,10 +31,10 @@ public class FileServiceImpl implements IFileService {
     private final FileShareDao fileShareDao = ServiceFactory.getSingleton(FileShareDao.class);
     private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
-    private static final String UPLOAD_ROOT = "C:\\Shengde\\Repo\\NOTHING\\JXMQ\\upload\\repo\\";
+    private static final String UPLOAD_ROOT = GlobalConfig.CONFIG_MAP.get("upload.root");
 
     @Override
-    public RespEntity upload(Long userId, String originalName,
+    public RespEntity<UploadResultDTO> upload(Long userId, String originalName,
             String contentType, InputStream inputStream) {
 
         String storedName = UUID.randomUUID() + getExtension(originalName);
@@ -44,10 +45,10 @@ public class FileServiceImpl implements IFileService {
         }
 
         File target = new File(userDir, storedName);
-        try  {
+        try {
             FileOutputStream out = new FileOutputStream(target);
             inputStream.transferTo(out);
-        }catch (IOException e) {
+        } catch (IOException e) {
             logger.error("Failed to save uploaded file: {}", target.getAbsolutePath(), e);
             return RespEntity.error("Failed to save uploaded file");
         }
@@ -70,28 +71,42 @@ public class FileServiceImpl implements IFileService {
     @Override
     public RespEntity<List<FileUserBean>> listFiles(Long userId) {
         if (userId == null) {
-            throw new RuntimeException("Unknown userId");
+            return RespEntity.badRequest("Unknown userId");
         }
         R<List<FileUserBean>> ret = userFileDao.findByUserId(userId);
         if (!ret.isSuccess()) {
             return RespEntity.error(ret.message());
         }
-        return RespEntity.success((List<FileUserBean>)ret.data());
+        return RespEntity.success((List<FileUserBean>) ret.data());
+    }
+
+    @Override
+    public RespEntity<List<FileUserBean>> findFileById(Long fileId) {
+        if (fileId == null) {
+            return RespEntity.badRequest("Unknown fileId");
+        }
+        R<FileUserBean> retFlieList = userFileDao.findById(fileId);
+        if (!retFlieList.isSuccess()) {
+            return RespEntity.notFound(Fmt.of("File (ID:{}) Not Found", fileId));
+        }
+
+        return RespEntity.success(java.util.Collections.singletonList(retFlieList.data()));
+
     }
 
     @Override
     public RespEntity<List<FileUserBean>> searchFiles(Long userId, String keyword) {
-        if(userId == null) {
-            throw new RuntimeException("Unknown userId");
+        if (userId == null) {
+            return RespEntity.badRequest("Unknown userId");
         }
-        if(Fmt.isStrictEmpty(keyword)) {
-            throw new RuntimeException("Keyword cannot be empty");
+        if (Fmt.isStrictEmpty(keyword)) {
+            return RespEntity.badRequest("Keyword cannot be empty");
         }
         R<List<FileUserBean>> ret = userFileDao.searchByUserAndName(userId, keyword);
         if (!ret.isSuccess()) {
             return RespEntity.error(ret.message());
         }
-        return RespEntity.success((List<FileUserBean>)ret.data());
+        return RespEntity.success((List<FileUserBean>) ret.data());
     }
 
     @Override

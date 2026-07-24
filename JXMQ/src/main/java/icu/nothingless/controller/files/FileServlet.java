@@ -126,7 +126,7 @@ public class FileServlet extends HttpServlet {
             return;
         }
 
-        UploadResultDTO dto = fileService.upload(
+        RespEntity<UploadResultDTO> dto = fileService.upload(
                 userId,
                 part.getSubmittedFileName(),
                 part.getContentType(),

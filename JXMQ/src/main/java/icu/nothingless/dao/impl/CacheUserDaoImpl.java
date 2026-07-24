@@ -1,5 +1,8 @@
 package icu.nothingless.dao.impl;
 
+import java.util.List;
+import java.util.Map;
+
 import icu.nothingless.commons.R;
 import icu.nothingless.dao.interfaces.IUserDao;
 import icu.nothingless.pojo.adapter.IUserAdapter;
@@ -7,11 +10,17 @@ import icu.nothingless.pojo.dto.User;
 import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.ServiceFactory;
-import icu.nothingless.tools.cache.*;
-import static icu.nothingless.tools.cache.RedisCacheHelper.*;
-
-import java.util.List;
-import java.util.Map;
+import icu.nothingless.tools.cache.CacheKeyBuilder;
+import icu.nothingless.tools.cache.CacheResult;
+import icu.nothingless.tools.cache.JsonSerializer;
+import static icu.nothingless.tools.cache.RedisCacheHelper.cacheEmpty;
+import static icu.nothingless.tools.cache.RedisCacheHelper.isBlank;
+import static icu.nothingless.tools.cache.RedisCacheHelper.isEmptyPlaceholder;
+import static icu.nothingless.tools.cache.RedisCacheHelper.pipelineDelete;
+import static icu.nothingless.tools.cache.RedisCacheHelper.pipelineSetex;
+import static icu.nothingless.tools.cache.RedisCacheHelper.randomTtl;
+import static icu.nothingless.tools.cache.RedisCacheHelper.safeDel;
+import static icu.nothingless.tools.cache.RedisCacheHelper.safeGet;
 
 /**
  * 用户数据访问层 - Redis缓存代理
@@ -154,7 +163,7 @@ public class CacheUserDaoImpl implements IUserDao<User> {
 
     @Override
     public R doUpdate(User newTarget) throws Exception {
-        if(newTarget == null || isBlank(newTarget.userId())) {
+        if (newTarget == null || isBlank(newTarget.userId())) {
             return R.error("Illegal Update");
         }
         String userName = getUsernameByUserIdQuietly(newTarget.userId());
@@ -185,7 +194,7 @@ public class CacheUserDaoImpl implements IUserDao<User> {
         }
 
         if (isEmptyPlaceholder(cachedJson)) {
-            logger.debug("Cache hit null，key={}", cacheKey);
+            logger.debug("Cache hit null, key={}", cacheKey);
             return CacheResult.emptyHit();
         }
 
@@ -194,8 +203,8 @@ public class CacheUserDaoImpl implements IUserDao<User> {
             return CacheResult.hit(data);
         }
 
-        logger.warn("Cache broken，key={}", cacheKey);
-        return CacheResult.miss(); // 视为未命中，重新加载
+        logger.warn("Cache broken, key={}", cacheKey);
+        return CacheResult.miss(); // 视为未命中, 重新加载
     }
 
     /**
@@ -243,7 +252,7 @@ public class CacheUserDaoImpl implements IUserDao<User> {
 
         pipelineDelete(usernameKey, idKey);
 
-        logger.debug("Cache cleared，userId={}, username={}", userId, username);
+        logger.debug("Cache cleared, userId={}, username={}", userId, username);
     }
 
     /**
@@ -276,7 +285,7 @@ public class CacheUserDaoImpl implements IUserDao<User> {
 
             return user.isSuccess() ? "" + user.data() : null;
         } catch (Exception e) {
-            logger.error("Get user data failed，username={}", username, e);
+            logger.error("Get user data failed, username={}", username, e);
             return null;
         }
     }
@@ -296,18 +305,19 @@ public class CacheUserDaoImpl implements IUserDao<User> {
             }
             return null;
         } catch (Exception e) {
-            logger.error("Get username failed，userId={}", userId, e);
+            logger.error("Get username failed, userId={}", userId, e);
             return null;
         }
     }
+
     @Override
     public R doLogoutForAll() throws Exception {
         R result = userDao.doLogoutForAll();
-        if(!result.isSuccess()){
-           return R.error("Logout For All Failed!");
+        if (!result.isSuccess()) {
+            return R.error("Logout For All Failed!");
         }
         List<Map<String, String>> onlineUsers = (List<Map<String, String>>) result.data();
-        for(Map<String, String> one: onlineUsers){
+        for (Map<String, String> one : onlineUsers) {
             String userId = one.get("USERID");
             String username = one.get("USERACCOUNT");
             evictUserCache(userId, username);

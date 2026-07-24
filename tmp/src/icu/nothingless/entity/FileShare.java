@@ -8,11 +8,11 @@ import java.time.LocalDateTime;
 public class FileShare {
 
     private Long id;
-    private Long senderId;        // 发送者
-    private Long receiverId;      // 接收者
-    private Long fileId;          // 关联 user_file.id
+    private Long senderId; // 发送者
+    private Long receiverId; // 接收者
+    private Long fileId; // 关联 file_user.id
     private LocalDateTime sendTime;
-    private Integer isRevoked;    // 0=正常 1=已撤回
+    private Integer isRevoked; // 0=正常 1=已撤回
 
     // 扩展字段（非数据库列），用于前端展示
     private String fileName;
@@ -22,33 +22,83 @@ public class FileShare {
 
     // ========== Getters & Setters ==========
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getSenderId() { return senderId; }
-    public void setSenderId(Long senderId) { this.senderId = senderId; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Long getReceiverId() { return receiverId; }
-    public void setReceiverId(Long receiverId) { this.receiverId = receiverId; }
+    public Long getSenderId() {
+        return senderId;
+    }
 
-    public Long getFileId() { return fileId; }
-    public void setFileId(Long fileId) { this.fileId = fileId; }
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
+    }
 
-    public LocalDateTime getSendTime() { return sendTime; }
-    public void setSendTime(LocalDateTime sendTime) { this.sendTime = sendTime; }
+    public Long getReceiverId() {
+        return receiverId;
+    }
 
-    public Integer getIsRevoked() { return isRevoked; }
-    public void setIsRevoked(Integer isRevoked) { this.isRevoked = isRevoked; }
+    public void setReceiverId(Long receiverId) {
+        this.receiverId = receiverId;
+    }
 
-    public String getFileName() { return fileName; }
-    public void setFileName(String fileName) { this.fileName = fileName; }
+    public Long getFileId() {
+        return fileId;
+    }
 
-    public Long getFileSize() { return fileSize; }
-    public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
+    public void setFileId(Long fileId) {
+        this.fileId = fileId;
+    }
 
-    public String getSenderName() { return senderName; }
-    public void setSenderName(String senderName) { this.senderName = senderName; }
+    public LocalDateTime getSendTime() {
+        return sendTime;
+    }
 
-    public String getReceiverName() { return receiverName; }
-    public void setReceiverName(String receiverName) { this.receiverName = receiverName; }
+    public void setSendTime(LocalDateTime sendTime) {
+        this.sendTime = sendTime;
+    }
+
+    public Integer getIsRevoked() {
+        return isRevoked;
+    }
+
+    public void setIsRevoked(Integer isRevoked) {
+        this.isRevoked = isRevoked;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public String getSenderName() {
+        return senderName;
+    }
+
+    public void setSenderName(String senderName) {
+        this.senderName = senderName;
+    }
+
+    public String getReceiverName() {
+        return receiverName;
+    }
+
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName;
+    }
 }

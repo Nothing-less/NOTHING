@@ -13,7 +13,7 @@ import icu.nothingless.pojo.dto.UploadResultDTO;
 public interface IFileService {
 
     RespEntity<UploadResultDTO> upload(Long userId, String originalName, String contentType,
-                           InputStream inputStream) throws IOException;
+            InputStream inputStream) throws IOException;
 
     RespEntity<List<FileUserBean>> listFiles(Long userId);
 

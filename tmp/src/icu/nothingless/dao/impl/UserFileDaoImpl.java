@@ -1,21 +1,27 @@
 package icu.nothingless.dao.impl;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
 import icu.nothingless.dao.UserFileDao;
 import icu.nothingless.entity.UserFile;
 import icu.nothingless.util.DBUtil;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UserFileDaoImpl implements UserFileDao {
 
     @Override
     public void insert(UserFile file) {
-        String sql = "INSERT INTO user_file(user_id, file_name, stored_name, file_path, file_size, mime_type, upload_time) " +
-                     "VALUES(?, ?, ?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO file_user(user_id, file_name, stored_name, file_path, file_size, mime_type, upload_time) "
+                +
+                "VALUES(?, ?, ?, ?, ?, ?, NOW())";
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setLong(1, file.getUserId());
             ps.setString(2, file.getFileName());
             ps.setString(3, file.getStoredName());
@@ -35,9 +41,9 @@ public class UserFileDaoImpl implements UserFileDao {
 
     @Override
     public UserFile findById(Long id) {
-        String sql = "SELECT * FROM user_file WHERE id = ?";
+        String sql = "SELECT * FROM file_user WHERE id = ?";
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -51,10 +57,10 @@ public class UserFileDaoImpl implements UserFileDao {
 
     @Override
     public List<UserFile> findByUserId(Long userId) {
-        String sql = "SELECT * FROM user_file WHERE user_id = ? ORDER BY upload_time DESC";
+        String sql = "SELECT * FROM file_user WHERE user_id = ? ORDER BY upload_time DESC";
         List<UserFile> list = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, userId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -68,10 +74,10 @@ public class UserFileDaoImpl implements UserFileDao {
 
     @Override
     public List<UserFile> searchByUserAndName(Long userId, String keyword) {
-        String sql = "SELECT * FROM user_file WHERE user_id = ? AND file_name LIKE ? ORDER BY upload_time DESC";
+        String sql = "SELECT * FROM file_user WHERE user_id = ? AND file_name LIKE ? ORDER BY upload_time DESC";
         List<UserFile> list = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, userId);
             ps.setString(2, "%" + keyword + "%");
             ResultSet rs = ps.executeQuery();
@@ -86,9 +92,9 @@ public class UserFileDaoImpl implements UserFileDao {
 
     @Override
     public void deleteById(Long id) {
-        String sql = "DELETE FROM user_file WHERE id = ?";
+        String sql = "DELETE FROM file_user WHERE id = ?";
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -106,7 +112,8 @@ public class UserFileDaoImpl implements UserFileDao {
         f.setFileSize(rs.getLong("file_size"));
         f.setMimeType(rs.getString("mime_type"));
         Timestamp ts = rs.getTimestamp("upload_time");
-        if (ts != null) f.setUploadTime(ts.toLocalDateTime());
+        if (ts != null)
+            f.setUploadTime(ts.toLocalDateTime());
         return f;
     }
 }

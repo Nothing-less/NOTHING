@@ -215,7 +215,7 @@ public class UserDaoImpl implements IUserDao<User> {
                         .filter(user -> Objects.equals(user.getUserId(), tmp.getUserId()))
                         .findFirst()
                         .orElse(null);
-                
+
                 return R.success(User.from(fetchedUser));
             }
             logger.error("User({}) Can't Update!", newTarget.userId());
@@ -253,7 +253,7 @@ public class UserDaoImpl implements IUserDao<User> {
     public R doLogoutForAll() throws Exception {
 
         try {
-            String sql = "SELECT * FROM user WHERE 1=1 AND user_status = ? AND user_key1 = ? ";
+            String sql = "SELECT * FROM users WHERE 1=1 AND user_status = ? AND user_key1 = ? ";
             List<Map<String, Object>> results = PDBUtil.executeQuery(sql, UserBean.STATUS_ACTIVE,
                     UserBean.STATUS_ONLINE);
             List<Map<String, String>> ret = new ArrayList<>();
@@ -262,7 +262,7 @@ public class UserDaoImpl implements IUserDao<User> {
                         "userId", String.valueOf(one.get("USER_ID")),
                         "userAccount", String.valueOf(one.get("USER_ACCOUNT"))));
             }
-            String sql_updateStatus = "UPDATE user SET user_key1 = ? WHERE 1=1 AND user_status = ?  AND user_key1 = ? ";
+            String sql_updateStatus = "UPDATE users SET user_key1 = ? WHERE 1=1 AND user_status = ?  AND user_key1 = ? ";
             PDBUtil.executeUpdate(sql_updateStatus, UserBean.STATUS_OFFLINE, UserBean.STATUS_ACTIVE,
                     UserBean.STATUS_ONLINE);
 

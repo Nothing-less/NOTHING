@@ -4,7 +4,7 @@
 -- ============================================================
 
 -- 1. 用户文件仓库表
-CREATE TABLE IF NOT EXISTS user_file (
+CREATE TABLE IF NOT EXISTS file_user (
     id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
     user_id     BIGINT       NOT NULL                COMMENT '所属用户ID',
     file_name   VARCHAR(255) NOT NULL                COMMENT '原始文件名',
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS file_share (
     INDEX idx_sender   (sender_id),
     INDEX idx_receiver (receiver_id),
     INDEX idx_send_time (send_time),
-    CONSTRAINT fk_fs_file FOREIGN KEY (file_id) REFERENCES user_file(id) ON DELETE CASCADE
+    CONSTRAINT fk_fs_file FOREIGN KEY (file_id) REFERENCES file_user(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='文件分享记录';
 
@@ -45,5 +45,5 @@ CREATE TABLE IF NOT EXISTS file_share (
 -- ============================================================
 -- 测试数据（可选）
 -- ============================================================
--- INSERT INTO user_file(user_id, file_name, stored_name, file_path, file_size, mime_type)
+-- INSERT INTO file_user(user_id, file_name, stored_name, file_path, file_size, mime_type)
 -- VALUES (1, '测试文档.pdf', 'abc123.pdf', '/home/user/MuSong/files/1/abc123.pdf', 102400, 'application/pdf');

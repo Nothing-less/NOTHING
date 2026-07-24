@@ -31,7 +31,7 @@ public class UserServiceImpl implements IUserService<User> {
         if (target == null || Fmt.isAnyEmpty(target)) {
             // 传空的对象/内容
             return RespEntity.badRequest("illegal target");
-        }
+        } 
         List<User> resultList = new ArrayList<>();
 
         IUserDao userDaoImpl = ServiceFactory.createInstance(IUserDao.class, "userDaoImpl");

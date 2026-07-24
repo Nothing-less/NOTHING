@@ -5,9 +5,16 @@ import jakarta.servlet.annotation.*;
 import jakarta.servlet.http.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +27,17 @@ import icu.nothingless.pojo.dto.SendResultDTO;
 import icu.nothingless.pojo.dto.UploadResultDTO;
 import icu.nothingless.service.impl.FileServiceImpl;
 import icu.nothingless.service.interfaces.IFileService;
+import icu.nothingless.tools.FileDownloadUtil;
+import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
+import icu.nothingless.tools.ViewUtil;
+import icu.nothingless.util.JsonResponse;
 
 @WebServlet("/file/*")
-@MultipartConfig(maxFileSize = 100 * 1024 * 1024, maxRequestSize = 200 * 1024 * 1024, fileSizeThreshold = 1024 * 1024)
+@MultipartConfig(maxFileSize = 100 * 1024 * 1024, // 单文件 100MB
+        maxRequestSize = 200 * 1024 * 1024, // 单次请求 200MB
+        fileSizeThreshold = 1024 * 1024 // 1MB 以上写磁盘
+)
 public class FileServlet extends HttpServlet {
 
     private final IFileService fileService = ServiceFactory.getSingleton(IFileService.class);
@@ -38,8 +52,6 @@ public class FileServlet extends HttpServlet {
 
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
-
-        // 支持CORS（如果需要）
         resp.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = resp.getWriter();
 
@@ -49,12 +61,15 @@ public class FileServlet extends HttpServlet {
 
         RespEntity response = null;
         switch (req.getPathInfo()) {
-            case "/list"     -> response = doList(req, resp);
-            case "/search"   -> response = doSearch(req, resp);
-            case "/download" -> download(req, resp, userId);
+            case "/list" -> response = doList(req, resp);
+            case "/search" -> response = doSearch(req, resp);
+            case "/download" -> {
+                doDownload(req, resp);
+                return; // doDownload handles the response directly
+            }
             case "/received" -> response = RespEntity.success(fileService.listReceived(userId));
-            case "/sent"     -> response = RespEntity.success(fileService.listSent(userId));
-            default          -> response = RespEntity.error(404, "未知接口");
+            case "/sent" -> response = RespEntity.success(fileService.listSent(userId));
+            default -> response = RespEntity.unauthorized("未知接口");
         }
         if (response != null) {
             out.print(gson.toJson(response));
@@ -86,35 +101,56 @@ public class FileServlet extends HttpServlet {
         }
     }
 
-    private RespEntity doList(HttpServletRequest req, HttpServletResponse resp){
+    private RespEntity doList(HttpServletRequest req, HttpServletResponse resp) {
         Long userId = requireLogin(req, resp);
-        List<FileUserBean> files = fileService.listFiles(userId);
+        RespEntity<List<FileUserBean>> files = fileService.listFiles(userId);
         return RespEntity.success(files);
     }
 
-    private RespEntity doSearch(HttpServletRequest req, HttpServletResponse resp)
-            throws Exception {
+    private RespEntity doSearch(HttpServletRequest req, HttpServletResponse resp) {
         Long userId = requireLogin(req, resp);
         String keyword = req.getParameter("keyword");
-        List<FileUserBean> files = fileService.searchFiles(userId, keyword.trim());
+        RespEntity<List<FileUserBean>> files = fileService.searchFiles(userId, keyword.trim());
         return RespEntity.success(files);
     }
 
+    private void doDownload(HttpServletRequest req, HttpServletResponse resp) {
+        Long fileId = parseLong(req.getParameter("fileId"));
+        if (fileId == null) {
+            renderError(req, resp, RespEntity.badRequest("Missing fileId"));
+            return;
+        }
 
+        Long userId = requireLogin(req, resp);
+        RespEntity<FileUserBean> ret = fileService.getDownloadableFile(userId, fileId);
+        FileUserBean uf = ret.getData();
+        File file = new File(uf.getFilePath());
 
+        try {
+            boolean ok = FileDownloadUtil.download(
+                    req,
+                    resp,
+                    file,
+                    uf.getFileName(),
+                    uf.getMimeType());
 
+            if (!ok) {
+                renderError(req, resp, RespEntity.notFound("文件不存在或无法读取"));
+            }
+        } catch (IOException e) {
+            logger.error("File download failed: {}", file.getAbsolutePath(), e);
+            renderError(req, resp, RespEntity.internalError("文件下载失败"));
+        }
+    }
 
-
-
-
-
-
-
-
-
-
-
-
+    private void renderError(HttpServletRequest req, HttpServletResponse resp, RespEntity<?> respEntity) {
+        try {
+            ViewUtil.render(req, resp, "error_page",
+                    Map.of("respEntity", respEntity));
+        } catch (Exception e) {
+            logger.error("Render error page failed", e);
+        }
+    }
 
     /* ====== 业务方法 ====== */
 
@@ -136,35 +172,12 @@ public class FileServlet extends HttpServlet {
     }
 
     private void search(HttpServletRequest req, HttpServletResponse resp, Long userId)
-            throws IOException {
+            throws Exception {
         String keyword = req.getParameter("keyword");
-        List<FileUserBean> list = (keyword == null || keyword.isBlank())
+        RespEntity<List<FileUserBean>> list = (keyword == null || keyword.isBlank())
                 ? fileService.listFiles(userId)
                 : fileService.searchFiles(userId, keyword.trim());
         JsonResponse.ok(resp, list);
-    }
-
-    private void download(HttpServletRequest req, HttpServletResponse resp, Long userId)
-            throws IOException {
-        Long fileId = parseLong(req.getParameter("fileId"));
-        if (fileId == null) {
-            resp.sendRedirect("error.jsp?msg=missing_fileId");
-            return;
-        }
-
-        FileUserBean uf = fileService.getDownloadableFile(userId, fileId);
-        File f = new File(uf.getFilePath());
-
-        resp.setContentType(uf.getMimeType());
-        resp.setHeader("Content-Length", String.valueOf(f.length()));
-        resp.setHeader("Content-Disposition",
-                "attachment; filename*=UTF-8''" +
-                        java.net.URLEncoder.encode(uf.getFileName(), "UTF-8"));
-
-        try (var in = new java.io.FileInputStream(f);
-                var out = resp.getOutputStream()) {
-            in.transferTo(out);
-        }
     }
 
     private void delete(HttpServletRequest req, HttpServletResponse resp, Long userId)

@@ -141,6 +141,10 @@ public class RespEntity<T> {
     public static <T> RespEntity<T> notFound(String message) {
         return new RespEntity<>(NOT_FOUND, message, null);
     }
+
+    public static <T> RespEntity<T> internalError(String message) {
+        return new RespEntity<>(INTERNAL_ERROR, message, null);
+    }
     
     /* ==================== 链式操作 ==================== */
     
@@ -238,4 +242,5 @@ public class RespEntity<T> {
                 ", extra=" + extra +
                 '}';
     }
+
 }

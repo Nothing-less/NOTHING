@@ -98,11 +98,11 @@ public class FileServiceImpl implements IFileService {
     public RespEntity<FileUserBean> getDownloadableFile(Long userId, Long fileId) {
         R<FileUserBean> uf = userFileDao.findById(fileId);
         if (!uf.isSuccess()) {
-            throw new RuntimeException("无权限或文件不存在");
+            return RespEntity.error(uf.message());
         }
         File f = new File(uf.data().getFilePath());
         if (!f.exists()) {
-            throw new RuntimeException("文件不存在");
+            return RespEntity.error("File not found on server");
         }
         return RespEntity.success(uf.data());
     }
@@ -111,10 +111,10 @@ public class FileServiceImpl implements IFileService {
     public RespEntity deleteFile(Long userId, Long fileId) {
         R<FileUserBean> uf = userFileDao.findById(fileId);
         if (!uf.isSuccess()) {
-            throw new RuntimeException("文件不存在");
+            return RespEntity.error(uf.message());
         }
         if (!uf.data().getUserId().equals(userId)) {
-            throw new RuntimeException("无权限或文件不存在");
+            return RespEntity.error("File does not belong to user");
         }
 
         new File(uf.data().getFilePath()).delete();
@@ -126,7 +126,7 @@ public class FileServiceImpl implements IFileService {
     public RespEntity<SendResultDTO> sendFile(Long senderId, Long receiverId, Long fileId) {
         R<FileUserBean> uf = userFileDao.findById(fileId);
         if (!uf.isSuccess()) {
-            throw new RuntimeException("文件不存在或无权限");
+            return RespEntity.error(uf.message());
         }
 
         FileShareBean share = new FileShareBean();
@@ -143,15 +143,15 @@ public class FileServiceImpl implements IFileService {
     public RespEntity revokeFile(Long userId, Long shareId) {
         FileShareBean share = fileShareDao.findById(shareId);
         if (share == null) {
-            throw new RuntimeException("记录不存在");
+            return RespEntity.error("Share record not found");
         }
         if (!share.getSenderId().equals(userId)) {
-            throw new RuntimeException("只能撤回自己发送的文件");
+            return RespEntity.error("User is not the sender of this file");
         }
 
         long hours = ChronoUnit.HOURS.between(share.getSendTime(), LocalDateTime.now());
         if (hours > 24) {
-            throw new RuntimeException("超过 24 小时，无法撤回");
+            return RespEntity.error("Cannot revoke file after 24 hours");
         }
 
         fileShareDao.updateRevokeStatus(shareId, 1);

@@ -21,7 +21,10 @@ const FileRepo = (() => {
         const xhr = new XMLHttpRequest();
         const fd  = new FormData();
         fd.append('file', file);
-        fd.append('userId',window.APP.currentUser.userId);
+
+        const userId = window.APP?.currentUser?.userId;
+        console.log("userId value:", userId, "type:", typeof userId);
+        fd.append('userId',userId);
 
         xhr.upload.addEventListener('progress', e => {
             if (e.lengthComputable) {
@@ -75,7 +78,7 @@ const FileRepo = (() => {
     /* ================= 2. 列表 ================= */
 
     function loadList() {
-        list.innerHTML = '<div class="loading">加载中...</div>';
+        list.innerHTML = '';
 
         fetch(ctx + '/file/list')
             .then(r => r.json())
@@ -219,7 +222,7 @@ const FileRepo = (() => {
                     const avatar = document.createElement('img');
                     avatar.className = 'friend-pick-avatar';
                     avatar.src = (u.userKey2 || '').trim() ||
-                                 ctx + '/static/images/default-avatar.png';
+                                ctx + '/static/images/default-avatar.png';
                     avatar.onerror = function() {
                         this.onerror = null;
                         this.src = ctx + '/static/images/default-avatar.png';
@@ -273,7 +276,7 @@ const FileRepo = (() => {
 
     function loadSentFiles() {
         const container = document.getElementById('sentFilesList');
-        container.innerHTML = '<div class="search-tip">加载中...</div>';
+        container.innerHTML = '';
 
         fetch(ctx + '/file/sent')
             .then(r => r.json())
@@ -368,7 +371,7 @@ const FileRepo = (() => {
 
     function loadReceivedFiles() {
         const container = document.getElementById('receivedFilesList');
-        container.innerHTML = '<div class="search-tip">加载中...</div>';
+        container.innerHTML = '';
 
         fetch(ctx + '/file/received')
             .then(r => r.json())

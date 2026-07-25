@@ -1,18 +1,34 @@
-
 <!-- file_repository.jsp - 个人文件仓库页面 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ page import="icu.nothingless.commons.RespEntity" %>
+<%@ page import="icu.nothingless.pojo.dto.User" %>
+<%@ page import="icu.nothingless.tools.ViewUtil" %>
 
 <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
 <link rel="stylesheet" href="<c:url value='/static/css/file_repository.css' />">
+
+<%
+    User currentUser = (User) session.getAttribute("CURRENT_USER");
+    if (currentUser == null) {
+        request.setAttribute("respEntity", RespEntity.error("错误！系统出现异常！"));
+        ViewUtil.render(request, response, "error_page");
+        return;
+    }
+    Object currentUser_ID = currentUser.userId();
+    session.setAttribute("CURRENT_USER_ID", currentUser_ID);
+    Object currentUser_Nickname = currentUser.nickname();
+    session.setAttribute("CURRENT_USER_NICKNAME", currentUser_Nickname);
+    String contextPath = request.getContextPath();
+%>
 
 <!-- 全局配置，必须在所有 JS 之前 -->
 <script>
     window.APP = {
         contextPath: '${pageContext.request.contextPath}',
         currentUser: {
-            userId: '${sessionScope.userId}',
-            nickname: '${sessionScope.nickname}'
+            userId: '${sessionScope.CURRENT_USER_ID}',
+            nickname: '${sessionScope.CURRENT_USER_NICKNAME}'
         }
     };
 </script>

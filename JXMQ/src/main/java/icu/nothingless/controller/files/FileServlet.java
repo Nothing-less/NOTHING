@@ -1,7 +1,11 @@
 package icu.nothingless.controller.files;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +41,6 @@ public class FileServlet extends HttpServlet {
     private final IFileService fileService = ServiceFactory.getSingleton(IFileService.class);
     private final FileShareDao fileShareDao = ServiceFactory.getSingleton(FileShareDao.class);
     private static final Logger logger = LoggerFactory.getLogger(FileServlet.class);
-    private Long userId = null;
 
     /* ====== 路由 ====== */
 
@@ -49,11 +52,12 @@ public class FileServlet extends HttpServlet {
         resp.setHeader("Access-Control-Allow-Origin", "*");
 
         // init user ID
-        init_requireLogin(req, resp);
+        Long userId = init_requireLogin(req, resp);
         if (userId == null) {
-            writeJson(resp, RespEntity.badRequest("You are not vaild"));
+            writeJson(resp, RespEntity.badRequest("You are not valid"));
             return;
         }
+        req.getSession(false).setAttribute("UID", userId);
 
         try {
             RespEntity response;
@@ -86,11 +90,12 @@ public class FileServlet extends HttpServlet {
         resp.setHeader("Access-Control-Allow-Origin", "*");
 
         // init user ID
-        init_requireLogin(req, resp);
-        if (this.userId == null) {
-            writeJson(resp, RespEntity.badRequest("Your requirement is not vaild!"));
+        Long userId = init_requireLogin(req, resp);
+        if (userId == null) {
+            writeJson(resp, RespEntity.badRequest("You are not valid"));
             return;
         }
+        req.getSession(false).setAttribute("UID", userId);
         try {
             RespEntity response;
             switch (req.getPathInfo()) {
@@ -132,7 +137,8 @@ public class FileServlet extends HttpServlet {
      * all files of this user
      */
     private RespEntity doList(HttpServletRequest req, HttpServletResponse resp) {
-        RespEntity<List<FileUserBean>> listFiles = fileService.listFiles(this.userId);
+        Long userId = getCurrentUserId(req);
+        RespEntity<List<FileUserBean>> listFiles = fileService.listFiles(userId);
         return RespEntity.success(listFiles);
     }
 
@@ -146,7 +152,8 @@ public class FileServlet extends HttpServlet {
      */
     private RespEntity doSearch(HttpServletRequest req, HttpServletResponse resp) {
         String keyword = req.getParameter("keyword");
-        RespEntity<List<FileUserBean>> listFiles = fileService.searchFiles(this.userId, keyword.trim());
+        Long userId = getCurrentUserId(req);
+        RespEntity<List<FileUserBean>> listFiles = fileService.searchFiles(userId, keyword.trim());
         return RespEntity.success(listFiles);
     }
 
@@ -160,6 +167,7 @@ public class FileServlet extends HttpServlet {
     private void doDownload(HttpServletRequest req, HttpServletResponse resp) {
         Long shareId = parseLong(req.getParameter("shareId"));
         Long fileId = parseLong(req.getParameter("fileId"));
+        Long userId = getCurrentUserId(req);
 
         FileUserBean uf = null;
 
@@ -169,7 +177,7 @@ public class FileServlet extends HttpServlet {
                 renderError(req, resp, RespEntity.notFound("文件不存在或已撤回"));
                 return;
             }
-            if (!share.getReceiverId().equals(this.userId)) {
+            if (!share.getReceiverId().equals(userId)) {
                 renderError(req, resp, RespEntity.forbidden("无权限下载该文件"));
                 return;
             }
@@ -189,7 +197,7 @@ public class FileServlet extends HttpServlet {
             }
 
             uf = fileResp.getData().get(0);
-            if (!uf.getUserId().equals(this.userId)) {
+            if (!uf.getUserId().equals(userId)) {
                 renderError(req, resp, RespEntity.forbidden("无权限下载该文件"));
                 return;
             }
@@ -231,7 +239,8 @@ public class FileServlet extends HttpServlet {
      * files that this user have received
      */
     private RespEntity dolistReceived(HttpServletRequest req, HttpServletResponse resp) {
-        RespEntity<List<FileShareBean>> received_file_list = fileService.listReceived(this.userId);
+        Long userId = getCurrentUserId(req);
+        RespEntity<List<FileShareBean>> received_file_list = fileService.listReceived(userId);
         return RespEntity.success(received_file_list.getData());
 
     }
@@ -244,7 +253,8 @@ public class FileServlet extends HttpServlet {
      * files that this user have sent
      */
     private RespEntity doSend(HttpServletRequest req, HttpServletResponse resp) {
-        RespEntity<List<FileShareBean>> sent_file_list = fileService.listSent(this.userId);
+        Long userId = getCurrentUserId(req);
+        RespEntity<List<FileShareBean>> sent_file_list = fileService.listSent(userId);
         return RespEntity.success(sent_file_list.getData());
     }
 
@@ -262,6 +272,7 @@ public class FileServlet extends HttpServlet {
         if (part == null || part.getSize() == 0) {
             return RespEntity.badRequest("Please select upload file");
         }
+        Long userId = getCurrentUserId(req);
 
         RespEntity<UploadResultDTO> ret = fileService.upload(
                 userId,
@@ -274,6 +285,7 @@ public class FileServlet extends HttpServlet {
 
     private RespEntity search(HttpServletRequest req, HttpServletResponse resp) {
         String keyword = req.getParameter("keyword");
+        Long userId = getCurrentUserId(req);
         RespEntity<List<FileUserBean>> list = (keyword == null || keyword.isBlank())
                 ? fileService.listFiles(userId)
                 : fileService.searchFiles(userId, keyword.trim());
@@ -282,6 +294,7 @@ public class FileServlet extends HttpServlet {
 
     private RespEntity delete(HttpServletRequest req, HttpServletResponse resp) {
         Long fileId = parseLong(req.getParameter("fileId"));
+        Long userId = getCurrentUserId(req);
         if (fileId == null) {
             return RespEntity.badRequest("缺少 fileId");
         }
@@ -292,6 +305,7 @@ public class FileServlet extends HttpServlet {
     private RespEntity send(HttpServletRequest req, HttpServletResponse resp) {
         Long fileId = parseLong(req.getParameter("fileId"));
         Long friendId = parseLong(req.getParameter("friendId"));
+        Long userId = getCurrentUserId(req);
 
         if (fileId == null || friendId == null) {
             return RespEntity.error("参数缺失");
@@ -304,7 +318,7 @@ public class FileServlet extends HttpServlet {
         }
         List<FileUserBean> fu = uf.getData();
 
-        if (fu == null || fu.isEmpty() || !fu.get(0).getUserId().equals(this.userId)) {
+        if (fu == null || fu.isEmpty() || !fu.get(0).getUserId().equals(userId)) {
             return RespEntity.badRequest("文件不存在或无权限");
         }
 
@@ -319,6 +333,7 @@ public class FileServlet extends HttpServlet {
 
     private RespEntity revoke(HttpServletRequest req, HttpServletResponse resp) {
         Long shareId = parseLong(req.getParameter("shareId"));
+        Long userId = getCurrentUserId(req);
         if (shareId == null) {
             return RespEntity.error("missing sharedId");
         }
@@ -326,11 +341,60 @@ public class FileServlet extends HttpServlet {
         return RespEntity.success("撤回成功");
     }
 
+    private Long init_requireLogin(HttpServletRequest req, HttpServletResponse resp) {
+        // 1. 优先从 Session 取
+        Object uid = req.getSession().getAttribute("userId");
+        if (uid != null) {
+            return toLong(uid);
+        }
+
+        // 2. 尝试普通参数（适用于 GET 请求、query string、application/x-www-form-urlencoded）
+        String uidStr = req.getParameter("userId");
+        if (uidStr != null && !uidStr.isEmpty()) {
+            return toLong(uidStr);
+        }
+
+        // 3. 只有 multipart 请求才调用 getPart，否则抛 InvalidContentTypeException
+        String contentType = req.getContentType();
+        if (contentType != null && contentType.toLowerCase().startsWith("multipart/")) {
+            try {
+                Part userIdPart = req.getPart("userId");
+                if (userIdPart != null) {
+                    String partValue = readPartString(userIdPart);
+                    // 过滤前端 undefined/null 字符串
+                    if (partValue != null && !partValue.isEmpty()
+                            && !"undefined".equals(partValue)
+                            && !"null".equalsIgnoreCase(partValue)) {
+                        logger.debug("Got userId from multipart part: {}", partValue);
+                        return toLong(partValue);
+                    }
+                }
+            } catch (ServletException | IOException e) {
+                logger.warn("Failed to read userId from multipart part", e);
+            }
+        }
+
+        return null;
+    }
+
+    private String readPartString(Part part) throws IOException {
+        if (part == null)
+            return null;
+        try (InputStream is = part.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString().trim();
+        }
+    }
+
     /* ====== 工具 ====== */
 
-    private void init_requireLogin(HttpServletRequest req, HttpServletResponse resp) {
-        Object uid = req.getSession().getAttribute("userId");
-        this.userId = uid == null ? null : (Long) uid;
+    private Long getCurrentUserId(HttpServletRequest req) {
+        return toLong(req.getSession(false).getAttribute("UID"));
     }
 
     private Long parseLong(String s) {
@@ -341,5 +405,17 @@ public class FileServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    static long toLong(Object obj) {
+        return switch (obj) {
+            case Long l -> l; // 直接拆箱
+            case Integer i -> i.longValue(); // 安全拓宽
+            case Number n -> n.longValue(); // 覆盖 Double/Float/Short/Byte
+            case String s -> Long.parseLong(s); // 字符串解析
+            case null -> 0L; // 显式处理 null
+            default -> throw new IllegalArgumentException(
+                    "Unsupported type: " + obj.getClass());
+        };
     }
 }

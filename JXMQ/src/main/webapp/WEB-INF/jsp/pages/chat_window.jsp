@@ -2,6 +2,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<link rel="stylesheet" href="<c:url value='/static/css/chat_file_revoke.css' />">
+<script src="<c:url value='/static/js/chat_file_revoke.js' />"></script>
+
 <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
 <div class="chat-container" id="chatContainer" style="display: flex; height: 100vh; flex-direction: column;">
     <div class="chat-messages" id="messageArea" style="flex: 1; overflow-y: auto; padding: 10px;">
@@ -54,6 +57,13 @@
 
     function appendMessage(msg) {
         var area = document.getElementById('messageArea');
+
+        // ★★★ 文件消息统一由 ChatFileRevoke 处理 ★★★
+        if (window.ChatFileRevoke && ChatFileRevoke.isFileMessage(msg)) {
+            ChatFileRevoke.renderFileMessage(msg, area);
+            return; // 不走后面的文本渲染
+        }
+        // ===== 原来的文本消息渲染逻辑 =====
         var currentUserId = '${sessionScope.CURRENT_USER_ID}';
         var isSelf = String(msg.senderId) === String(currentUserId);
         
@@ -70,12 +80,12 @@
         var timeStr = formatTime(msg.sendTime);
         
         var html = '<div class="msg-bubble" style="max-width: 70%; padding: 10px 14px; border-radius: 12px; ' +
-                   'background: ' + (isSelf ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'rgba(255,255,255,0.1)') +
-                   '; color: #fff; word-break: break-word;">' +
-                   content +
-                   '</div>' +
-                   '<div class="msg-meta" style="font-size: 11px; color: #888; margin-top: 4px; display: flex; gap: 6px; align-items: center;">' +
-                   '<span>' + timeStr + '</span>';
+                'background: ' + (isSelf ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'rgba(255,255,255,0.1)') +
+                '; color: #fff; word-break: break-word;">' +
+                content +
+                '</div>' +
+                '<div class="msg-meta" style="font-size: 11px; color: #888; margin-top: 4px; display: flex; gap: 6px; align-items: center;">' +
+                '<span>' + timeStr + '</span>';
         
         if (isSelf) {
             html += '<span class="msg-status" data-msg-id="' + msgId + '">' +
@@ -96,6 +106,14 @@
         area.appendChild(div);
         area.scrollTop = area.scrollHeight;
     }
+
+    // 撤回成功后，刷新当前聊天记录
+    document.addEventListener('file:revoked', function(e) {
+        const shareId = e.detail.shareId;
+        console.log('文件已撤回，刷新消息列表', shareId);
+        // 调用你现有的刷新方法
+        loadMessages(currentFriendId);
+    });
 
     function escapeHtml(text) {
         if (!text) return '';
@@ -118,7 +136,7 @@
         }
         if (!currentFriendId || currentFriendId === '0' || currentFriendId === 'null') {
             console.error('[ChatWindow] No friendId!');
-            alert('错误：好友ID为空，请重新打开聊天窗口');
+            alert('错误: 好友ID为空, 请重新打开聊天窗口');
             return;
         }
         

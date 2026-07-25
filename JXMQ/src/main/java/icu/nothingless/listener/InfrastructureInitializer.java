@@ -57,7 +57,17 @@ public class InfrastructureInitializer implements ServletContextListener {
             return;
 
         logger.info("Shutting down Infrastructure...");
-        // 1. 先关闭 ChatRedisBus（需要在线程池关闭前取消订阅）
+        try {
+            IUserService userService = ServiceFactory.createInstance(IUserService.class, "userServiceImpl");
+            if (userService instanceof UserServiceImpl userServiceImpl) {
+                userServiceImpl.doLogoutForAll();
+                logger.info("All users logged out.");
+            }
+        } catch (Exception e) {
+            logger.error("Error logging out all users: ", e);
+        }
+
+        // 先关闭 ChatRedisBus（需要在线程池关闭前取消订阅）
         try {
             ChatRedisBus redisBus = (ChatRedisBus) sce.getServletContext().getAttribute("chatRedisBus");
             if (redisBus != null) {
@@ -86,15 +96,6 @@ public class InfrastructureInitializer implements ServletContextListener {
             logger.info("Redis pool closed.");
         } catch (Exception e) {
             logger.error("Error closing Redis pool: ", e);
-        }
-        try {
-            IUserService userService = ServiceFactory.createInstance(IUserService.class, "userServiceImpl");
-            if (userService instanceof UserServiceImpl userServiceImpl) {
-                userServiceImpl.doLogoutForAll();
-                logger.info("All users logged out.");
-            }
-        } catch (Exception e) {
-            logger.error("Error logging out all users: ", e);
         }
 
         // ★ 新增：強制註銷由當前 WebApp 加載的 JDBC 驅動

@@ -21,6 +21,7 @@ const FileRepo = (() => {
         const xhr = new XMLHttpRequest();
         const fd  = new FormData();
         fd.append('file', file);
+        fd.append('userId',window.APP.currentUser.userId);
 
         xhr.upload.addEventListener('progress', e => {
             if (e.lengthComputable) {
@@ -439,13 +440,13 @@ const FileRepo = (() => {
         if (!name) return '📄';
         const ext = name.split('.').pop().toLowerCase();
         const map = {
-            'jpg':'🖼️','jpeg':'🖼️','png':'🖼️','gif':'🖼️','bmp':'🖼️','webp':'🖼️',
-            'mp4':'🎬','avi':'🎬','mov':'🎬','mkv':'🎬','wmv':'🎬',
-            'mp3':'🎵','wav':'🎵','flac':'🎵','aac':'🎵',
-            'pdf':'📕','doc':'📘','docx':'📘','xls':'📗','xlsx':'📗','ppt':'📙','pptx':'📙',
-            'zip':'📦','rar':'📦', 'tar':'📦','gz':'📦', '7z':'📦',
-            'txt':'📝','json':'📋','xml':'📋','html':'📋',
-            'java':'☕','js':'📜','py':'🐍','c':'📜','cpp':'📜'
+            jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',bmp:'🖼️',webp:'🖼️',
+            mp4:'🎬',avi:'🎬',mov:'🎬',mkv:'🎬',wmv:'🎬',
+            mp3:'🎵',wav:'🎵',flac:'🎵',aac:'🎵',
+            pdf:'📕',doc:'📘',docx:'📘',xls:'📗',xlsx:'📗',ppt:'📙',pptx:'📙',
+            zip:'📦',rar:'📦','7z':'📦',tar:'📦',gz:'📦',
+            txt:'📝',json:'📋',xml:'📋',html:'📋',
+            java:'☕',js:'📜',py:'🐍',c:'📜',cpp:'📜'
         };
         return map[ext] || '📄';
     }

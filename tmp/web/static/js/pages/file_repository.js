@@ -443,7 +443,7 @@ const FileRepo = (() => {
             mp4:'🎬',avi:'🎬',mov:'🎬',mkv:'🎬',wmv:'🎬',
             mp3:'🎵',wav:'🎵',flac:'🎵',aac:'🎵',
             pdf:'📕',doc:'📘',docx:'📘',xls:'📗',xlsx:'📗',ppt:'📙',pptx:'📙',
-            zip:'📦',rar:'📦',7z:'📦',tar:'📦',gz:'📦',
+            zip:'📦',rar:'📦','7z':'📦',tar:'📦',gz:'📦',
             txt:'📝',json:'📋',xml:'📋',html:'📋',
             java:'☕',js:'📜',py:'🐍',c:'📜',cpp:'📜'
         };

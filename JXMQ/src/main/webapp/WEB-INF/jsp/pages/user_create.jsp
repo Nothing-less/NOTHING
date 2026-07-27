@@ -1,3 +1,4 @@
+<!-- user_create.jsp - 创建用户账号 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">

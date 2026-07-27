@@ -119,3 +119,14 @@ psql -h localhost -U username -d postgres -c "CREATE DATABASE new_dbname;"
 
 
 psql -h localhost -U username -d new_dbname < backup.sql
+
+
+
+INSERT INTO public.pages (page_id, page_link, page_name, page_order, parent, page_status, created_at, updated_at) VALUES
+('page_001', 'dashboard', '主页', 1, 'main_page', true, '2026-04-02 05:23:58.185353', '2026-04-02 05:58:14.609733'),
+('page_002', 'users', '用户管理', 2, 'main_page', true, '2026-04-02 05:23:58.185353', '2026-04-02 05:58:14.628554'),
+('page_003', 'orders', '订单管理', 3, 'main_page', true, '2026-04-02 05:23:58.185353', '2026-04-02 05:58:14.629918'),
+('page_004', 'products', '商品管理', 4, 'main_page', true, '2026-04-02 05:23:58.185353', '2026-04-02 05:58:14.631161'),
+('page_005', 'analytics', '数据分析', 5, 'main_page', true, '2026-04-02 05:23:58.185353', '2026-04-02 05:58:14.631914'),
+('page_006', 'example_tables', '数据表门', 6, 'main_page', true, '2026-04-02 05:23:58.185353', '2026-04-02 05:58:14.632485'),
+('page_007', 'settings', '系统设置', 7, 'main_page', true, '2026-04-02 05:23:58.185353', '2026-04-02 05:58:14.632971');

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import icu.nothingless.exceptions.EngineException;
 import icu.nothingless.pojo.adapter.IUserAdapter;
-
 import icu.nothingless.tools.PDBUtil;
 
 public class UserEngine extends BaseEngine<IUserAdapter, UserEngine> {
@@ -207,7 +206,7 @@ public class UserEngine extends BaseEngine<IUserAdapter, UserEngine> {
         if (!bean.containsKey(USERID)) {
             throw new EngineException("Function <updateOne> requires USER_ID");
         }
-        if (bean.size()<2) {
+        if (bean.size() < 2) {
             throw new EngineException("Function <updateOne> no fields to update");
         }
 
@@ -229,7 +228,12 @@ public class UserEngine extends BaseEngine<IUserAdapter, UserEngine> {
 
         sql.setLength(sql.length() - 2); // 移除最后一个逗号和空格
         sql.append(" WHERE ").append(USERID).append(" = ?");
-        params.add(String.valueOf(bean.get(USERID)));
+        Object userId = bean.get(USERID);
+        if (userId instanceof Number number) {
+            params.add(number.longValue());
+        } else {
+            params.add(Long.valueOf(String.valueOf(userId)));
+        }
 
         try {
             return Long.valueOf(PDBUtil.executeUpdate(sql.toString(), params.toArray()));
@@ -252,7 +256,15 @@ public class UserEngine extends BaseEngine<IUserAdapter, UserEngine> {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT * FROM ").append(TABLENAME).append(" WHERE USER_STATUS = TRUE");
-        beanMap.forEach((key, value) -> sql.append(" AND ").append(key).append(" LIKE ?"));
+
+        // 修复：USER_ID 是 bigint，需要 CAST 为 TEXT 才能使用 LIKE
+        beanMap.forEach((key, value) -> {
+            if (USERID.equals(key)) {
+                sql.append(" AND CAST(").append(key).append(" AS TEXT) LIKE ?");
+            } else {
+                sql.append(" AND ").append(key).append(" LIKE ?");
+            }
+        });
 
         try {
             Object[] params = beanMap.values().stream()

@@ -4,7 +4,7 @@
 -- ============================================================
 
 -- 1. 用户文件仓库表
-CREATE TABLE IF NOT EXISTS user_file (
+CREATE TABLE IF NOT EXISTS file_user (
     id          BIGSERIAL    PRIMARY KEY,
     user_id     BIGINT       NOT NULL,
     file_name   VARCHAR(255) NOT NULL,
@@ -15,17 +15,17 @@ CREATE TABLE IF NOT EXISTS user_file (
     upload_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE user_file IS '用户文件仓库';
-COMMENT ON COLUMN user_file.user_id IS '所属用户ID';
-COMMENT ON COLUMN user_file.file_name IS '原始文件名';
-COMMENT ON COLUMN user_file.stored_name IS '磁盘存储的UUID文件名';
-COMMENT ON COLUMN user_file.file_path IS '磁盘绝对路径';
-COMMENT ON COLUMN user_file.file_size IS '文件大小(字节)';
-COMMENT ON COLUMN user_file.mime_type IS 'MIME类型';
-COMMENT ON COLUMN user_file.upload_time IS '上传时间';
+COMMENT ON TABLE file_user IS '用户文件仓库';
+COMMENT ON COLUMN file_user.user_id IS '所属用户ID';
+COMMENT ON COLUMN file_user.file_name IS '原始文件名';
+COMMENT ON COLUMN file_user.stored_name IS '磁盘存储的UUID文件名';
+COMMENT ON COLUMN file_user.file_path IS '磁盘绝对路径';
+COMMENT ON COLUMN file_user.file_size IS '文件大小(字节)';
+COMMENT ON COLUMN file_user.mime_type IS 'MIME类型';
+COMMENT ON COLUMN file_user.upload_time IS '上传时间';
 
-CREATE INDEX IF NOT EXISTS idx_user ON user_file(user_id);
-CREATE INDEX IF NOT EXISTS idx_upload_time ON user_file(upload_time);
+CREATE INDEX IF NOT EXISTS idx_user ON file_user(user_id);
+CREATE INDEX IF NOT EXISTS idx_upload_time ON file_user(upload_time);
 
 -- 2. 文件分享（发送给好友）表
 CREATE TABLE IF NOT EXISTS file_share (
@@ -50,7 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_send_time ON file_share(send_time);
 
 ALTER TABLE file_share
     ADD CONSTRAINT fk_fs_file FOREIGN KEY (file_id)
-    REFERENCES user_file (id)
+    REFERENCES file_user (id)
     ON DELETE CASCADE;
 
 -- ============================================================

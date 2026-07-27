@@ -1,6 +1,5 @@
 package icu.nothingless.service.interfaces;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -12,10 +11,11 @@ import icu.nothingless.pojo.dto.UploadResultDTO;
 
 public interface IFileService {
 
-    RespEntity<UploadResultDTO> upload(Long userId, String originalName, String contentType,
-                           InputStream inputStream) throws IOException;
+    RespEntity<UploadResultDTO> upload(Long userId, String originalName, String contentType, InputStream inputStream);
 
     RespEntity<List<FileUserBean>> listFiles(Long userId);
+
+    RespEntity<List<FileUserBean>> findFileById(Long fileId);
 
     RespEntity<List<FileUserBean>> searchFiles(Long userId, String keyword);
 

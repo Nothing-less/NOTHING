@@ -1,5 +1,18 @@
 package icu.nothingless.controller.server;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import icu.nothingless.controller.config.ChatConfigurator;
 import icu.nothingless.pojo.bean.MessageBean;
 import icu.nothingless.pojo.dto.Message;
@@ -10,22 +23,15 @@ import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ChatRedisBus;
 import icu.nothingless.tools.JsonUtil;
 import icu.nothingless.tools.ServiceFactory;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import jakarta.websocket.*;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * WebSocket 聊天服务器
@@ -36,6 +42,7 @@ public class ChatWebSocketServer {
 
     // 本地会话管理（仅当前服务器）
     private static final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
+
     public static ConcurrentHashMap<String, Session> getSessions() {
         return sessions;
     }
@@ -260,7 +267,8 @@ public class ChatWebSocketServer {
             ChatJedisUtil.incrUnread(toId, fromId);
 
             // 第 5 步：缓存最近消息
-            // ChatJedisUtil.cacheRecentMessage(toId, fromId, MessageBean.fromDTO(savedMsg));
+            // ChatJedisUtil.cacheRecentMessage(toId, fromId,
+            // MessageBean.fromDTO(savedMsg));
 
             // 第 6 步：发送成功回执给发送方
             sendMessage(JsonUtil.toJson(Map.of(
@@ -469,6 +477,17 @@ public class ChatWebSocketServer {
     }
 
     public static void shutdown() {
+        // 1. 關閉全局健康檢查器 ★ 新增
+        if (globalHealthChecker != null && !globalHealthChecker.isShutdown()) {
+            globalHealthChecker.shutdownNow();
+            try {
+                globalHealthChecker.awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        // 2. 關閉所有會話（現有邏輯）
         sessions.values().forEach(session -> {
             try {
                 session.close(new CloseReason(
@@ -479,6 +498,8 @@ public class ChatWebSocketServer {
             }
         });
         sessions.clear();
+
+        // 3. 關閉 RedisBus（現有邏輯）
         if (redisBus != null) {
             redisBus.shutdown();
         }

@@ -1,3 +1,4 @@
+<!-- profile.jsp - 个人资料更新页面 -->
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="icu.nothingless.pojo.dto.User" %>
@@ -25,7 +26,7 @@
     <div class="avatar-section" style="text-align: center; margin-bottom: 24px;">
         <div class="avatar-wrapper" style="position: relative; display: inline-block;">
             <img id="avatarPreview" src="<%= avatarUrl %>" 
-                style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; 
+                style="width: 280px; height: 280px; border-radius: 50%; object-fit: cover; 
                        border: 3px solid rgba(99,102,241,0.5); cursor: pointer;"
                 onclick="document.getElementById('avatarInput').click()"
                 title="点击更换头像">
@@ -35,7 +36,7 @@
                        display: flex; align-items: center; justify-content: center; 
                        cursor: pointer; border: 2px solid #1e1b4b;"
                 onclick="document.getElementById('avatarInput').click()">
-                <span style="color: #fff; font-size: 16px;">📷</span>
+                <span style="color: #fff; font-size: 48px;">📷</span>
             </div>
         </div>
         <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="uploadAvatar(this)">

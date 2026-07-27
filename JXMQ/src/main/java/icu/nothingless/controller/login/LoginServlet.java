@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
+import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.ViewUtil;
@@ -21,40 +22,44 @@ public class LoginServlet extends HttpServlet {
     private static final String MENU = "example_tables";
 
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LoginServlet.class);
-    
-    protected static final IUserService<User> userService = (IUserService<User>)ServiceFactory.getSingleton(IUserService.class);
+
+    protected static final IUserService<User> userService = (IUserService<User>) ServiceFactory
+            .getSingleton(IUserService.class);
 
     @Override
-    protected void doGet( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         this.doPost(req, resp);
     }
 
     @Override
-    protected void doPost( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException{
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         String username = req.getParameter("username");
         String password = req.getParameter("pwd_entrypted");
+
+        logger.info(Fmt.of("User({})====PWD({})", username, password));
+
         User bean = User.builder()
-                    .userAccount(username).userPasswd(password)
-                    .loginNow(getClientIP(req))
-                    .roleId("Super Administrator")
-                    .userStatus(true)
-                    .build();
+                .userAccount(username).userPasswd(password)
+                .loginNow(getClientIP(req))
+                .roleId("Super Administrator")
+                .userStatus(true)
+                .build();
 
         RespEntity<User> respEntity = userService.doLogin(bean);
-        if(respEntity.isSuccess()){
-            logger.info("Login Success! User:<{}>",(User)(respEntity.getData()));
-            RedirectUtil.redirect(req, resp, "/home", Map.of("CURRENT_USER", (User)respEntity.getData(),"MENU",MENU));
-        }else{
-            ViewUtil.render(req, resp, "error_page",Map.of("respEntity",respEntity));
+        if (respEntity.isSuccess()) {
+            logger.info("Login Success! User:<{}>", (User) (respEntity.getData()));
+            RedirectUtil.redirect(req, resp, "/home",
+                    Map.of("CURRENT_USER", (User) respEntity.getData(), "MENU", MENU));
+        } else {
+            ViewUtil.render(req, resp, "error_page", Map.of("respEntity", respEntity));
         }
 
     }
 
-
     private String getClientIP(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        
+
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
         }
@@ -70,12 +75,12 @@ public class LoginServlet extends HttpServlet {
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
-        
+
         // 多级代理时，取第一个 IP
         if (ip != null && ip.contains(",")) {
             ip = ip.split(",")[0].trim();
         }
-        
+
         return ip;
     }
 

@@ -51,7 +51,7 @@ class ChatClient {
         };
         
         this.ws.onclose = function(event) {
-            console.log('[ChatClient] WebSocket closed:', event.code, event.reason);
+            // console.log('[ChatClient] WebSocket closed:', event.code, event.reason);
             self.stopHeartbeat();
             if (!event.wasClean) {
                 self.attemptReconnect();

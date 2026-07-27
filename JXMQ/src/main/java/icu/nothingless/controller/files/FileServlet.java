@@ -295,7 +295,10 @@ public class FileServlet extends HttpServlet {
         Long fileId = parseLong(req.getParameter("fileId"));
         Long userId = getCurrentUserId(req);
         if (fileId == null) {
-            return RespEntity.badRequest("缺少 fileId");
+            return RespEntity.badRequest("Missing file ID");
+        }
+        if(userId == null){
+            return RespEntity.badRequest("Missing user ID");
         }
         return fileService.deleteFile(userId, fileId);
     }
@@ -306,18 +309,18 @@ public class FileServlet extends HttpServlet {
         Long userId = getCurrentUserId(req);
 
         if (fileId == null || friendId == null) {
-            return RespEntity.error("参数缺失");
+            return RespEntity.error("Missing file ID / friend ID");
         }
         // 校验文件归属
         RespEntity<List<FileUserBean>> uf = fileService.findFileById(fileId);
 
         if (!uf.isSuccess()) {
-            return RespEntity.badRequest("文件不存在");
+            return RespEntity.badRequest("The file that you point does not exist!");
         }
         List<FileUserBean> fu = uf.getData();
 
         if (fu == null || fu.isEmpty() || !fu.get(0).getUserId().equals(userId)) {
-            return RespEntity.badRequest("文件不存在或无权限");
+            return RespEntity.badRequest("File does not exist or no authorization");
         }
 
         RespEntity<SendResultDTO> ret = fileService.sendFile(userId, friendId, fileId);

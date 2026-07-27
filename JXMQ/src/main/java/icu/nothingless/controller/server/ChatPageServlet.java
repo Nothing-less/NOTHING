@@ -34,7 +34,7 @@ public class ChatPageServlet extends HttpServlet {
         String nickname = req.getParameter("nickname");
 
         if (friendId == null || friendId.isBlank()) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "缺少 friendId 参数");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing friend ID param");
             return;
         }
         // 4. 转发到 chat_window.jsp

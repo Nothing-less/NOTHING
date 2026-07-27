@@ -26,7 +26,7 @@ public class HomePageServlet extends HttpServlet {
     @Override
     protected void doPost( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException {
         Map<String, Object> flashes =  RedirectUtil.getFlashes(req);
-        flashes.forEach((k,v)->logger.info("K({}):V({})",k,v));
+        // flashes.forEach((k,v)->logger.info("K({}):V({})",k,v));
         if(flashes.size()>0){
             ViewUtil.render(req, resp, HOME_PAGE,flashes);
         }else{

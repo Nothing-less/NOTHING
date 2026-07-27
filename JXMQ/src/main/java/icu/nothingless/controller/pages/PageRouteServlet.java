@@ -68,12 +68,14 @@ public class PageRouteServlet extends HttpServlet {
             // 返回统一格式的JSON响应
             RespEntity response = RespEntity.success(menuToReturn);
             out.print(JsonUtil.toJson(response));
+            return;
 
         } catch (Exception e) {
             logger.error("Failed to return menu data", e);
             RespEntity errorResponse = RespEntity.error("菜单加载失败");
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             out.print(JsonUtil.toJson(errorResponse));
+            return;
         }
     }
 

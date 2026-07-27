@@ -23,8 +23,6 @@
     var lastMsgId = null;
     var pendingMessages = {};
 
-    console.log('[ChatWindow] Loaded, friendId:', currentFriendId, 'nickname:', currentFriendNickname);
-
     if (currentFriendId && currentFriendId !== 'null' && currentFriendId !== 'undefined') {
         loadHistory();
         markAsRead();
@@ -123,19 +121,15 @@
     }
 
     function sendMessage() {
-        console.log('[ChatWindow] sendMessage called');
         
         var input = document.getElementById('msgInput');
         var content = input.value.trim();
-        
-        console.log('[ChatWindow] content:', content, 'friendId:', currentFriendId);
         
         if (!content) {
             console.log('[ChatWindow] Content empty, abort');
             return;
         }
         if (!currentFriendId || currentFriendId === '0' || currentFriendId === 'null') {
-            console.error('[ChatWindow] No friendId!');
             alert('错误: 好友ID为空, 请重新打开聊天窗口');
             return;
         }
@@ -153,28 +147,28 @@
         appendMessage(optimisticMsg);
         input.value = '';
         
-        console.log('[ChatWindow] window.parent:', window.parent);
-        console.log('[ChatWindow] window.parent.chatClient:', window.parent.chatClient);
+        // console.log('[ChatWindow] window.parent:', window.parent);
+        // console.log('[ChatWindow] window.parent.chatClient:', window.parent.chatClient);
         
         var parentChat = null;
         
         if (window.parent && window.parent.chatClient) {
             parentChat = window.parent.chatClient;
-            console.log('[ChatWindow] Got chatClient from window.parent');
+            // console.log('[ChatWindow] Got chatClient from window.parent');
         } else if (window.top && window.top.chatClient) {
             parentChat = window.top.chatClient;
-            console.log('[ChatWindow] Got chatClient from window.top');
+            // console.log('[ChatWindow] Got chatClient from window.top');
         }
         
         if (parentChat) {
-            console.log('[ChatWindow] WebSocket state:', parentChat.ws ? parentChat.ws.readyState : 'no ws');
+            // console.log('[ChatWindow] WebSocket state:', parentChat.ws ? parentChat.ws.readyState : 'no ws');
             
             var wsOpen = parentChat.ws && parentChat.ws.readyState === WebSocket.OPEN;
             
             if (wsOpen) {
-                console.log('[ChatWindow] Sending via WebSocket');
+                // console.log('[ChatWindow] Sending via WebSocket');
                 var sent = parentChat.sendChat(currentFriendId, content);
-                console.log('[ChatWindow] sendChat returned:', sent);
+                // console.log('[ChatWindow] sendChat returned:', sent);
                 pendingMessages[tempId] = { content: content, time: Date.now() };
             } else {
                 console.log('[ChatWindow] WebSocket not open, falling back to HTTP');
@@ -187,7 +181,7 @@
     }
     
     function sendByHttp(content, tempId) {
-        console.log('[ChatWindow] Sending via HTTP');
+        // console.log('[ChatWindow] Sending via HTTP');
         var params = new URLSearchParams();
         params.append('receiverId', currentFriendId);
         params.append('content', content);
@@ -199,7 +193,7 @@
         })
         .then(function(r) { return r.json(); })
         .then(function(res) {
-            console.log('[ChatWindow] HTTP response:', res);
+            // console.log('[ChatWindow] HTTP response:', res);
             if (res.code === 200 && res.data) {
                 var oldMsg = document.querySelector('[data-temp-id="' + tempId + '"]');
                 if (oldMsg) {
@@ -212,7 +206,7 @@
             }
         })
         .catch(function(err) {
-            console.error('[ChatWindow] HTTP send failed:', err);
+            // console.error('[ChatWindow] HTTP send failed:', err);
             updateMessageStatus(tempId, 'failed');
         });
     }
@@ -254,11 +248,11 @@
                 break;
                 
             case 'SENT_ACK':
-                console.log('[ChatWindow] SENT_ACK:', data.messageId);
+                // console.log('[ChatWindow] SENT_ACK:', data.messageId);
                 break;
                 
             case 'READ_RECEIPT':
-                console.log('[ChatWindow] READ_RECEIPT:', data.messageId);
+                // console.log('[ChatWindow] READ_RECEIPT:', data.messageId);
                 break;
         }
     });

@@ -24,6 +24,6 @@ public class Turn2ErrorServlet extends HttpServlet {
     protected void doPost( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException {
         logger.error("Error occurred !");
         logger.error("Error message:",req.getAttribute("respEntity"));
-        ViewUtil.render(req, resp, "error_page",Map.of("respEntity",RespEntity.error("错误错误！登录失败！无法登录！系统网络异常！")));
+        ViewUtil.render(req, resp, "error_page",Map.of("respEntity",RespEntity.error("错误！失败！系统无法正常运行！系统网络异常！")));
     }
 }

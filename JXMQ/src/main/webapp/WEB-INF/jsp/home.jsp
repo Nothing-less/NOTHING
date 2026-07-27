@@ -355,7 +355,6 @@
                 win.style.zIndex = ++this.zIndexBase;
 
                 const safeNickname = escapeHtml(nickname);
-                console.log('[ChatWindow] safeNickname:', JSON.stringify(safeNickname));
 
                 // 【修复】先创建结构，不设置标题文本
                 win.innerHTML = `

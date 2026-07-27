@@ -27,7 +27,7 @@ public class ConfigServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("CURRENT_USER") == null) {
             resp.setStatus(401);
-            resp.getWriter().write(JsonUtil.toJson(RespEntity.error("未登录")));
+            resp.getWriter().write(JsonUtil.toJson(RespEntity.error("You're not authorizated")));
             return;
         }
 

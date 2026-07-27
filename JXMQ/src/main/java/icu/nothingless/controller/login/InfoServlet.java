@@ -28,7 +28,7 @@ public class InfoServlet extends HttpServlet {
 
         if (user == null) {
             resp.setStatus(401);
-            resp.getWriter().write(JsonUtil.toJson(RespEntity.error("未登录")));
+            resp.getWriter().write(JsonUtil.toJson(RespEntity.error("You didn't logon")));
             return;
         }
 

@@ -232,7 +232,7 @@ public class UserEngine extends BaseEngine<IUserAdapter, UserEngine> {
         if (userId instanceof Number number) {
             params.add(number.longValue());
         } else {
-            params.add(Long.valueOf(String.valueOf(userId)));
+            params.add(String.valueOf(userId));
         }
 
         try {

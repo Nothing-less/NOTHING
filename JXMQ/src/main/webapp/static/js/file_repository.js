@@ -80,7 +80,7 @@ const FileRepo = (() => {
     function loadList() {
         list.innerHTML = '';
 
-        fetch(ctx + '/file/list')
+        fetch(ctx + '/file/list', {credentials: 'include'})
             .then(r => r.json())
             .then(res => {
                 if (res.code === 200) {

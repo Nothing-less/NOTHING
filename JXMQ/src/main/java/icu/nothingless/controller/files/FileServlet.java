@@ -58,7 +58,6 @@ public class FileServlet extends HttpServlet {
             return;
         }
         req.getSession(false).setAttribute("UID", userId);
-
         try {
             RespEntity response;
             switch (req.getPathInfo()) {
@@ -139,7 +138,7 @@ public class FileServlet extends HttpServlet {
     private RespEntity doList(HttpServletRequest req, HttpServletResponse resp) {
         Long userId = getCurrentUserId(req);
         RespEntity<List<FileUserBean>> listFiles = fileService.listFiles(userId);
-        return RespEntity.success(listFiles);
+        return RespEntity.success((List<FileUserBean>)listFiles.getData());
     }
 
     /*
@@ -154,7 +153,7 @@ public class FileServlet extends HttpServlet {
         String keyword = req.getParameter("keyword");
         Long userId = getCurrentUserId(req);
         RespEntity<List<FileUserBean>> listFiles = fileService.searchFiles(userId, keyword.trim());
-        return RespEntity.success(listFiles);
+        return RespEntity.success((List<FileUserBean>)listFiles.getData());
     }
 
     /*
@@ -241,7 +240,7 @@ public class FileServlet extends HttpServlet {
     private RespEntity dolistReceived(HttpServletRequest req, HttpServletResponse resp) {
         Long userId = getCurrentUserId(req);
         RespEntity<List<FileShareBean>> received_file_list = fileService.listReceived(userId);
-        return RespEntity.success(received_file_list.getData());
+        return RespEntity.success((List<FileShareBean>)received_file_list.getData());
 
     }
 
@@ -255,7 +254,7 @@ public class FileServlet extends HttpServlet {
     private RespEntity doSend(HttpServletRequest req, HttpServletResponse resp) {
         Long userId = getCurrentUserId(req);
         RespEntity<List<FileShareBean>> sent_file_list = fileService.listSent(userId);
-        return RespEntity.success(sent_file_list.getData());
+        return RespEntity.success((List<FileShareBean>)sent_file_list.getData());
     }
 
     /* ====== Dispatch functions (for doPost)====== */
@@ -280,7 +279,7 @@ public class FileServlet extends HttpServlet {
                 part.getContentType(),
                 part.getInputStream());
 
-        return RespEntity.success(ret);
+        return RespEntity.success((UploadResultDTO)ret.getData());
     }
 
     private RespEntity search(HttpServletRequest req, HttpServletResponse resp) {
@@ -289,7 +288,7 @@ public class FileServlet extends HttpServlet {
         RespEntity<List<FileUserBean>> list = (keyword == null || keyword.isBlank())
                 ? fileService.listFiles(userId)
                 : fileService.searchFiles(userId, keyword.trim());
-        return RespEntity.success(list);
+        return RespEntity.success((List<FileUserBean>)list.getData());
     }
 
     private RespEntity delete(HttpServletRequest req, HttpServletResponse resp) {
@@ -298,8 +297,7 @@ public class FileServlet extends HttpServlet {
         if (fileId == null) {
             return RespEntity.badRequest("缺少 fileId");
         }
-        fileService.deleteFile(userId, fileId);
-        return RespEntity.success();
+        return fileService.deleteFile(userId, fileId);
     }
 
     private RespEntity send(HttpServletRequest req, HttpServletResponse resp) {
@@ -343,7 +341,10 @@ public class FileServlet extends HttpServlet {
 
     private Long init_requireLogin(HttpServletRequest req, HttpServletResponse resp) {
         // 1. 优先从 Session 取
-        Object uid = req.getSession().getAttribute("userId");
+        Object uid = req.getSession().getAttribute("CURRENT_USER_ID");
+        if (uid == null) {
+            uid = req.getSession().getAttribute("userId");
+        }
         if (uid != null) {
             return toLong(uid);
         }

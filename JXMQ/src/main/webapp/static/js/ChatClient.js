@@ -171,6 +171,15 @@ class ChatClient {
                 console.error('[ChatClient] Server error:', msg.message);
                 this.emit('error', msg);
                 break;
+            
+            case 'MSG_REVOKE':
+                this.emit('revoke', msg);
+                break;
+            
+            case 'FILE_SHARE':
+            case 'FILE':
+                this.emit('message', msg);
+                break;
                 
             default:
                 console.log('[ChatClient] Unknown message type:', msg.type, msg);

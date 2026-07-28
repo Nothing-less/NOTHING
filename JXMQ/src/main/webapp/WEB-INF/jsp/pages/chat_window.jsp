@@ -30,6 +30,33 @@
         console.error('[ChatWindow] friendId is empty or invalid!');
     }
 
+    var chatClient = window.parent.chatClient || window.top.chatClient;
+
+    if (chatClient) {
+        chatClient.on('revoke', function (msg) {
+            // console.log('[ChatWindow] 收到撤回通知', msg);
+
+            var msgId = String(msg.msgId);
+            var friendId = String(msg.friendId);
+
+            if (friendId === String(currentFriendId)) {
+                var area = document.getElementById('messageArea');
+                area.innerHTML = '';
+                lastMsgId = null;
+                loadHistory();
+            }
+        });
+
+        chatClient.on('message', function (msg) {
+            var realMsg = msg.message || msg;
+            if (realMsg && String(realMsg.senderId) === String(currentFriendId)) {
+                appendMessage(realMsg);
+                markAsRead();
+            }
+        });
+    }
+
+
     function loadHistory() {
         if (!currentFriendId || currentFriendId === '0') return;
         var url = '${pageContext.request.contextPath}/message/history?friendId=' + currentFriendId;
@@ -108,8 +135,6 @@
     // 撤回成功后，刷新当前聊天记录
     document.addEventListener('file:revoked', function(e) {
         const shareId = e.detail.shareId;
-        console.log('文件已撤回，刷新消息列表', shareId);
-        // 调用你现有的刷新方法
         loadMessages(currentFriendId);
     });
 
@@ -233,26 +258,30 @@
     window.addEventListener('message', function(event) {
         var data = event.data;
         if (!data) return;
-        
+
+        var msg = data.message;
+        var realMsg = msg && msg.message ? msg.message : msg;
+
         switch (data.type) {
             case 'CHAT_MESSAGE':
-                var msg = data.message;
-                if (String(msg.senderId) === String(currentFriendId)) {
-                    appendMessage(msg);
+                if (realMsg && String(realMsg.senderId) === String(currentFriendId)) {
+                    appendMessage(realMsg);
                     markAsRead();
-                    if (window.parent.ChatWindowManager) {
-                        var win = window.parent.ChatWindowManager.windows[currentFriendId];
-                        if (win) win.querySelector('.chat-window-header').style.background = '';
-                    }
                 }
                 break;
-                
-            case 'SENT_ACK':
-                // console.log('[ChatWindow] SENT_ACK:', data.messageId);
+
+            case 'FILE_SHARE':  // 文件消息
+                if (realMsg && String(realMsg.senderId) === String(currentFriendId)) {
+                    appendMessage(realMsg);
+                    markAsRead();
+                }
                 break;
-                
+            case 'SENT_ACK':
+                updateMessageStatusByMsgId(data.messageId, 'sent');
+                break;
+
             case 'READ_RECEIPT':
-                // console.log('[ChatWindow] READ_RECEIPT:', data.messageId);
+                updateMessageStatusByMsgId(data.messageId, 'read');
                 break;
         }
     });

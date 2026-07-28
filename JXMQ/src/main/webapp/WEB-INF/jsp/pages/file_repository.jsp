@@ -5,7 +5,6 @@
 <%@ page import="icu.nothingless.pojo.dto.User" %>
 <%@ page import="icu.nothingless.tools.ViewUtil" %>
 
-<link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
 <link rel="stylesheet" href="<c:url value='/static/css/file_repository.css' />">
 
 <%
@@ -38,13 +37,26 @@
     <!-- ===== 顶部操作栏 ===== -->
     <div class="file-header">
         <div class="file-header-left">
+
+        </div>
+        <div class="file-header-right">
+        
             <button class="btn-upload" onclick="document.getElementById('fileInput').click()">
                 📤 上传文件
             </button>
             <input type="file" id="fileInput" style="display:none"
                 onchange="FileRepo.upload(this)">
-        </div>
-        <div class="file-header-right">
+
+            <button class="btn-upload" style="background:#6c757d;" 
+                    onclick="FileRepo.openSentModal()">
+                ↩️ 已发送
+            </button>
+            
+            <button class="btn-upload" style="background:#28a745;" 
+                    onclick="FileRepo.openReceivedModal()">
+                📥 收到的文件
+            </button>
+
             <input type="text" id="fileSearchInput"
                 placeholder="🔍 搜索文件名..."
                 onkeyup="FileRepo.search()">

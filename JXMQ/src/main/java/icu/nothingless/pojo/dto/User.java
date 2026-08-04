@@ -40,7 +40,6 @@ public record User(
     // ==================== 紧凑构造器（校验 & 默认值）====================
 
     public User {
-        // 自动 trim
         if (userId != null)
             userId = userId.trim();
         if (userAccount != null)
@@ -245,13 +244,6 @@ public record User(
         }
 
         public User build() {
-            // 必填校验
-            // if (userId == null || userId.isEmpty()) {
-            // throw new IllegalStateException("userId is required");
-            // }
-            // if (userAccount == null || userAccount.isEmpty()) {
-            // throw new IllegalStateException("userAccount is required");
-            // }
             return new User(userId, userAccount, userPasswd, nickname, userInfos,
                     registerTime, lastLoginTime, lastLoginIpAddr, userStatus, roleId,
                     userKey1, userKey2, userKey3, userKey4, userKey5, userKey6);

@@ -49,9 +49,6 @@ public class PageRouteServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-
         // 支持CORS（如果需要）
         resp.setHeader("Access-Control-Allow-Origin", "*");
 

@@ -19,7 +19,7 @@ public class LogoutServlet extends LoginServlet {
         if (session != null) {
             User currentUser = (User) session.getAttribute("CURRENT_USER");
             if (currentUser != null) {
-                userService.doLogout(currentUser); // 这里可以根据实际情况传入用户信息
+                userService.doLogout(currentUser);
             }
             session.invalidate();
         }

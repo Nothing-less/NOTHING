@@ -30,7 +30,7 @@ public class RedirectUtil {
     }
 
     /**
-     * 获取 Flash 数据并自动清理（返回 Map，一次性取完）
+     * 获取 Flash 数据(all)并自动清理
      */
     public static Map<String, Object> getFlashes(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
@@ -55,7 +55,7 @@ public class RedirectUtil {
     }
 
     /**
-     * 获取单个 Flash 值（按需取用）
+     * 获取单个 Flash 值
      */
     public static Object getFlash(HttpServletRequest req, String key) {
         HttpSession session = req.getSession(false);

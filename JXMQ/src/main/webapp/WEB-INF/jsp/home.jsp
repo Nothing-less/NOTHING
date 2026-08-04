@@ -6,21 +6,6 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.time.LocalDateTime" %>
 <%@ page import="java.time.format.DateTimeFormatter" %>
-<%
-    String serverDateTime = java.time.LocalDateTime.now()
-        .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-    long serverTimestamp = System.currentTimeMillis();
-    
-    User currentUser = (User) session.getAttribute("CURRENT_USER");
-    if (currentUser == null) {
-        request.setAttribute("respEntity", RespEntity.error("错误！系统出现异常！"));
-        ViewUtil.render(request, response, "error_page");
-        return;
-    }
-    Object currentUser_ID = currentUser.userId();
-    session.setAttribute("CURRENT_USER_ID", currentUser_ID);
-    String contextPath = request.getContextPath();
-%>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -179,8 +164,6 @@
                 
                 timeEl.textContent = formatted;
             }
-            
-            // 立即更新一次
             updateTime();
             
             // 每秒更新
@@ -188,7 +171,7 @@
         }
         */
 
-            // 【关键】将 chat 实例挂载到 window，供 iframe 访问
+            // 将 chat 实例挂载到 window，供 iframe 访问
             window.chatClient = new ChatClient('<%= currentUser.userId() %>');
             const chat = window.chatClient;
             
@@ -271,9 +254,7 @@
 
             // ========== 监听来自 iframe 的消息 ==========
             window.addEventListener('message', function(event) {
-                // 开发环境可放宽 origin 检查
-                // if (event.origin !== window.location.origin) return;
-                
+
                 const data = event.data;
                 if (!data) return;
                 

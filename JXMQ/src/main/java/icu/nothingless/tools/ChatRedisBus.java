@@ -313,7 +313,7 @@ public class ChatRedisBus {
     }
 
     /**
-     * 取消订阅用户频道 — 关键修复
+     * 取消订阅用户频道
      */
     public void unsubscribeUserChannel(String userId) {
         JedisPubSub pubSub = activePubSubs.remove(userId);
@@ -323,7 +323,7 @@ public class ChatRedisBus {
         }
     }
 
-    // ==================== 4. 广播与群组 ====================
+    // ==================== 广播与群组 ====================
 
     public void broadcast(String messageJson) {
         try (Jedis jedis = jedisPool.getResource()) {
@@ -352,7 +352,7 @@ public class ChatRedisBus {
         });
     }
 
-    // ==================== 5. 工具方法 ====================
+    // ==================== 工具方法 ====================
 
     public Set<String> getOnlineUsers() {
         try (Jedis jedis = jedisPool.getResource()) {

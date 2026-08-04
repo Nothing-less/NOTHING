@@ -9,7 +9,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
+/*
+ * 视图渲染工具类
+ * data 存放: Session
+ * JSP  存放: WEB-INF/jsp/
+*/
 public class ViewUtil {
 
     private static String viewPrefix = "/WEB-INF/jsp/";
@@ -18,7 +22,7 @@ public class ViewUtil {
     private static final Pattern SAFE_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_\\-/]+$");
 
     /**
-     * 便捷方法：无数据渲染
+     * 无数据渲染
      */
     public static void render(HttpServletRequest req, HttpServletResponse resp,
             String viewName) throws ServletException, IOException {
@@ -28,21 +32,19 @@ public class ViewUtil {
     public static void render(HttpServletRequest req, HttpServletResponse resp,
             String viewName, Map<String, Object> data) throws ServletException, IOException {
 
-        // 严格参数校验
         if (viewName == null || viewName.trim().isEmpty()) {
             throw new IllegalArgumentException("View name cannot be empty");
         }
 
-        // 防止路径遍历攻击（多层防护）
+        // 防止路径遍历攻击
         String cleanName = sanitizeViewName(viewName);
 
-        // 字符白名单校验（防止特殊字符注入）
+        // 字符白名单校验
         if (!SAFE_NAME_PATTERN.matcher(cleanName).matches()) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid view name format");
             return;
         }
 
-        // 强制设置UTF-8编码（防止中文乱码）
         req.setCharacterEncoding("UTF-8");
         resp.setContentType("text/html;charset=UTF-8");
 
@@ -74,7 +76,7 @@ public class ViewUtil {
     }
 
     /**
-     * 视图名称清理（安全核心）
+     * 视图名称清理
      */
     private static String sanitizeViewName(String viewName) {
         // 去除路径遍历关键字符
@@ -84,7 +86,7 @@ public class ViewUtil {
                 .replace("\\", "/") // 统一分隔符
                 .trim();
 
-        // 去除开头的/，防止绝对路径绕过
+        // 去除开头的/
         while (cleaned.startsWith("/")) {
             cleaned = cleaned.substring(1);
         }

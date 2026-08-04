@@ -31,6 +31,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
+/**
+ * 文件管理 Servlet
+ * URL 模式: /file/*
+ *
+ */
 @WebServlet("/file/*")
 @MultipartConfig(maxFileSize = 100 * 1024 * 1024, // 单文件 100MB
         maxRequestSize = 200 * 1024 * 1024, // 单次请求 200MB
@@ -77,7 +82,7 @@ public class FileServlet extends HttpServlet {
         } catch (IOException e) {
             logger.error("Error occurred: {}", e);
             ViewUtil.render(req, resp, "error_page",
-                    Map.of("respEntity", RespEntity.internalError("There's some error occurred")));
+                    Map.of("respEntity", RespEntity.internalError("There's some internal error occurred")));
         }
     }
 
@@ -110,7 +115,7 @@ public class FileServlet extends HttpServlet {
         } catch (ServletException | IOException e) {
             logger.error("Error occurred: {}", e);
             ViewUtil.render(req, resp, "error_page",
-                    Map.of("respEntity", RespEntity.internalError("There's some error occurred!")));
+                    Map.of("respEntity", RespEntity.internalError("There's some internal error occurred!")));
         }
     }
 
@@ -282,6 +287,13 @@ public class FileServlet extends HttpServlet {
         return RespEntity.success((UploadResultDTO)ret.getData());
     }
 
+    /*
+     * @params:
+     * keyword
+     * 
+     * @returns:
+     * files that this user have received and match the keyword
+     */
     private RespEntity search(HttpServletRequest req, HttpServletResponse resp) {
         String keyword = req.getParameter("keyword");
         Long userId = getCurrentUserId(req);
@@ -291,6 +303,13 @@ public class FileServlet extends HttpServlet {
         return RespEntity.success((List<FileUserBean>)list.getData());
     }
 
+    /*
+     * @params:
+     * fileId
+     * 
+     * @returns:
+     * result message
+     */
     private RespEntity delete(HttpServletRequest req, HttpServletResponse resp) {
         Long fileId = parseLong(req.getParameter("fileId"));
         Long userId = getCurrentUserId(req);
@@ -303,6 +322,14 @@ public class FileServlet extends HttpServlet {
         return fileService.deleteFile(userId, fileId);
     }
 
+    /*
+     * @params:
+     * fileId
+     * friendId
+     * 
+     * @returns:
+     * result message
+     */
     private RespEntity send(HttpServletRequest req, HttpServletResponse resp) {
         Long fileId = parseLong(req.getParameter("fileId"));
         Long friendId = parseLong(req.getParameter("friendId"));
@@ -332,6 +359,13 @@ public class FileServlet extends HttpServlet {
 
     }
 
+    /*
+     * @params:
+     * shareId
+     * 
+     * @returns:
+     * result message
+     */
     private RespEntity revoke(HttpServletRequest req, HttpServletResponse resp) {
         Long shareId = parseLong(req.getParameter("shareId"));
         Long userId = getCurrentUserId(req);
@@ -343,7 +377,7 @@ public class FileServlet extends HttpServlet {
     }
 
     private Long init_requireLogin(HttpServletRequest req, HttpServletResponse resp) {
-        // 1. 优先从 Session 取
+        // 优先从 Session 取ID
         Object uid = req.getSession().getAttribute("CURRENT_USER_ID");
         if (uid == null) {
             uid = req.getSession().getAttribute("userId");
@@ -352,13 +386,13 @@ public class FileServlet extends HttpServlet {
             return toLong(uid);
         }
 
-        // 2. 尝试普通参数（适用于 GET 请求、query string、application/x-www-form-urlencoded）
+        // 尝试普通参数（适用于 GET 请求、query string、application/x-www-form-urlencoded）
         String uidStr = req.getParameter("userId");
         if (uidStr != null && !uidStr.isEmpty()) {
             return toLong(uidStr);
         }
 
-        // 3. 只有 multipart 请求才调用 getPart，否则抛 InvalidContentTypeException
+        // 只有 multipart 请求才调用 getPart
         String contentType = req.getContentType();
         if (contentType != null && contentType.toLowerCase().startsWith("multipart/")) {
             try {
@@ -411,7 +445,7 @@ public class FileServlet extends HttpServlet {
         }
     }
 
-    static long toLong(Object obj) {
+    private static long toLong(Object obj) {
         return switch (obj) {
             case Long l -> l; // 直接拆箱
             case Integer i -> i.longValue(); // 安全拓宽

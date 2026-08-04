@@ -7,16 +7,19 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 全局配置 - config.properties
+ */
 public class GlobalConfig {
+    private static final String CONFIG_FILE = "config.properties";
 
     public static final Map<String, String> CONFIG_MAP;
-
     static {
         Map<String, String> rawProps = new ConcurrentHashMap<>();
 
         try (InputStream in = GlobalConfig.class
                 .getClassLoader()
-                .getResourceAsStream("config.properties")) {
+                .getResourceAsStream(CONFIG_FILE)) {
 
             Properties props = new Properties();
             props.load(in);

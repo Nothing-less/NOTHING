@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * 统一响应实体类
- * 作为所有 API 返回的标准载体
+ * 所有 API 返回的标准载体
  */
 public class RespEntity<T> {
     
@@ -142,6 +142,9 @@ public class RespEntity<T> {
         return new RespEntity<>(NOT_FOUND, message, null);
     }
 
+    /**
+     * 内部服务器错误（500）
+     */
     public static <T> RespEntity<T> internalError(String message) {
         return new RespEntity<>(INTERNAL_ERROR, message, null);
     }

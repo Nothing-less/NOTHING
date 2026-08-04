@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
 
 /**
+ * 
  * 响应包装器，用于捕获 Servlet 输出内容
+ * 过滤菜单项目，根据用户角色进行权限控制
  */
 public class MenuResponseWrapper extends HttpServletResponseWrapper {
     

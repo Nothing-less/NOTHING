@@ -6,7 +6,7 @@ import jakarta.websocket.server.HandshakeRequest;
 import jakarta.websocket.server.ServerEndpointConfig;
 
 /**
- * WebSocket 配置器 - 用于获取 HttpSession
+ * WebSocket 配置器 - 获取 HttpSession
  */
 public class ChatConfigurator extends ServerEndpointConfig.Configurator {
     

@@ -4,19 +4,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="icu.nothingless.tools.ViewUtil" %>
 <!DOCTYPE html>
-<%
-    // 获取登录用户信息（从 Session 或 request）
-    User currentUser = (User) request.getSession(false).getAttribute("CURRENT_USER");
-    if (currentUser == null) {
-        request.setAttribute("respEntity",RespEntity.error("错误！系统出现异常！"));
-        ViewUtil.render(request,response,"error_page");
-        return;
-    }
-    // 获取当前菜单（从参数或默认）
-    String currentMenu = (String)request.getSession(false).getAttribute("menu");
-    if (currentMenu == null) currentMenu = "dashboard";
-    String safeUserAccount = org.apache.commons.text.StringEscapeUtils.escapeHtml4(currentUser.userAccount());
-%>
 
 <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
 <!-- 用户管理 -->

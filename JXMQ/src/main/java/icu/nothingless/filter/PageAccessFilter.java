@@ -43,7 +43,7 @@ public class PageAccessFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
         
-        // 提取页面名称 /page/user_add -> user_add
+        // 提取页面名称
         String uri = req.getRequestURI();
         String contextPath = req.getContextPath();
         String pagePath = uri.substring(contextPath.length() + "/page/".length());

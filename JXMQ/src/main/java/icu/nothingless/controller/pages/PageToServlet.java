@@ -15,8 +15,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * 页面渲染Servlet - 负责渲染JSP页面视图
- * URL模式: /page/dashboard, /page/orders 等
+ * 页面渲染
+ * 
+ * URL模式: /page/page_name
+ * 
+ * 渲染页面存放路径: /pages 
+ * 完整路径：WEB-INF/jsp/pages/ 
  */
 @WebServlet("/page/*")
 public class PageToServlet extends HttpServlet {
@@ -65,13 +69,13 @@ public class PageToServlet extends HttpServlet {
         // 移除开头的斜杠
         String pageName = pathInfo.substring(1);
         
-        // 移除路径参数（如 ;jsessionid=xxx）
+        // 移除路径参数
         int semicolonIndex = pageName.indexOf(';');
         if (semicolonIndex != -1) {
             pageName = pageName.substring(0, semicolonIndex);
         }
         
-        // 移除查询参数（理论上不应该有，但以防万一）
+        // 移除查询参数
         int queryIndex = pageName.indexOf('?');
         if (queryIndex != -1) {
             pageName = pageName.substring(0, queryIndex);

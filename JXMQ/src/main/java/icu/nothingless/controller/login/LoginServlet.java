@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
-import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.ViewUtil;
@@ -19,8 +18,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class LoginServlet extends HttpServlet {
 
-    private static final String MENU = "example_tables";
-
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LoginServlet.class);
 
     protected static final IUserService<User> userService = (IUserService<User>) ServiceFactory
@@ -28,7 +25,7 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        this.doPost(req, resp);
+        ViewUtil.render(req, resp, "error_page", Map.of("respEntity", RespEntity.error("Request is not allowed")));
     }
 
     @Override
@@ -36,13 +33,10 @@ public class LoginServlet extends HttpServlet {
 
         String username = req.getParameter("username");
         String password = req.getParameter("pwd_entrypted");
-
-        logger.info(Fmt.of("User({})====PWD({})", username, password));
+        // logger.info(Fmt.of("User({})====PWD({})", username, password));
 
         User bean = User.builder()
-                .userAccount(username).userPasswd(password)
-                .loginNow(getClientIP(req))
-                .roleId("Super Administrator")
+                .userAccount(username).userPasswd(password).loginNow(getClientIP(req))
                 .userStatus(true)
                 .build();
 
@@ -50,7 +44,7 @@ public class LoginServlet extends HttpServlet {
         if (respEntity.isSuccess()) {
             logger.info("Login Success! User:<{}>", (User) (respEntity.getData()));
             RedirectUtil.redirect(req, resp, "/home",
-                    Map.of("CURRENT_USER", (User) respEntity.getData(), "MENU", MENU));
+                    Map.of("CURRENT_USER", (User) respEntity.getData()));
         } else {
             ViewUtil.render(req, resp, "error_page", Map.of("respEntity", respEntity));
         }
@@ -75,8 +69,8 @@ public class LoginServlet extends HttpServlet {
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
-
-        // 多级代理时，取第一个 IP
+        
+        // 多级代理，取第一个 IP
         if (ip != null && ip.contains(",")) {
             ip = ip.split(",")[0].trim();
         }

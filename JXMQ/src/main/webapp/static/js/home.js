@@ -8,41 +8,38 @@ var App = (function() {
             var self = this;
             var apiBase = document.body.dataset.apiBase || '';
             
-            return Promise.all([
+            const results = Promise.all([
                 this.fetchConfig(apiBase),
                 this.fetchCurrentUser(apiBase)
-            ]).then(function(results) {
-                self.config = results[0];
-                self.userInfo = results[1];
-                return self.config;
-            });
+            ]);
+            self.config = results[0];
+            self.userInfo = results[1];
+            return self.config;
         },
         
-        fetchConfig: function(apiBase) {
-            return fetch(apiBase + '/api/config').then(function(response) {
+        fetchConfig: async function(apiBase) {
+            try {
+                const response = await fetch(apiBase + '/api/config');
                 if (!response.ok) throw new Error('获取配置失败');
-                return response.json();
-            }).then(function(result) {
-                if (result.code !== 200) throw new Error(result.message || '配置加载失败');
-                return result.data;
-            }).catch(function(error) {
+                const result_1 = await response.json();
+                if (result_1.code !== 200) throw new Error(result_1.message || '配置加载失败');
+                return result_1.data;
+            } catch (error) {
                 console.warn('使用默认配置:', error);
                 return {
                     contextPath: apiBase,
                     currentMenu: 'dashboard',
                     intervals: { clock: 1000, sync: 30000 }
                 };
-            });
+            }
         },
         
-        fetchCurrentUser: function(apiBase) {
-            return fetch(apiBase + '/api/user').then(function(response) {
-                if (!response.ok) throw new Error('获取用户信息失败');
-                return response.json();
-            }).then(function(result) {
-                if (result.code !== 200) throw new Error(result.message || '用户信息加载失败');
-                return result.data;
-            });
+        fetchCurrentUser: async function(apiBase) {
+            const response = await fetch(apiBase + '/api/user');
+            if (!response.ok) throw new Error('获取用户信息失败');
+            const result_1 = await response.json();
+            if (result_1.code !== 200) throw new Error(result_1.message || '用户信息加载失败');
+            return result_1.data;
         },
         
         getConfig: function() { return this.config; },
@@ -312,8 +309,6 @@ var App = (function() {
     
     // 时间管理
     /* 
-     * 之前的实现会在页面加载时等待时间 API 响应，导致首页显示延迟。
-     * 现在改为先从 DOM 读取初始时间戳，立即显示时间，然后在后台静默同步服务器时间，确保用户体验流畅。
     var timeManager = {
         intervals: [],
         apiUrl: '', syncTime: 30000,
@@ -354,14 +349,14 @@ var App = (function() {
         init: function(config) { this.apiUrl = config.contextPath + '/api/time'; },
         start: function() {
             var self = this;
-            // 从 DOM 读取初始时间戳，无需等待 API
+            // 从 DOM 读取初始时间戳
             var el = elements.serverTime;
             var initialTimestamp = parseInt(el.dataset.timestamp);
             if (initialTimestamp) {
                 state.serverTimeOffset = initialTimestamp - Date.now();
             }
             this.startClock();
-            // 后台静默同步，不阻塞显示
+            // 后台静默同步
             this.syncInBackground();
         },
         startClock: function() {
@@ -446,10 +441,10 @@ var App = (function() {
         });
         */
 
-        // 优化初始化流程，先渲染用户信息和界面，再加载菜单和页面，提升首屏速度
-        // 1. 先显示本地时间（不等待 API）
+        // 优化初始化流程，先渲染用户信息和界面，再加载菜单和页面
+        // 先显示本地时间
         elements.serverTime.textContent = utils.formatDateTime(new Date());
-        // 2. 并行初始化，不阻塞 UI
+        // 并行初始化
         configManager.init().then(function(config) {
             userRenderer.render(configManager.getUserInfo());
             menuManager.init(config);
@@ -460,12 +455,11 @@ var App = (function() {
         }).catch(function(error) {
             console.error('Initialize server time failed:', error);
         });
-        // 3. 这些可以立即执行，不依赖 config
+
         uiEffects.createParticles();
         uiEffects.initFadeIn();
         keyboardShortcuts.init();
         window.addEventListener('resize', function() { pageLoader.resizeIframe(); });
-
 
     };
     

@@ -4,11 +4,11 @@ var App = (function() {
         config: null,
         userInfo: null,
         
-        init: function() {
+        init: async function() {
             var self = this;
             var apiBase = document.body.dataset.apiBase || '';
             
-            const results = Promise.all([
+            const results = await Promise.all([
                 this.fetchConfig(apiBase),
                 this.fetchCurrentUser(apiBase)
             ]);
@@ -16,7 +16,6 @@ var App = (function() {
             self.userInfo = results[1];
             return self.config;
         },
-        
         fetchConfig: async function(apiBase) {
             try {
                 const response = await fetch(apiBase + '/api/config');
@@ -453,7 +452,7 @@ var App = (function() {
             menuManager.loadMenuData();
             timeManager.start();
         }).catch(function(error) {
-            console.error('Initialize server time failed:', error);
+            console.error('Initialize server failed:', error);
         });
 
         uiEffects.createParticles();

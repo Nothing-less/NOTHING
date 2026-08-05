@@ -19,7 +19,10 @@
             <param-name>excludes</param-name>
             <param-value>
                 /static/*,
-                /ws/*
+                /ws/*,
+                /ws/chat/*,
+                /api/time,
+                /logout
             </param-value>
         </init-param>
     </filter>

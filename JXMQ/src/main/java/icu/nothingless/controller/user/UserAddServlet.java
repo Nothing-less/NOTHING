@@ -6,9 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.controller.login.LoginServlet;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
+import icu.nothingless.tools.Fmt;
 import icu.nothingless.tools.JsonUtil;
+import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -33,52 +36,37 @@ public class UserAddServlet extends HttpServlet {
         
         req.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json;charset=UTF-8");
-        
-        // 1. 权限检查
+
         HttpSession session = req.getSession(false);
         if (session == null) {
             writeJson(resp, RespEntity.error("未登录"));
             return;
         }
         
-        User currentUser = (User) session.getAttribute("CURRENT_USER");
+        User currentUser = (User) RedirectUtil.getFlash(req, "CURRENT_USER");
         if (currentUser == null || !"Super Administrator".equals(String.valueOf(currentUser.roleId()))) {
             writeJson(resp, RespEntity.error("无权访问"));
             return;
         }
-        
-        // 2. 参数获取与校验
+
         String account = req.getParameter("account");
         String password = req.getParameter("password");
         String nickname = req.getParameter("nickname");
-        String roleIdStr = req.getParameter("roleId");
         
         if (account == null || account.trim().isEmpty()) {
             writeJson(resp, RespEntity.badRequest("账号不能为空"));
             return;
         }
         account = account.trim();
-
-        int roleId = 0;
-        try {
-            if (roleIdStr != null) {
-                int reqRoleId = Integer.parseInt(roleIdStr);
-                if (reqRoleId != 0) {
-                    logger.warn("User [{}] attempted to create user with roleId={}, forced to 0", 
-                        currentUser.userId(), reqRoleId);
-                }
-            }
-        } catch (NumberFormatException e) {
-            // ignore, use default 0
-        }
         
-        // 4. 调用 Service 创建用户
         try {
             User newUser = User.builder()
                 .userAccount(account)
                 .userPasswd(password)
-                .roleId(""+roleId)
+                .roleId("Player") // 默认角色为 Player
                 .nickname(nickname)
+                .registerTime(Fmt.getCurrentTime())
+                .lastLoginIpAddr(LoginServlet.getClientIP(req))
                 .build();
             RespEntity<User> result = userService.doRegister(newUser);
             if(result.getCode() != 200) {

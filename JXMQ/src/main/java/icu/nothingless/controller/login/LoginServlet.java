@@ -31,9 +31,13 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if(session != null){
+            session.invalidate();
+        }
         String username = req.getParameter("username");
         String password = req.getParameter("pwd_entrypted");
-        // logger.info(Fmt.of("User({})====PWD({})", username, password));
+        // logger.debug(Fmt.of("User({})====PWD({})", username, password));
 
         User bean = User.builder()
                 .userAccount(username).userPasswd(password).loginNow(getClientIP(req))
@@ -42,7 +46,10 @@ public class LoginServlet extends HttpServlet {
 
         RespEntity<User> respEntity = userService.doLogin(bean);
         if (respEntity.isSuccess()) {
-            logger.info("Login Success! User:<{}>", (User) (respEntity.getData()));
+            // logger.debug("Login Success! User:<{}>", (User) (respEntity.getData()));
+
+            
+
             RedirectUtil.redirect(req, resp, "/home",
                     Map.of("CURRENT_USER", (User) respEntity.getData()));
         } else {
@@ -51,7 +58,7 @@ public class LoginServlet extends HttpServlet {
 
     }
 
-    private String getClientIP(HttpServletRequest request) {
+    public static String getClientIP(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
 
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {

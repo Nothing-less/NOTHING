@@ -55,7 +55,7 @@ public class ChatRedisBus {
     // 保存 subscribe 佔用的 Jedis 連接，用於強制斷開
     private final ConcurrentHashMap<String, Jedis> activeJedisConnections = new ConcurrentHashMap<>();
 
-    // ========== 新增：维护线程池和订阅引用，用于关闭 ==========
+    // ========== 维护线程池和订阅引用，用于关闭 ==========
     private ScheduledExecutorService heartbeatScheduler;
     private final ConcurrentHashMap<String, JedisPubSub> activePubSubs = new ConcurrentHashMap<>();
     private JedisPubSub globalPubSub;
@@ -391,7 +391,7 @@ public class ChatRedisBus {
             }
         }
 
-        // ★ 新增：強制關閉 subscribe 佔用的 Jedis 連接（中斷 socket 阻塞）
+        // ★ 強制關閉 subscribe 佔用的 Jedis 連接（中斷 socket 阻塞）
         for (Map.Entry<String, Jedis> entry : activeJedisConnections.entrySet()) {
             try {
                 Jedis jedis = entry.getValue();

@@ -98,7 +98,7 @@ public class InfrastructureInitializer implements ServletContextListener {
             logger.error("Error closing Redis pool: ", e);
         }
 
-        // ★ 新增：強制註銷由當前 WebApp 加載的 JDBC 驅動
+        // ★ 強制註銷由當前 WebApp 加載的 JDBC 驅動
         try {
             java.util.Enumeration<java.sql.Driver> drivers = java.sql.DriverManager.getDrivers();
             while (drivers.hasMoreElements()) {

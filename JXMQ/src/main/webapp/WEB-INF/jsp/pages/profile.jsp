@@ -2,13 +2,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="icu.nothingless.pojo.dto.User" %>
+<%@ page import="icu.nothingless.tools.RedirectUtil" %>
 
 <%
-    User currentUser = (User) session.getAttribute("CURRENT_USER");
-    if (currentUser == null) {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "未登录");
-        return;
-    }
+    User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(request, "CURRENT_USER");
     String avatarUrl = currentUser.userKey2();
     if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
         avatarUrl = request.getContextPath() + "/static/images/default-avatar.png";

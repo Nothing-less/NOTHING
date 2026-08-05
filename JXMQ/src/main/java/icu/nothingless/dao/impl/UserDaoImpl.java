@@ -119,15 +119,12 @@ public class UserDaoImpl implements IUserDao<User> {
         String last_login_time = Optional.ofNullable(register.lastLoginTime())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
-                .orElse("1970-01-01 00:00:00");
+                .orElse(Fmt.getCurrentTime());
         String last_login_ip = Optional.ofNullable(register.lastLoginIpAddr())
                 .map(Object::toString)
                 .filter(s -> !s.trim().isEmpty())
                 .orElse("192.168.0.1");
-        if (Objects.equals("", last_login_ip)
-                || Objects.equals("", last_login_time)
-                || Objects.equals("", password)
-                || Objects.equals("", username)) {
+        if (Fmt.isAnyEmpty(last_login_ip, last_login_time, password, username)) {
             throw new UserSTOException("register information are missing");
         }
         IUserAdapter tmp = new UserBean();
@@ -135,7 +132,7 @@ public class UserDaoImpl implements IUserDao<User> {
         tmp.setUserPasswd(password);
         tmp.setLastLoginIpAddr(last_login_ip);
         tmp.setLastLoginTime(last_login_time);
-        tmp.setRegisterTime(last_login_time);
+        tmp.setRegisterTime(Fmt.getCurrentTime());
         if (!Fmt.isEmpty(register.roleId())) {
             tmp.setRoleId(register.roleId());
         }

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.pojo.dto.User;
+import icu.nothingless.tools.RedirectUtil;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -75,7 +76,7 @@ public class PageAccessFilter implements Filter {
         HttpSession session = req.getSession(false);
         if (session == null) return false;
         
-        User currentUser = (User) session.getAttribute("CURRENT_USER");
+        User currentUser = (User) RedirectUtil.getFlash(req, "CURRENT_USER");
         if (currentUser == null) return false;
         
         Object roleId = currentUser.roleId();

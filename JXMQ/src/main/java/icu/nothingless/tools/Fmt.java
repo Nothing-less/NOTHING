@@ -24,6 +24,13 @@ public class Fmt {
     public static boolean isAllEmpty(String... strs) {
         return StrUtil.isAllEmpty(strs);
     }
+    /**
+     * 获取当前时间的字符串表示，格式为 "yyyy-MM-dd HH:mm:ss"
+     */
+    public static String getCurrentTime() {
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return java.time.LocalDateTime.now().format(formatter);
+    }
 }
 
 class StrUtil {
@@ -132,4 +139,6 @@ class StrUtil {
     public static String defaultString(String str) {
         return defaultIfEmpty(str, "");
     }
+
+
 }

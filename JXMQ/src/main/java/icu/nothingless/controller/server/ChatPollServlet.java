@@ -32,7 +32,7 @@ public class ChatPollServlet extends HttpServlet {
         prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
-            writeJson(resp, RespEntity.error("未登录或会话已过期"));
+            writeJson(resp, RespEntity.error("会话已过期"));
             return;
         }
 

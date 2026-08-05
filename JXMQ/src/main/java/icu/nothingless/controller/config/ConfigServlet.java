@@ -18,12 +18,10 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @WebServlet(name = "ConfigServlet", urlPatterns = "/api/config")
 public class ConfigServlet extends HttpServlet {
-    private static final String DEFAULT_PAGE = "example_tables";
+    private static final String DEFAULT_PAGE = "friend_list"; // 进入主页后默认显示的页面
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {}
-
-    protected void _doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         // 构建配置
         Map<String, Object> config = new HashMap<>();
@@ -31,6 +29,7 @@ public class ConfigServlet extends HttpServlet {
 
         // 当前菜单
         String currentMenu = (String) req.getSession(false).getAttribute("MENU");
+
         config.put("currentMenu", currentMenu != null ? currentMenu : DEFAULT_PAGE);
 
         // 时间间隔配置

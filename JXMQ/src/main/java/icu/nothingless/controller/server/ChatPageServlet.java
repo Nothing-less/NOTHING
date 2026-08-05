@@ -17,7 +17,7 @@ public class ChatPageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 1. 检查登录
+
         HttpSession session = req.getSession(false);
         if (session == null) {
             resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "未登录");
@@ -29,7 +29,6 @@ public class ChatPageServlet extends HttpServlet {
             return;
         }
 
-        // 2. 获取参数
         String friendId = req.getParameter("friendId");
         String nickname = req.getParameter("nickname");
 
@@ -37,9 +36,7 @@ public class ChatPageServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing friend ID param");
             return;
         }
-        // 4. 转发到 chat_window.jsp
-        // RedirectUtil.redirect(req, resp, "pages/chat_window", Map.of("friendId", friendId, "nickname", nickname != null ? nickname : "好友"));
-        ViewUtil.render(req, resp, "pages/chat_window",Map.of("friendId", friendId,
-        "nickname", nickname));
+        // 转发到 chat_window.jsp
+        ViewUtil.render(req, resp, "pages/chat_window", Map.of("friendId", friendId, "nickname", nickname));
     }
 }

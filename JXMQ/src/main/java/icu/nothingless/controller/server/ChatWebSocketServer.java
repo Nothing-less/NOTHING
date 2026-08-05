@@ -68,7 +68,7 @@ public class ChatWebSocketServer {
     private String userId;
     private Session session;
 
-    // 【新增】全局连接健康扫描器
+    // 全局连接健康扫描器
     private static final ScheduledExecutorService globalHealthChecker = Executors
             .newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "global-ws-health-checker");
@@ -121,7 +121,7 @@ public class ChatWebSocketServer {
         }, 60, 60, TimeUnit.SECONDS);
     }
 
-    // 【新增】静态 cleanup，供全局扫描使用
+    // 静态 cleanup，供全局扫描使用
     private static void cleanupSession(String uid) {
         sessions.remove(uid);
         if (redisBus != null) {
@@ -140,7 +140,7 @@ public class ChatWebSocketServer {
         this.userId = userId;
         this.session = session;
 
-        // 【新增】设置 WebSocket 会话超时（Tomcat 特定）
+        // 设置 WebSocket 会话超时（Tomcat 特定）
         if (session.getContainer() instanceof WebSocketContainer) {
             // 设置空闲超时 60 秒
             session.setMaxIdleTimeout(60000);
@@ -288,7 +288,7 @@ public class ChatWebSocketServer {
     }
 
     /**
-     * 【新增】尝试直接推送给本地连接的接收方
+     * 尝试直接推送给本地连接的接收方
      */
     private boolean tryLocalPush(Long toUserId, Message message) {
         Session targetSession = sessions.get(String.valueOf(toUserId));
@@ -356,7 +356,7 @@ public class ChatWebSocketServer {
         heartbeatScheduler.scheduleAtFixedRate(() -> {
 
             try {
-                // 【新增】主动发送 Ping 帧
+                // 主动发送 Ping 帧
                 if (session != null && session.isOpen()) {
                     session.getAsyncRemote().sendPing(ByteBuffer.wrap(new byte[] { 0x01 }));
                 }
@@ -477,7 +477,7 @@ public class ChatWebSocketServer {
     }
 
     public static void shutdown() {
-        // 1. 關閉全局健康檢查器 ★ 新增
+        // 關閉全局健康檢查器 ★
         if (globalHealthChecker != null && !globalHealthChecker.isShutdown()) {
             globalHealthChecker.shutdownNow();
             try {
@@ -487,7 +487,7 @@ public class ChatWebSocketServer {
             }
         }
 
-        // 2. 關閉所有會話（現有邏輯）
+        // 關閉所有會話
         sessions.values().forEach(session -> {
             try {
                 session.close(new CloseReason(
@@ -499,7 +499,7 @@ public class ChatWebSocketServer {
         });
         sessions.clear();
 
-        // 3. 關閉 RedisBus（現有邏輯）
+        // 關閉 RedisBus
         if (redisBus != null) {
             redisBus.shutdown();
         }

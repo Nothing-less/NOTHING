@@ -296,6 +296,7 @@
     function closeChatWindow() {
         if (window.parent && window.parent.closeGlobalChat) {
             window.parent.closeGlobalChat(currentFriendId);
+            
         }
     }
 </script>

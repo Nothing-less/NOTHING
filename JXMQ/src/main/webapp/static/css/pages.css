@@ -803,7 +803,7 @@ a, .logout-btn, .menu-item, .menu-text {
     border: none;
     background: rgba(99, 102, 241, 0.9);
     color: #fff;
-    font-size: 18px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
@@ -856,7 +856,7 @@ a, .logout-btn, .menu-item, .menu-text {
    ========================= */
 .fab-add {
     position: fixed;
-    right: 28px;
+    right: 10px;
     bottom: 96px;   /* ✅ 放在聊天 FAB 上方 */
     width: 40px;
     height: 40px;

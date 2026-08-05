@@ -3,21 +3,12 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="icu.nothingless.commons.RespEntity" %>
 <%@ page import="icu.nothingless.pojo.dto.User" %>
-<%@ page import="icu.nothingless.tools.ViewUtil" %>
+<%@ page import="icu.nothingless.tools.RedirectUtil" %>
 
 <link rel="stylesheet" href="<c:url value='/static/css/file_repository.css' />">
 
 <%
-    User currentUser = (User) session.getAttribute("CURRENT_USER");
-    if (currentUser == null) {
-        request.setAttribute("respEntity", RespEntity.error("错误！系统出现异常！"));
-        ViewUtil.render(request, response, "error_page");
-        return;
-    }
-    Object currentUser_ID = currentUser.userId();
-    session.setAttribute("CURRENT_USER_ID", currentUser_ID);
-    Object currentUser_Nickname = currentUser.nickname();
-    session.setAttribute("CURRENT_USER_NICKNAME", currentUser_Nickname);
+    User currentUser = (User) RedirectUtil.getFlash(request, "CURRENT_USER");
     String contextPath = request.getContextPath();
 %>
 

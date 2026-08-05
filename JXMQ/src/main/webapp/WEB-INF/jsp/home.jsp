@@ -1,11 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ page import="icu.nothingless.commons.RespEntity" %>
 <%@ page import="icu.nothingless.pojo.dto.User" %>
-<%@ page import="icu.nothingless.tools.ViewUtil" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.time.LocalDateTime" %>
-<%@ page import="java.time.format.DateTimeFormatter" %>
+<%@ page import="icu.nothingless.tools.RedirectUtil" %>
+
+<% String contextPath = request.getContextPath(); %>
+<% User currentUser =  (User) RedirectUtil.getFlash(request, "CURRENT_USER"); %>
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -14,7 +14,6 @@
     <title>主页</title>
     <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
     <link rel="stylesheet" href="<c:url value='/static/css/tables.css' />">
-    <script src="<c:url value='/static/js/home.js'       />" defer></script>
     <script src="<c:url value='/static/js/ChatClient.js' />" defer></script>
 
     <style>
@@ -122,7 +121,7 @@
     <button class="fab" onclick="App.toggleSidebar()" title="切换侧边栏 (Alt+S)">☰</button>
 
     <script>
-        // 【修复】确保 contextPath 在全局作用域，供 ChatClient 使用
+        //确保 contextPath 在全局作用域，供 ChatClient 使用
         window.contextPath = '<%= contextPath %>';
         
         const CHAT_DEBUG = false;
@@ -555,5 +554,6 @@
             return div.innerHTML;
         }
     </script>
+    <script src="<c:url value='/static/js/home.js'       />" ></script>
 </body>
 </html>

@@ -3,6 +3,7 @@ package icu.nothingless.controller.login;
 import java.io.IOException;
 
 import icu.nothingless.pojo.dto.User;
+import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +18,7 @@ public class LogoutServlet extends LoginServlet {
         HttpSession session = request.getSession(false);
         
         if (session != null) {
-            User currentUser = (User) session.getAttribute("CURRENT_USER");
+            User currentUser = (User) RedirectUtil.getFlash(request, "CURRENT_USER");
             if (currentUser != null) {
                 userService.doLogout(currentUser);
             }

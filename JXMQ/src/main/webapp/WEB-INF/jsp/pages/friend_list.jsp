@@ -83,7 +83,7 @@
         }).join('');
     }
 
-    // 新增：通知父窗口打开聊天窗口（跨 iframe 通信）
+    // 通知父窗口打开聊天窗口（跨 iframe 通信）
     function openChatWindow(friendId, nickname) {
         window.parent.postMessage({
             type: 'OPEN_CHAT',

@@ -102,7 +102,7 @@ public class MenuAuthFilter implements Filter {
         HttpSession session = req.getSession(false);
         if (session == null)
             return null;
-        User currentUser = (User) session.getAttribute("CURRENT_USER");
+        User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(req, "CURRENT_USER");
         if (currentUser == null)
             return null;
         Object roleId = currentUser.roleId();

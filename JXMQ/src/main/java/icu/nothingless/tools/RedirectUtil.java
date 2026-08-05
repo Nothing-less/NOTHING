@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpSession;
 
 public class RedirectUtil {
 
-    private static final String PREFIX = "FLASH_";
+    public static final String PREFIX = "FLASH_";
 
     /**
      * 设置 Flash 消息并重定向
@@ -63,7 +63,26 @@ public class RedirectUtil {
             return null;
 
         Object value = session.getAttribute(PREFIX + key);
-        session.removeAttribute(PREFIX + key);
+        // session.removeAttribute(PREFIX + key);
         return value;
+    }
+
+    public static Map<String, Object> _getFlashes(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if (session == null)
+            return Collections.emptyMap();
+
+        Map<String, Object> result = new HashMap<>();
+        List<String> keysToRemove = new ArrayList<>();
+
+        Enumeration<String> names = session.getAttributeNames();
+        while (names.hasMoreElements()) {
+            String name = names.nextElement();
+            if (name.startsWith(PREFIX)) {
+                result.put(name, session.getAttribute(name));
+                keysToRemove.add(name);
+            }
+        }
+        return result;
     }
 }

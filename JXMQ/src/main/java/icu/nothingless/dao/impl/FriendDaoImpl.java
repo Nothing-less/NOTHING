@@ -303,7 +303,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
     public R<Boolean> agreeFriend(Long userId, Long friendId, String remark, String groupName) throws Exception {
         try {
             PDBUtil.executeTransaction(conn -> {
-                // 1. 更新申请记录状态
+                // 更新申请记录状态
                 String updateSql = "UPDATE " + TABLENAME + " SET " + FS_STATUS + " = 1, "
                         + AGREE_TIME + " = NOW() WHERE " + USER_ID + " = ? AND "
                         + FRIEND_ID + " = ? AND " + FS_STATUS + " = 0";
@@ -318,7 +318,7 @@ public class FriendDaoImpl implements IFriendDao<Friendship> {
                     }
                 }
 
-                // 🔴 PostgreSQL 兼容性：ON CONFLICT 代替 ON DUPLICATE KEY UPDATE
+                // ON CONFLICT 代替 ON DUPLICATE KEY UPDATE
                 String insertSql;
                 Boolean isPostgreSQL = conn.getMetaData().getDatabaseProductName()
                         .toLowerCase().contains("postgresql");

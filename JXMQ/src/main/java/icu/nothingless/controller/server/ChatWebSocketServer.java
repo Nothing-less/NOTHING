@@ -23,6 +23,7 @@ import icu.nothingless.tools.ChatJedisUtil;
 import icu.nothingless.tools.ChatRedisBus;
 import icu.nothingless.tools.JsonUtil;
 import icu.nothingless.tools.ServiceFactory;
+import jakarta.servlet.http.HttpSession;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
@@ -124,6 +125,30 @@ public class ChatWebSocketServer {
     // 静态 cleanup，供全局扫描使用
     private static void cleanupSession(String uid) {
         sessions.remove(uid);
+        Session wsSession = sessions.remove(uid);
+        if (wsSession == null) {
+            return; // 已经被别的线程清理过了
+        }
+        // 关闭 WebSocket
+        if (wsSession.isOpen()) {
+            try {
+                wsSession.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Clean up"));
+            } catch (IOException e) {
+                logger.warn("Close ws failed for [{}]: {}", uid, e.getMessage());
+            }
+        }
+        // 失效 HttpSession
+        HttpSession httpSession = (HttpSession) wsSession.getUserProperties()
+                .get(ChatConfigurator.HTTP_SESSION);
+        if (httpSession != null) {
+            try {
+                httpSession.invalidate();
+                logger.info("HttpSession invalidated for user [{}]", uid);
+            } catch (IllegalStateException e) {
+                // 已经失效过了，忽略
+            }
+        }
+        
         if (redisBus != null) {
             redisBus.userOffline(uid);
         }

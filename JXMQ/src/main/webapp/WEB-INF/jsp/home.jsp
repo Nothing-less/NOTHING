@@ -83,7 +83,7 @@
             </div>
             <nav class="menu" id="dynamicMenu">
                 <div class="menu-loading">
-                    <div class="loading"></div>
+                    <%-- <div class="loading"></div> --%>
                     <div style="margin-top: 10px;">加载菜单中...</div>
                 </div>
             </nav>
@@ -110,7 +110,7 @@
         </div>
         <div class="content-wrapper" id="contentWrapper">
             <div class="iframe-loading" id="iframeLoading">
-                <div class="loading"></div>
+                <%-- <div class="loading"></div> --%>
             </div>
             <iframe class="content-iframe" id="contentFrame" name="contentFrame"></iframe>
         </div>

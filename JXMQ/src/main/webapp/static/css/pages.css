@@ -25,7 +25,7 @@
     --bg-secondary: #16213e;
     --bg-card: rgba(255, 255, 255, 0.05);
 
-    /* 布局 & 品牌 */
+    /* 布局  */
     --sidebar-width: 260px;
     --sidebar-collapsed: 60px;
     --primary-color: #6366f1;
@@ -539,7 +539,14 @@ a, .logout-btn, .menu-item, .menu-text {
     height: 560px;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%);
+
+    /* 用 margin 居中，这样 left/top 就是真实坐标，JS 拖拽不会冲突 */
+    left: calc(50% - 240px);   /* 480px / 2 */
+    top: calc(50% - 280px);    /* 560px / 2 */
+
+    max-width: min(480px, 95vw);
+    max-height: min(560px, 95vh);
+    resize: both;  /* 可选，如果你允许用户调大小 */
 }
 
 .chat-window.active {
@@ -599,6 +606,7 @@ a, .logout-btn, .menu-item, .menu-text {
     width: 100%;
     height: 100%;
     border: none;
+    display: block;
 }
 
 /* =========================
@@ -905,4 +913,55 @@ a, .logout-btn, .menu-item, .menu-text {
 .btn-modal-close:hover {
     background: rgba(255, 255, 255, 0.12);
     transform: translateY(-1px);
+}
+
+/* =========================
+   聊天窗口滚动条美化
+   ========================= */
+
+/* 针对消息区域 */
+.chat-messages {
+    scrollbar-width: thin;                    /* Firefox */
+    scrollbar-color: rgba(99, 102, 241, 0.3) transparent;  /* Firefox */
+}
+
+/* Webkit 内核（Chrome / Edge / Safari） */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: transparent;  /* 默认透明 */
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.55);
+}
+
+/* 滚动时增加一点内边距，避免文字贴边 */
+.chat-messages {
+    padding-right: 14px;
+}
+
+.chat-messages:hover::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.4);
+}
+
+.chat-messages:hover::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.7);
+}
+
+.chat-messages {
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s;
+}
+
+.chat-messages:hover {
+    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
 }

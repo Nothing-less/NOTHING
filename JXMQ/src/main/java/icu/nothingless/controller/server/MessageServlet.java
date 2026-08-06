@@ -110,10 +110,10 @@ public class MessageServlet extends HttpServlet {
         if (respEntity != null && !respEntity.isError() && respEntity.getData() != null) {
             Message savedMsg = respEntity.getData();
 
-            // 1. 推送到等待队列
+            // 推送到等待队列
             ChatWebSocketServer.pushToWaitQueue(receiverId, savedMsg);
 
-            // 2. Redis 发布订阅（统一处理本地/集群/离线）
+            // Redis 发布订阅（统一处理本地/集群/离线）
             String msgJson = JsonUtil.toJson(Map.of(
                     "type", "CHAT",
                     "message", savedMsg));

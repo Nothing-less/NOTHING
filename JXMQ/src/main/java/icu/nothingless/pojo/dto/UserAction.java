@@ -6,13 +6,12 @@ import java.util.Optional;
 
 /**
  * 用户行为追踪
- * 
  * 设计原则：
- * 1. Record 自动提供 equals/hashCode/toString，无需手动实现
- * 2. 使用 Instant 替代 String 时间戳（类型安全 + 时区无关）
- * 3. 19个字段按语义分组为嵌套 Record（避免参数爆炸）
- * 4. 必填字段使用紧凑构造函数验证
- * 5. 敏感数据通过工厂方法控制创建
+ * 1. 核心信息必须完整（审计上下文、操作类型、页面位置）
+ * 2. 可选信息尽量使用 Optional 避免 null
+ * 3. 敏感数据必须脱敏或加密，避免明文存储
+ * 4. 提供 Builder 模式方便构建复杂对象
+ * 
  */
 public record UserAction(
         // 核心标识（必填）

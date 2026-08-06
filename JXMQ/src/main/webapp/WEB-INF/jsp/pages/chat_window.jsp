@@ -2,12 +2,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<link rel="stylesheet" href="<c:url value='/static/css/chat_file_revoke.css' />">
-<script src="<c:url value='/static/js/chat_file_revoke.js' />"></script>
-
 <link rel="stylesheet" href="<c:url value='/static/css/pages.css' />">
-<div class="chat-container" id="chatContainer" style="display: flex; height: 100vh; flex-direction: column;">
-    <div class="chat-messages" id="messageArea" style="flex: 1; overflow-y: auto; padding: 10px;">
+<link rel="stylesheet" href="<c:url value='/static/css/chat_file_revoke.css' />">
+
+<script src="<c:url value='/static/js/chat_file_revoke.js' />"></script>
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;  /* 防止 body 滚动，让 chat-container 接管 */
+    }
+</style>
+<div class="chat-container" id="chatContainer" style="display: flex; height: 100%; flex-direction: column;">
+    <div class="chat-messages" id="messageArea" style="flex: 1; overflow-y: auto; padding: 14px; scroll-behavior: smooth;">
         <!-- 消息记录 -->
     </div>
     <div class="chat-input" style="display: flex; padding: 10px; border-top: 1px solid rgba(99,102,241,0.2);">

@@ -75,7 +75,7 @@ public class ChatRedisBus {
         startHeartbeatChecker();
     }
 
-    // ==================== 1. 用户上线/下线 ====================
+    // ==================== 用户上线/下线 ====================
 
     public void userOnline(String userId, Consumer<String> messageHandler) {
         try (Jedis jedis = jedisPool.getResource()) {
@@ -102,7 +102,7 @@ public class ChatRedisBus {
         unsubscribeUserChannel(userId);
     }
 
-    // ==================== 2. 心跳检测 ====================
+    // ==================== 心跳检测 ====================
 
     public void heartbeat(String userId) {
         try (Jedis jedis = jedisPool.getResource()) {
@@ -170,13 +170,13 @@ public class ChatRedisBus {
     private void onUserTimeout(String userId) {
         logger.info("User timeout detected by Redis: [{}]", userId);
 
-        // 1. 清理 Redis 在线状态
+        // 清理 Redis 在线
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.del(String.format(KEY_USER_ONLINE, userId));
             jedis.zrem(KEY_HEARTBEAT_ZSET, userId);
         }
 
-        // 2. 如果用户连接在当前服务器，强制关闭 WebSocket
+        // 如果用户连接在当前服务器，强制关闭 WebSocket
         Session sess = ChatWebSocketServer.getSessions().get(userId);
         if (sess != null && sess.isOpen()) {
             try {
@@ -187,7 +187,7 @@ public class ChatRedisBus {
             ChatWebSocketServer.getSessions().remove(userId);
         }
 
-        // 3. 同步 JedisUtil 状态
+        // 同步 JedisUtil 状态
         try {
             ChatJedisUtil.setUserOffline(Long.valueOf(userId), 0);
             IUserService<User> userService = (IUserService<User>) ServiceFactory
@@ -198,7 +198,7 @@ public class ChatRedisBus {
         }
     }
 
-    // ==================== 3. 消息发布订阅 ====================
+    // ==================== 消息发布订阅 ====================
     public void sendMessage(String toUserId, String messageJson) {
         // 方案：优先本地推送，本地不在线则走 Redis
         Consumer<String> localHandler = localSubscribers.get(toUserId);
@@ -379,7 +379,7 @@ public class ChatRedisBus {
         logger.info("ChatRedisBus 正在关闭...");
         running = false;
 
-        // 1. 取消所有 Redis 订阅
+        // 取消所有 Redis 订阅
         for (Map.Entry<String, JedisPubSub> entry : activePubSubs.entrySet()) {
             try {
                 JedisPubSub pubSub = entry.getValue();
@@ -410,7 +410,7 @@ public class ChatRedisBus {
             globalPubSub.unsubscribe();
         }
 
-        // 2. 关闭心跳检测线程池
+        // 关闭心跳检测线程池
         if (heartbeatScheduler != null && !heartbeatScheduler.isShutdown()) {
             heartbeatScheduler.shutdownNow();
             try {
@@ -420,7 +420,7 @@ public class ChatRedisBus {
             }
         }
 
-        // 3. 关闭订阅执行器
+        // 关闭订阅执行器
         if (subscribeExecutor != null && !subscribeExecutor.isShutdown()) {
             subscribeExecutor.shutdownNow();
             try {

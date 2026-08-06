@@ -61,7 +61,6 @@
             const groupName = f.groupName || '默认分组';
             const unreadCount = f.unreadCount || f.unreadMsgCount || 0;
 
-            // ✅ 头像兜底
             const defaultAvatar = '${pageContext.request.contextPath}/static/images/default-avatar.png';
             const avatarUrl = (avatar || '').trim() ? avatar : defaultAvatar;
 

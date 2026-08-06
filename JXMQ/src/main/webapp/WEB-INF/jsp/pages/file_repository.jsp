@@ -84,7 +84,7 @@
 <div class="modal" id="sentFilesModal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>↩️ 已发送文件（可撤回）</h3>
+            <h3>↩️ 已发送文件</h3>
             <button class="btn-modal-close" type="button"
                     onclick="FileRepo.closeSentModal()">关闭</button>
         </div>
@@ -98,7 +98,7 @@
 <div class="modal" id="receivedFilesModal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>📥 好友发送给我的文件</h3>
+            <h3>📥 收件列表</h3>
             <button class="btn-modal-close" type="button"
                     onclick="FileRepo.closeReceivedModal()">关闭</button>
         </div>

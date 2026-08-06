@@ -41,7 +41,7 @@
                     </div>
                 </c:if>
 
-                <form action="${pageContext.request.contextPath}/login" method="post" autocomplete="off">
+                <form action="${pageContext.request.contextPath}/login" method="post" autocomplete="true">
                     <c:if test="${not empty _csrf}">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     </c:if>
@@ -63,8 +63,8 @@
                     <div class="form-row">
                         <label for="password">Password</label>
                         <div class="input-wrapper">
-                            <input id="password" name="password" type="password" 
-                                   required placeholder="your password"/>
+                            <input id="password" name="password" type="password" autocomplete="current-password"
+                                   required  placeholder="your password"/>
                             <input type="hidden" id="pwd_entrypted" name="pwd_entrypted" type="pwd_entrypted" />
                         </div>
                     </div>
@@ -223,81 +223,71 @@
             background: #fef9f6; /* 温暖的米白后备色 */
         }
 
-        /* 马卡龙色系动态渐变背景 - 超慢速 */
+        /* 马卡龙色系动态渐变背景
+        /* ============================================================
+        颜色插值的动态背景（@property 方案）
+        ============================================================ */
+
+        /* 注册颜色变量 */
+        @property --c1 { syntax: '<color>'; initial-value: #ffd1dc; inherits: false; }
+        @property --c2 { syntax: '<color>'; initial-value: #e0b0ff; inherits: false; }
+        @property --c3 { syntax: '<color>'; initial-value: #c9e9f6; inherits: false; }
+        @property --c4 { syntax: '<color>'; initial-value: #a8d8ea; inherits: false; }
+        @property --c5 { syntax: '<color>'; initial-value: #b5e7a0; inherits: false; }
+        @property --c6 { syntax: '<color>'; initial-value: #fffacd; inherits: false; }
+        @property --c7 { syntax: '<color>'; initial-value: #ffdab9; inherits: false; }
+        @property --c8 { syntax: '<color>'; initial-value: #ffb7c5; inherits: false; }
+
+        /* 背景层 */
         .gradient-bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             z-index: 0;
-            background: linear-gradient(-45deg, 
-                /* 粉色系 - 樱花到玫瑰 */
-                #ffd1dc, /* 樱花粉 */
-                #ffb7c5, /* 深樱花粉 */
-                #ffc0cb, /* 经典粉 */
-                #ffe4e1, /* 薄雾玫瑰 */
-                #fadadd, /* 淡桃粉 */
-                #f8c3cd, /* 芍药粉 */
-                
-                /* 紫色系 - 薰衣草到紫罗兰 */
-                #e6e6fa, /* 淡薰衣草 */
-                #e0b0ff, /* 淡紫罗兰 */
-                #dcd0ff, /* 浅紫罗兰 */
-                #d8bfd8, /* 蓟紫 */
-                #dda0ddc5, /* 梅花紫 */
-                #e2d5e6, /* 淡紫 */
-                
-                /* 蓝色系 - baby蓝到天蓝 */
-                #c9e9f6, /* baby蓝 */
-                #b0e0e6, /* 粉蓝 */
-                #a8d8ea, /* 薄荷蓝 */
-                #afeeee, /* 苍白绿蓝 */
-                #e0ffff, /* 淡青 */
-                #f0f8ff, /* 爱丽丝蓝 */
-                
-                /* 绿色系 - 薄荷到抹茶 */
-                #b5e7a0, /* 薄荷绿 */
-                #c1e1c1, /* 淡抹茶 */
-                #d4edda, /* 嫩绿 */
-                #e8f5e9, /* 极淡绿 */
-                #f1f8e9, /* 薄荷奶油 */
-                
-                /* 黄色系 - 奶油到柠檬 */
-                #fff4e6, /* 奶油黄 */
-                #fff8dc, /* 玉米黄 */
-                #fffacd, /* 柠檬绸 */
-                #fff9c4, /* 浅柠檬 */
-                #ffe4b5, /* 摩卡黄 */
-                
-                /* 橙粉色系 - 杏桃回到樱花 */
-                #ffdab9, /* 杏桃 */
-                #f4e1d2, /* 蜜桃 */
-                #ffdfc4, /* 淡杏 */
-                #ffe5d9, /* 虾粉 */
-                #ffd1dc  /* 回到樱花粉形成闭环 */
+            color-interpolation: in oklch;
+            
+            /* 用变量构建渐变 */
+            background: linear-gradient(
+                -45deg,
+                var(--c1),  /* 樱花粉 */
+                var(--c2),  /* 淡紫罗兰 */
+                var(--c3),  /* baby蓝 */
+                var(--c4),  /* 薄荷蓝 */
+                var(--c5),  /* 薄荷绿 */
+                var(--c6),  /* 柠檬绸 */
+                var(--c7),  /* 杏桃 */
+                var(--c8),  /* 深樱花粉 */
+                var(--c1)   /* 闭环回到樱花粉 */
             );
-            background-size: 500% 500%;
-            animation: gradientShift 600s ease infinite;
+            background-size: 400% 400%;
+            
+            animation: macaronRing  30s ease infinite;
+            
+            /* 保留性能优化 */
+            will-change: background;
+            transform: translateZ(0);
         }
 
-        /* 柔和噪点纹理 */
+        /* 噪点纹理 */
         .gradient-bg::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.02;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            pointer-events: none;
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.02;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        pointer-events: none;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* 关键帧 */
+        @keyframes macaronRing {
+            0.0% { --c1: #ffd1dc; --c2: #e0b0ff; --c3: #c9e9f6; --c4: #a8d8ea; --c5: #b5e7a0; --c6: #fffacd; --c7: #ffdab9; --c8: #ffb7c5; }
+            12.5% { --c1: #e0b0ff; --c2: #c9e9f6; --c3: #a8d8ea; --c4: #b5e7a0; --c5: #fffacd; --c6: #ffdab9; --c7: #ffb7c5; --c8: #ffd1dc; }
+            25.0% { --c1: #c9e9f6; --c2: #a8d8ea; --c3: #b5e7a0; --c4: #fffacd; --c5: #ffdab9; --c6: #ffb7c5; --c7: #ffd1dc; --c8: #e0b0ff; }
+            37.5% { --c1: #a8d8ea; --c2: #b5e7a0; --c3: #fffacd; --c4: #ffdab9; --c5: #ffb7c5; --c6: #ffd1dc; --c7: #e0b0ff; --c8: #c9e9f6; }
+            50.0% { --c1: #b5e7a0; --c2: #fffacd; --c3: #ffdab9; --c4: #ffb7c5; --c5: #ffd1dc; --c6: #e0b0ff; --c7: #c9e9f6; --c8: #a8d8ea; }
+            62.5% { --c1: #fffacd; --c2: #ffdab9; --c3: #ffb7c5; --c4: #ffd1dc; --c5: #e0b0ff; --c6: #c9e9f6; --c7: #a8d8ea; --c8: #b5e7a0; }
+            75.0% { --c1: #ffdab9; --c2: #ffb7c5; --c3: #ffd1dc; --c4: #e0b0ff; --c5: #c9e9f6; --c6: #a8d8ea; --c7: #b5e7a0; --c8: #fffacd; }
+            87.5% { --c1: #ffb7c5; --c2: #ffd1dc; --c3: #e0b0ff; --c4: #c9e9f6; --c5: #a8d8ea; --c6: #b5e7a0; --c7: #fffacd; --c8: #ffdab9; }
+            100.0% { --c1: #ffd1dc; --c2: #e0b0ff; --c3: #c9e9f6; --c4: #a8d8ea; --c5: #b5e7a0; --c6: #fffacd; --c7: #ffdab9; --c8: #ffb7c5; }
         }
 
         /* 马卡龙色浮动光球 - 超慢速漂浮 */
@@ -308,13 +298,13 @@
             z-index: 1;
             mix-blend-mode: multiply;
             opacity: 0.6;
-            animation: orbFloat 400s ease-in-out infinite; /* 超慢漂浮 */
+            animation: orbFloat 30s ease-in-out infinite;
         }
-
+        
         .orb-1 {
             width: 500px;
             height: 500px;
-            background: radial-gradient(circle, rgba(255, 209, 220, 0.8) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 209, 220, 0.45) 0%, transparent 70%);
             top: -15%;
             left: -10%;
             animation-delay: 0s;
@@ -323,7 +313,7 @@
         .orb-2 {
             width: 450px;
             height: 450px;
-            background: radial-gradient(circle, rgba(181, 231, 160, 0.6) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(201, 233, 246, 0.40) 0%, transparent 70%);
             bottom: -10%;
             right: -5%;
             animation-delay: -10s;
@@ -333,7 +323,7 @@
         .orb-3 {
             width: 400px;
             height: 400px;
-            background: radial-gradient(circle, rgba(201, 233, 246, 0.7) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(181, 231, 160, 0.40) 0%, transparent 70%)
             top: 50%;
             left: 60%;
             animation-delay: -20s;
@@ -343,13 +333,27 @@
         .orb-4 {
             width: 350px;
             height: 350px;
-            background: radial-gradient(circle, rgba(244, 225, 210, 0.8) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 244, 230, 0.45) 0%, transparent 70%);
             top: 60%;
             left: 15%;
             animation-delay: -30s;
             animation-duration: 55s;
         }
-
+       
+        /*
+        .orb-1 {
+            background: radial-gradient(circle, rgba(255, 209, 220, 0.5) 0%, transparent 70%);
+        }
+        .orb-2 {
+            background: radial-gradient(circle, rgba(181, 231, 160, 0.4) 0%, transparent 70%);
+        }
+        .orb-3 {
+            background: radial-gradient(circle, rgba(201, 233, 246, 0.45) 0%, transparent 70%);
+        }
+        .orb-4 {
+            background: radial-gradient(circle, rgba(255, 244, 230, 0.5) 0%, transparent 70%);
+        }
+        */
         @keyframes orbFloat {
             0%, 100% { 
                 transform: translate(0, 0) scale(1); 
@@ -370,7 +374,7 @@
             position: relative;
             z-index: 10;
             width: 420px;
-            padding: 4px;
+            padding: 0px;
         }
 
         .login-content {
@@ -634,7 +638,7 @@
         @media (max-width: 480px) {
             .login-wrapper {
                 width: 92%;
-                margin: 20px;
+                margin: 0px;
             }
             .login-content {
                 padding: 32px 24px;

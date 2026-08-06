@@ -88,7 +88,11 @@
                 </div>
             </nav>
             <div class="sidebar-footer">
-                <a href="<%= contextPath %>/logout" id="logoutLink" class="logout-btn">
+                <a href="<%= contextPath %>/logout" 
+                    id="logoutLink" 
+                    class="logout-btn" 
+                    onclick="sessionStorage.removeItem('auth_token');"
+                    title="退出登录">
                     <span class="menu-icon">🚪</span>
                     <span class="menu-text">退出登录</span>
                 </a>
@@ -336,7 +340,7 @@
 
                 const safeNickname = escapeHtml(nickname);
 
-                // 【修复】先创建结构，不设置标题文本
+                // 先创建结构，不设置标题文本
                 win.innerHTML = `
                     <div class="chat-window-drag-mask" id="${windowId}-mask"></div>
                     <div class="chat-window-header" id="${windowId}-header">
@@ -359,7 +363,7 @@
                     <div class="resize-handle se" data-dir="se"></div>
                 `;
 
-                // 【修复】用 textContent 设置标题，避免模板字符串问题
+                // 用 textContent 设置标题，避免模板字符串问题
                 const titleSpan = win.querySelector('.chat-window-title');
                 titleSpan.textContent = '💬 ' + safeNickname;
 
@@ -555,5 +559,17 @@
         }
     </script>
     <script src="<c:url value='/static/js/home.js'       />" ></script>
+    <script>
+    // 从登录跳转的 URL 中提取 token，存入当前标签页的 sessionStorage
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var token = params.get('token');
+        if (token) {
+            sessionStorage.setItem('auth_token', token);
+            // 清理 URL，避免刷新时 token 一直暴露在地址栏
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    })();
+</script>
 </body>
 </html>

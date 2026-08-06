@@ -34,10 +34,10 @@ public class ServiceFactoryConfig {
     }
     
     /**
-     * 加载配置（优先级：外部文件 > classpath）
+     * 加载配置
      */
     private static ServiceFactoryConfig load() {
-        // 优先级 1：外部配置文件（jar 同级目录的 config/）
+        // 优先级 1：外部配置文件
         Path externalPath = Paths.get(EXTERNAL_CONFIG);
         if (Files.exists(externalPath)) {
             try (InputStream is = Files.newInputStream(externalPath)) {

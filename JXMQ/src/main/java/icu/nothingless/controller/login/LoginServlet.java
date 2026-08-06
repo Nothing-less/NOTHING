@@ -15,6 +15,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 public class LoginServlet extends HttpServlet {
 
@@ -46,12 +47,12 @@ public class LoginServlet extends HttpServlet {
 
         RespEntity<User> respEntity = userService.doLogin(bean);
         if (respEntity.isSuccess()) {
-            // logger.debug("Login Success! User:<{}>", (User) (respEntity.getData()));
-
-            
-
+            session = req.getSession();
+            User _user = (User) respEntity.getData();
+            // 绑定用户和 Session，踢掉旧的
+            icu.nothingless.listener.SessionListener.bindUserSession(_user.userId(), session);
             RedirectUtil.redirect(req, resp, "/home",
-                    Map.of("CURRENT_USER", (User) respEntity.getData()));
+                    Map.of("CURRENT_USER", _user));
         } else {
             ViewUtil.render(req, resp, "error_page", Map.of("respEntity", respEntity));
         }

@@ -54,7 +54,6 @@ public class SHA256Util {
         if (inputPassword == null || storedHash == null) {
             return false;
         }
-        // 直接比较密文（因为前端已经加密了）
         return inputPassword.equalsIgnoreCase(storedHash);
     }
     

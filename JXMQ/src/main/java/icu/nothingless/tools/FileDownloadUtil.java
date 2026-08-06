@@ -11,9 +11,7 @@ public final class FileDownloadUtil {
 
     private static final int BUFFER_SIZE = 8192;
 
-    private FileDownloadUtil() {
-        // 工具类，禁止实例化
-    }
+    private FileDownloadUtil() {}
 
     /**
      * 下载文件（支持断点续传）

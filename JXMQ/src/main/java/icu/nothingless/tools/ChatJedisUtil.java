@@ -25,7 +25,7 @@ import icu.nothingless.pojo.bean.MessageBean;
 public class ChatJedisUtil {
     private static JedisPool pool;
     
-    // 【修复】使用自定义 GSON 实例，支持 LocalDateTime 序列化
+    // 使用自定义 GSON 实例
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
@@ -72,7 +72,7 @@ public class ChatJedisUtil {
         }
     }
 
-    // ========== 原有方法保持不变 ==========
+    // ========== 工具方法 ==========
 
     public static void setUserOnline(Long userId, Integer status) {
         try (Jedis jedis = pool.getResource()) {

@@ -36,7 +36,7 @@ public class UserAvatarServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserAvatarServlet.class);
     private final IUserService<User> userService = ServiceFactory.getSingleton(IUserService.class);
 
-    // 【修改】外部固定目录，避免重启丢失
+    // 外部固定目录，避免重启丢失
     private static final String AVATAR_DIR;
     private static final String AVATAR_URL_PREFIX = "/user/avatar/";
 
@@ -63,9 +63,6 @@ public class UserAvatarServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        req.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json;charset=UTF-8");
-
         HttpSession session = req.getSession(false);
         if (session == null) {
             writeJson(resp, RespEntity.unauthorized("未登录"));
@@ -91,7 +88,7 @@ public class UserAvatarServlet extends HttpServlet {
                 return;
             }
 
-            // 【修改】使用外部固定目录
+            // 使用外部固定目录
             File uploadDir = new File(AVATAR_DIR);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();

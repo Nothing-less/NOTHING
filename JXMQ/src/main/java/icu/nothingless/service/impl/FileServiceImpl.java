@@ -27,7 +27,7 @@ import icu.nothingless.tools.ServiceFactory;
 
 public class FileServiceImpl implements IFileService {
 
-    private final FileUserDao userFileDao = ServiceFactory.getSingleton(FileUserDao.class);
+    private final FileUserDao fileUserDao = ServiceFactory.getSingleton(FileUserDao.class);
     private final FileShareDao fileShareDao = ServiceFactory.getSingleton(FileShareDao.class);
     private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
@@ -61,7 +61,7 @@ public class FileServiceImpl implements IFileService {
         uf.setFileSize(target.length());
         uf.setMimeType(contentType);
 
-        R ret = userFileDao.insert(uf);
+        R ret = fileUserDao.insert(uf);
         if (!ret.isSuccess()) {
             return RespEntity.error(ret.message());
         }
@@ -73,7 +73,7 @@ public class FileServiceImpl implements IFileService {
         if (userId == null) {
             return RespEntity.badRequest("Unknown userId");
         }
-        R<List<FileUserBean>> ret = userFileDao.findByUserId(userId);
+        R<List<FileUserBean>> ret = fileUserDao.findByUserId(userId);
         if (!ret.isSuccess()) {
             return RespEntity.error(ret.message());
         }
@@ -85,7 +85,7 @@ public class FileServiceImpl implements IFileService {
         if (fileId == null) {
             return RespEntity.badRequest("Unknown fileId");
         }
-        R<FileUserBean> retFlieList = userFileDao.findById(fileId);
+        R<FileUserBean> retFlieList = fileUserDao.findById(fileId);
         if (!retFlieList.isSuccess()) {
             return RespEntity.notFound(Fmt.of("File (ID:{}) Not Found", fileId));
         }
@@ -102,7 +102,7 @@ public class FileServiceImpl implements IFileService {
         if (Fmt.isStrictEmpty(keyword)) {
             return RespEntity.badRequest("Keyword cannot be empty");
         }
-        R<List<FileUserBean>> ret = userFileDao.searchByUserAndName(userId, keyword);
+        R<List<FileUserBean>> ret = fileUserDao.searchByUserAndName(userId, keyword);
         if (!ret.isSuccess()) {
             return RespEntity.error(ret.message());
         }
@@ -111,7 +111,7 @@ public class FileServiceImpl implements IFileService {
 
     @Override
     public RespEntity<FileUserBean> getDownloadableFile(Long userId, Long fileId) {
-        R<FileUserBean> uf = userFileDao.findById(fileId);
+        R<FileUserBean> uf = fileUserDao.findById(fileId);
         if (!uf.isSuccess()) {
             return RespEntity.error(uf.message());
         }
@@ -124,7 +124,7 @@ public class FileServiceImpl implements IFileService {
 
     @Override
     public RespEntity deleteFile(Long userId, Long fileId) {
-        R<FileUserBean> uf = userFileDao.findById(fileId);
+        R<FileUserBean> uf = fileUserDao.findById(fileId);
         if (!uf.isSuccess()) {
             return RespEntity.error(uf.message());
         }
@@ -132,14 +132,15 @@ public class FileServiceImpl implements IFileService {
             return RespEntity.error("File does not belong to user");
         }
 
-        new File(uf.data().getFilePath()).delete();
-        userFileDao.deleteById(fileId);
+        // new File(uf.data().getFilePath()).delete();
+        fileUserDao.deleteById(fileId);
+        fileShareDao.updateInvalidStatus(fileId);
         return RespEntity.success();
     }
 
     @Override
     public RespEntity<SendResultDTO> sendFile(Long senderId, Long receiverId, Long fileId) {
-        R<FileUserBean> uf = userFileDao.findById(fileId);
+        R<FileUserBean> uf = fileUserDao.findById(fileId);
         if (!uf.isSuccess()) {
             return RespEntity.error(uf.message());
         }

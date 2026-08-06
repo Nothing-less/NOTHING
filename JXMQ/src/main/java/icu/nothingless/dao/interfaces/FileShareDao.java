@@ -33,4 +33,9 @@ public interface FileShareDao {
      * 更新撤回状态
      */
     void updateRevokeStatus(Long shareId, int revoked);
+
+    /**
+     * 删除分享记录
+     */
+    void updateInvalidStatus(Long shareId);
 }

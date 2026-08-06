@@ -185,7 +185,7 @@ public class FriendServlet extends HttpServlet {
 
     private void writeRespEntity(HttpServletResponse resp, RespEntity<?> respEntity) throws IOException {
         if (respEntity == null) {
-            writeJson(resp, RespEntity.error("服务器返回空响应"));
+            writeJson(resp, RespEntity.error("No response"));
             return;
         }
         if (respEntity.isError()) {

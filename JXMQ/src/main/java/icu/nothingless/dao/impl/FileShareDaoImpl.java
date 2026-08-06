@@ -47,7 +47,7 @@ public class FileShareDaoImpl implements FileShareDao {
     }
 
     @Override
-    public List<FileShareBean> findReceivedByUserId(Long userId) {
+    public List<FileShareBean> findReceivedByUserId(Long user_receiver_id) {
         String sql =
             "SELECT fs.*, uf.file_name, uf.file_size, " +
             "       su.nickname AS sender_name " +
@@ -56,11 +56,11 @@ public class FileShareDaoImpl implements FileShareDao {
             "JOIN users su ON fs.sender_id = su.user_id::bigint " +
             "WHERE fs.file_status AND uf.file_status AND fs.receiver_id = ? AND fs.is_revoked = 0 " +
             "ORDER BY fs.send_time DESC";
-        return queryList(sql, userId);
+        return queryList(sql, user_receiver_id);
     }
 
     @Override
-    public List<FileShareBean> findSentByUserId(Long userId) {
+    public List<FileShareBean> findSentByUserId(Long user_sender_id) {
         String sql =
             "SELECT fs.*, uf.file_name, uf.file_size, " +
             "       ru.nickname AS receiver_name " +
@@ -69,7 +69,7 @@ public class FileShareDaoImpl implements FileShareDao {
             "JOIN users ru ON fs.receiver_id = ru.user_id::bigint " +
             "WHERE fs.file_status AND uf.file_status AND fs.sender_id = ? " +
             "ORDER BY fs.send_time DESC";
-        return queryList(sql, userId);
+        return queryList(sql, user_sender_id);
     }
 
     @Override
@@ -81,6 +81,17 @@ public class FileShareDaoImpl implements FileShareDao {
             throw new RuntimeException("更新撤回状态失败", e);
         }
     }
+
+    @Override
+    public void updateInvalidStatus(Long shareId) {
+        String sql = "UPDATE file_share SET file_status = false WHERE file_status AND id = ?";
+        try {
+            PDBUtil.executeUpdate(sql, shareId);
+        } catch (SQLException e) {
+            throw new RuntimeException("删除文件分享记录失败", e);
+        }
+    }
+
 
     private List<FileShareBean> queryList(String sql, Long userId) {
         List<FileShareBean> list = new ArrayList<>();

@@ -1,5 +1,9 @@
 package icu.nothingless.tools;
 
+/**
+ * 字符串格式化工具类
+ * 
+ */
 public class Fmt {
     public static String of(String template, Object... args) {
         if (template == null || args == null || args.length == 0) {
@@ -24,6 +28,7 @@ public class Fmt {
     public static boolean isAllEmpty(String... strs) {
         return StrUtil.isAllEmpty(strs);
     }
+
     /**
      * 获取当前时间的字符串表示，格式为 "yyyy-MM-dd HH:mm:ss"
      */
@@ -139,6 +144,5 @@ class StrUtil {
     public static String defaultString(String str) {
         return defaultIfEmpty(str, "");
     }
-
 
 }

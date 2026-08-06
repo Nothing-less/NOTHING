@@ -167,14 +167,13 @@ public final class PDBPoolManager {
         config.setConnectionTestQuery("SELECT 1");
         config.setValidationTimeout(3000);
 
-        // PostgreSQL 特有优化（使用 Map 批量设置，更整洁）
+        // PostgreSQL 特有优化
         Map.of(
                 "cachePrepStmts", "true",
                 "prepStmtCacheSize", "250",
                 "prepStmtCacheSqlLimit", "2048",
                 "useServerPrepStmts", "true").forEach(config::addDataSourceProperty);
-
-        // 可选：设置池名称，便于监控
+                
         config.setPoolName("PostgreSQL-Primary-Pool");
 
         return config;

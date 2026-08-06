@@ -44,7 +44,7 @@ public class UserAddServlet extends HttpServlet {
         }
         
         User currentUser = (User) RedirectUtil.getFlash(req, "CURRENT_USER");
-        if (currentUser == null || !"Super Administrator".equals(String.valueOf(currentUser.roleId()))) {
+        if (currentUser == null || !User.ROLE_SUPER_ADMIN.equals(String.valueOf(currentUser.roleId()))) {
             writeJson(resp, RespEntity.error("无权访问"));
             return;
         }
@@ -63,7 +63,7 @@ public class UserAddServlet extends HttpServlet {
             User newUser = User.builder()
                 .userAccount(account)
                 .userPasswd(password)
-                .roleId("Player") // 默认角色为 Player
+                .roleId(User.ROLE_PLAYER) // 默认角色为 Player
                 .nickname(nickname)
                 .registerTime(Fmt.getCurrentTime())
                 .lastLoginIpAddr(LoginServlet.getClientIP(req))
@@ -75,13 +75,11 @@ public class UserAddServlet extends HttpServlet {
             }else{
                 writeJson(resp, RespEntity.success("用户创建成功"));
             }
-
-
-            logger.info("User [{}] created new user [account={}] by Super Administrator", 
+            logger.info("Administrator [{}] created new user [account={}]", 
                 currentUser.userId(), account);
                 
         } catch (Exception e) {
-            logger.error("Failed to create user [account={}]", account, e);
+            logger.error("Failed to create user [account={}],reason: {}", account, e.getMessage());
             writeJson(resp, RespEntity.error("创建用户失败: " + e.getMessage()));
         }
     }

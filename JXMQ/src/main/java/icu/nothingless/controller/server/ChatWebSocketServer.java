@@ -248,7 +248,7 @@ public class ChatWebSocketServer {
     }
 
     /**
-     * 【核心修复】处理聊天消息
+     * 处理聊天消息
      * 数据流转：保存DB → 推送到接收方
      */
     private void handleChatMessage(Map<String, Object> msgMap) {
@@ -264,7 +264,7 @@ public class ChatWebSocketServer {
             Long fromId = Long.valueOf(userId);
             Long toId = Long.valueOf(toUserId);
 
-            // 第 1 步：保存到数据库
+            // 保存到数据库
             var respEntity = messageService.sendMessage(fromId, toId, content, Message.TYPE_TEXT);
 
             if (respEntity == null || respEntity.isError() || respEntity.getData() == null) {
@@ -274,10 +274,10 @@ public class ChatWebSocketServer {
 
             Message savedMsg = respEntity.getData();
 
-            // 第 2 步：推送到等待队列（供长轮询客户端拉取）
+            // 推送到等待队列（供长轮询客户端拉取）
             pushToWaitQueue(savedMsg.receiverId(), savedMsg);
 
-            // 第 3 步：【关键修复】优先直接推送给本地连接的接收方
+            // 优先直接推送给本地连接的接收方
             boolean localDelivered = tryLocalPush(toId, savedMsg);
 
             if (!localDelivered) {
@@ -288,14 +288,14 @@ public class ChatWebSocketServer {
                 redisBus.sendMessage(toUserId, msgJson);
             }
 
-            // 第 4 步：增加未读计数（Redis）
+            // 增加未读计数（Redis）
             ChatJedisUtil.incrUnread(toId, fromId);
 
-            // 第 5 步：缓存最近消息
+            // 缓存最近消息
             // ChatJedisUtil.cacheRecentMessage(toId, fromId,
             // MessageBean.fromDTO(savedMsg));
 
-            // 第 6 步：发送成功回执给发送方
+            // 发送成功回执给发送方
             sendMessage(JsonUtil.toJson(Map.of(
                     "type", "SENT_ACK",
                     "messageId", savedMsg.msgId(),

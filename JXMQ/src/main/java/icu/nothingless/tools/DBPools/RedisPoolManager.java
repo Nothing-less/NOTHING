@@ -42,7 +42,7 @@ public class RedisPoolManager {
 
             config.setTestOnBorrow(true); // 获取连接时检测
             config.setTestWhileIdle(true); // 空闲时检测
-            config.setTestOnReturn(false); // 归还时不检测（减少开销）
+            config.setTestOnReturn(false); // 归还时不检测
 
             // 驱逐线程配置（清理无效连接）
             config.setTimeBetweenEvictionRuns(

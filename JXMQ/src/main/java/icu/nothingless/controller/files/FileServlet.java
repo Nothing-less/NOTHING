@@ -29,6 +29,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
 /**
@@ -143,7 +144,7 @@ public class FileServlet extends HttpServlet {
     private RespEntity doList(HttpServletRequest req, HttpServletResponse resp) {
         Long userId = getCurrentUserId(req);
         RespEntity<List<FileUserBean>> listFiles = fileService.listFiles(userId);
-        return RespEntity.success((List<FileUserBean>)listFiles.getData());
+        return RespEntity.success((List<FileUserBean>) listFiles.getData());
     }
 
     /*
@@ -158,7 +159,7 @@ public class FileServlet extends HttpServlet {
         String keyword = req.getParameter("keyword");
         Long userId = getCurrentUserId(req);
         RespEntity<List<FileUserBean>> listFiles = fileService.searchFiles(userId, keyword.trim());
-        return RespEntity.success((List<FileUserBean>)listFiles.getData());
+        return RespEntity.success((List<FileUserBean>) listFiles.getData());
     }
 
     /*
@@ -245,7 +246,7 @@ public class FileServlet extends HttpServlet {
     private RespEntity dolistReceived(HttpServletRequest req, HttpServletResponse resp) {
         Long userId = getCurrentUserId(req);
         RespEntity<List<FileShareBean>> received_file_list = fileService.listReceived(userId);
-        return RespEntity.success((List<FileShareBean>)received_file_list.getData());
+        return RespEntity.success((List<FileShareBean>) received_file_list.getData());
 
     }
 
@@ -259,7 +260,7 @@ public class FileServlet extends HttpServlet {
     private RespEntity doSend(HttpServletRequest req, HttpServletResponse resp) {
         Long userId = getCurrentUserId(req);
         RespEntity<List<FileShareBean>> sent_file_list = fileService.listSent(userId);
-        return RespEntity.success((List<FileShareBean>)sent_file_list.getData());
+        return RespEntity.success((List<FileShareBean>) sent_file_list.getData());
     }
 
     /* ====== Dispatch functions (for doPost)====== */
@@ -284,7 +285,7 @@ public class FileServlet extends HttpServlet {
                 part.getContentType(),
                 part.getInputStream());
 
-        return RespEntity.success((UploadResultDTO)ret.getData());
+        return RespEntity.success((UploadResultDTO) ret.getData());
     }
 
     /*
@@ -300,7 +301,7 @@ public class FileServlet extends HttpServlet {
         RespEntity<List<FileUserBean>> list = (keyword == null || keyword.isBlank())
                 ? fileService.listFiles(userId)
                 : fileService.searchFiles(userId, keyword.trim());
-        return RespEntity.success((List<FileUserBean>)list.getData());
+        return RespEntity.success((List<FileUserBean>) list.getData());
     }
 
     /*
@@ -316,7 +317,7 @@ public class FileServlet extends HttpServlet {
         if (fileId == null) {
             return RespEntity.badRequest("Missing file ID");
         }
-        if(userId == null){
+        if (userId == null) {
             return RespEntity.badRequest("Missing user ID");
         }
         return fileService.deleteFile(userId, fileId);
@@ -378,14 +379,16 @@ public class FileServlet extends HttpServlet {
 
     private Long init_requireLogin(HttpServletRequest req, HttpServletResponse resp) {
         // 优先从 Session 取ID
-        Object uid = req.getSession().getAttribute("CURRENT_USER_ID");
+        HttpSession session = req.getSession(false);
+        if (session == null)
+            return null;
+        Object uid = session.getAttribute("CURRENT_USER_ID");
         if (uid == null) {
-            uid = req.getSession().getAttribute("userId");
+            uid = session.getAttribute("userId");
         }
         if (uid != null) {
             return toLong(uid);
         }
-
         // 尝试普通参数（适用于 GET 请求、query string、application/x-www-form-urlencoded）
         String uidStr = req.getParameter("userId");
         if (uidStr != null && !uidStr.isEmpty()) {

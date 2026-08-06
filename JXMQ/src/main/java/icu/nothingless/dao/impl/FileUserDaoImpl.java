@@ -77,7 +77,7 @@ public class FileUserDaoImpl implements FileUserDao {
 
     @Override
     public R deleteById(Long id) throws RuntimeException {
-        String sql = "UPDATE file_user SET file_status = FALSE WHERE id = ?";
+        String sql = "UPDATE file_user SET file_status = FALSE WHERE id = ? AND file_status = TRUE ";
         try {
             var result = PDBUtil.executeUpdate(sql, id);
             if(result > 0) {

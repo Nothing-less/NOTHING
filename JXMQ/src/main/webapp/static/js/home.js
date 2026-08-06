@@ -273,6 +273,14 @@ var App = (function() {
                 self.resizeIframe();
                 state.isLoading = false;
             };
+
+            try {
+                var iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                if (iframeDoc) {
+                    keyboardShortcuts.bindTo(iframeDoc);
+                }
+            } catch (err) {}
+
             var onError = function() { cleanup(); state.isLoading = false; };
             iframe.addEventListener('load', onLoad);
             iframe.addEventListener('error', onError);
@@ -402,6 +410,7 @@ var App = (function() {
     
     // 键盘快捷键
     var keyboardShortcuts = {
+        /*
         init: function() {
             document.addEventListener('keydown', function(e) {
                 if (e.altKey && (e.key === 's' || e.key === 'S')) {
@@ -416,6 +425,34 @@ var App = (function() {
                     e.preventDefault(); pageLoader.loadFirstPage();
                 }
             });
+        }
+        */
+
+        handleKeyDown: function(e) {
+            if (e.altKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+                uiEffects.toggleSidebar();
+            }
+            if (e.altKey && e.key >= '1' && e.key <= '9') {
+                e.preventDefault();
+                var item = menuManager.getMenuByIndex(parseInt(e.key) - 1);
+                if (item) pageLoader.loadPage(item.name, item.displayText);
+            }
+            if (e.altKey && e.key === 'Home') {
+                e.preventDefault();
+                pageLoader.loadFirstPage();
+            }
+        },
+        
+        // 绑定到指定文档
+        bindTo: function(targetDoc) {
+            if (!targetDoc) return;
+            targetDoc.addEventListener('keydown', this.handleKeyDown);
+        },
+        
+        init: function() {
+            // 绑定父页面
+            this.bindTo(document);
         }
     };
     

@@ -36,6 +36,8 @@ public record User(
 
     // 用户权限
     public static final String ROLE_SUPER_ADMIN = "Super Administrator";
+    public static final String ROLE_ADMIN = "Administrator";
+    public static final String ROLE_PLAYER = "Player";
 
     // ==================== 紧凑构造器（校验 & 默认值）====================
 

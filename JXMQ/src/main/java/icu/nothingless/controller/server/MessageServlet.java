@@ -17,6 +17,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+/*
+ * 消息服务 Servlet
+ * 发送消息、获取历史消息、获取未读消息、标记消息为已读、撤回消息
+ */
 @WebServlet("/message/*")
 public class MessageServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -24,7 +28,7 @@ public class MessageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        prepareResponse(resp);
+        // prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
             writeJson(resp, RespEntity.error("会话已过期"));
@@ -48,7 +52,7 @@ public class MessageServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        prepareResponse(resp);
+        // prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
             writeJson(resp, RespEntity.error("会话已过期"));
@@ -113,7 +117,7 @@ public class MessageServlet extends HttpServlet {
             // 推送到等待队列
             ChatWebSocketServer.pushToWaitQueue(receiverId, savedMsg);
 
-            // Redis 发布订阅（统一处理本地/集群/离线）
+            // Redis 发布订阅
             String msgJson = JsonUtil.toJson(Map.of(
                     "type", "CHAT",
                     "message", savedMsg));
@@ -194,14 +198,15 @@ public class MessageServlet extends HttpServlet {
         return value == null ? defaultValue : value;
     }
 
-    private void prepareResponse(HttpServletResponse resp) {
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json;charset=UTF-8");
-    }
-
+    /*
+     * private void prepareResponse(HttpServletResponse resp) {
+     * resp.setCharacterEncoding("UTF-8");
+     * resp.setContentType("application/json;charset=UTF-8");
+     * }
+     */
     private void writeRespEntity(HttpServletResponse resp, RespEntity<?> respEntity) throws IOException {
         if (respEntity == null) {
-            writeJson(resp, RespEntity.error("服务器返回空响应"));
+            writeJson(resp, RespEntity.error("empty response"));
             return;
         }
         if (respEntity.isError()) {

@@ -50,9 +50,11 @@
                         <label for="username">Username</label>
                         <div class="input-wrapper">
                             <input id="username" name="username" type="text" 
-                                   value="${fn:escapeXml(param.username)}" 
-                                   required autofocus 
-                                   placeholder="your username"/>
+                                    value="${fn:escapeXml(param.username)}" 
+                                    required autofocus 
+                                    pattern="[a-zA-Z0-9]+"
+                                    title="Only letters and numbers are allowed"
+                                    placeholder="your username"/>
                             <svg class="input-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -102,6 +104,27 @@
         var pwd_entrypted = document.getElementById('pwd_entrypted');
         var submit = form.querySelector('button[type="submit"]');
         
+        if(username) {
+            username.addEventListener('input', function(e) {
+                // 实时过滤：把非字母数字的字符替换掉
+                var original = this.value;
+                var filtered = original.replace(/[^a-zA-Z0-9]/g, '');
+                if(original !== filtered) {
+                    this.value = filtered;
+                }
+            });
+            username.addEventListener('paste', function(e) {
+                e.preventDefault();
+                var paste = (e.clipboardData || window.clipboardData).getData('text');
+                var filtered = paste.replace(/[^a-zA-Z0-9]/g, '');
+                // 在光标位置插入
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + filtered + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + filtered.length;
+            });
+        };
+
         // 密码加密和提交处理
         [username, password].forEach(function(input) {
             if(input) {
@@ -118,11 +141,12 @@
         });
 
         function submitForm() {
-
+            if(username && username.value) {
+                username.value = username.value.toLowerCase().trim();
+            }
+            
             if(password.value && !password.value.match(/^[a-f0-9]{64}$/i)) {
-                // console.log("PWD original:",password.value);
-                pwd_entrypted.value = SHA256Util.encrypt(password.value);
-                // console.log("PWD encrypt :",pwd_entrypted.value);
+                pwd_entrypted.value = SHA256Util.encrypt(password.value.trim());
             }
 
             if(submit) {
@@ -131,7 +155,7 @@
             }
             password.removeAttribute('name');
             form.submit();
-        }
+        };
 
         form.addEventListener('submit', function(e){
             e.preventDefault();

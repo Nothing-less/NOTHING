@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.R;
 import icu.nothingless.commons.RespEntity;
-import icu.nothingless.controller.config.GlobalConfig;
+import icu.nothingless.config.GlobalConfig;
 import icu.nothingless.dao.interfaces.FileShareDao;
 import icu.nothingless.dao.interfaces.FileUserDao;
 import icu.nothingless.pojo.bean.FileShareBean;

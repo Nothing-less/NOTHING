@@ -1,4 +1,4 @@
-package icu.nothingless.controller.server;
+package icu.nothingless.controller.chat;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.controller.config.ChatConfigurator;
+import icu.nothingless.config.ChatConfigurator;
 import icu.nothingless.pojo.bean.MessageBean;
 import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.pojo.dto.User;

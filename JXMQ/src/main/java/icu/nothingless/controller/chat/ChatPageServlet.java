@@ -1,4 +1,4 @@
-package icu.nothingless.controller.server;
+package icu.nothingless.controller.chat;
 
 import java.io.IOException;
 import java.util.Map;

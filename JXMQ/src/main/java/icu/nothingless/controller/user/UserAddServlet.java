@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.controller.login.LoginServlet;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
@@ -43,7 +44,7 @@ public class UserAddServlet extends HttpServlet {
             return;
         }
         
-        User currentUser = (User) RedirectUtil.getFlash(req, "CURRENT_USER");
+        User currentUser = (User) RedirectUtil.getFlash(req, GlobalParams.CURRENT_USER);
         if (currentUser == null || !User.ROLE_SUPER_ADMIN.equals(String.valueOf(currentUser.roleId()))) {
             writeJson(resp, RespEntity.error("无权访问"));
             return;

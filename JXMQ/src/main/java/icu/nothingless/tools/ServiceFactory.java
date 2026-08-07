@@ -22,7 +22,7 @@ import java.util.jar.JarFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.tools.config.ServiceFactoryConfig;
+import icu.nothingless.config.ServiceFactoryConfig;
 
 public class ServiceFactory {
 

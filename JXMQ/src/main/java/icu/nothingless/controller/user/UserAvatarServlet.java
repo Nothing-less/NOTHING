@@ -11,7 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.RespEntity;
-import icu.nothingless.controller.config.GlobalConfig;
+import icu.nothingless.config.GlobalConfig;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.JsonUtil;
@@ -69,7 +70,7 @@ public class UserAvatarServlet extends HttpServlet {
             return;
         }
 
-        User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(req, "CURRENT_USER");
+        User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(req, GlobalParams.CURRENT_USER);
         if (currentUser == null) {
             writeJson(resp, RespEntity.unauthorized("未登录"));
             return;
@@ -113,7 +114,7 @@ public class UserAvatarServlet extends HttpServlet {
 
             if (result.isSuccess() && result.getData() != null) {
                 User freshUser = result.getData();
-                session.setAttribute(RedirectUtil.PREFIX + "CURRENT_USER", freshUser);
+                session.setAttribute(RedirectUtil.PREFIX + GlobalParams.CURRENT_USER, freshUser);
                 writeJson(resp, RespEntity.success(avatarUrl));
             } else {
                 Files.deleteIfExists(filePath);

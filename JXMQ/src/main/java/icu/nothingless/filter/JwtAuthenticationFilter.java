@@ -1,21 +1,22 @@
 package icu.nothingless.filter;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.tools.JsonUtil;
 import icu.nothingless.tools.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.*;
-import jakarta.servlet.annotation.WebFilter;
+// import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/*"})
+// @WebFilter(urlPatterns = { "/*" })
 public class JwtAuthenticationFilter implements Filter {
 
     // 这些路径不需要 token 验证
     private static final String[] SKIP_PATHS = {
-        "/login", "/static/", "/api/config", "/api/time"
+            "/login", "/static/", "/api/config", "/api/time"
     };
 
     @Override
@@ -53,7 +54,7 @@ public class JwtAuthenticationFilter implements Filter {
         // ⚠️ 这里根据你的 User 类实际构造方法调整
         Claims claims = JwtUtil.parseToken(token);
         // User user = new User();
-        request.setAttribute("CURRENT_USER", null); // ⚠️ 这里需要根据你的 User 类实际构造方法调整
+        request.setAttribute(GlobalParams.CURRENT_USER, null); // ⚠️ 这里需要根据你的 User 类实际构造方法调整
 
         chain.doFilter(req, resp);
     }

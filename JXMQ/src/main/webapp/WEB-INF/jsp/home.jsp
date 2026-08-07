@@ -2,9 +2,10 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="icu.nothingless.pojo.dto.User" %>
 <%@ page import="icu.nothingless.tools.RedirectUtil" %>
+<%@ page import="icu.nothingless.config.GlobalParams" %>
 
 <% String contextPath = request.getContextPath(); %>
-<% User currentUser =  (User) RedirectUtil.getFlash(request, "CURRENT_USER"); %>
+<% User currentUser =  (User) RedirectUtil.getFlash(request, GlobalParams.CURRENT_USER); %>
 
 <!DOCTYPE html>
 <html lang="zh-CN">

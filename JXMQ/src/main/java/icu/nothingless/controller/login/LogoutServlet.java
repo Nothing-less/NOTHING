@@ -2,6 +2,8 @@ package icu.nothingless.controller.login;
 
 import java.io.IOException;
 
+import icu.nothingless.config.GlobalParams;
+import icu.nothingless.listener.SessionListener;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ViewUtil;
@@ -18,10 +20,11 @@ public class LogoutServlet extends LoginServlet {
         HttpSession session = request.getSession(false);
         
         if (session != null) {
-            User currentUser = (User) RedirectUtil.getFlash(request, "CURRENT_USER");
+            User currentUser = (User) RedirectUtil.getFlash(request, GlobalParams.CURRENT_USER);
             if (currentUser != null) {
                 userService.doLogout(currentUser);
             }
+            SessionListener.removeUserSession(currentUser.userId());
             session.invalidate();
         }
         

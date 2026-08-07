@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ViewUtil;
@@ -47,7 +48,7 @@ public class UserAuthFilter implements Filter {
             return;
         }
 
-        Object obj = RedirectUtil.getFlash(req, "CURRENT_USER");
+        Object obj = RedirectUtil.getFlash(req, GlobalParams.CURRENT_USER);
         if (obj == null) {
             // 未登录的请求
             ViewUtil.render(req, resp, "error_page",

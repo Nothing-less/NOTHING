@@ -9,6 +9,7 @@
         respEntity = new RespEntity<>();
         respEntity.setMessage("发生未知错误");
     }
+    request.getSession(false).removeAttribute("respEntity");
 %>
 
 <!DOCTYPE html>

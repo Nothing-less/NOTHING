@@ -1,7 +1,7 @@
 package icu.nothingless.listener;
 
+import icu.nothingless.config.ServiceFactoryConfig;
 import icu.nothingless.tools.ServiceFactory;
-import icu.nothingless.tools.config.ServiceFactoryConfig;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;

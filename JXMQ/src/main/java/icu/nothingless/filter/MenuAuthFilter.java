@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.reflect.TypeToken;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.controller.pages.PageRouteServlet.MenuItem;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.tools.JsonUtil;
@@ -102,7 +103,7 @@ public class MenuAuthFilter implements Filter {
         HttpSession session = req.getSession(false);
         if (session == null)
             return null;
-        User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(req, "CURRENT_USER");
+        User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(req, GlobalParams.CURRENT_USER);
         if (currentUser == null)
             return null;
         Object roleId = currentUser.roleId();

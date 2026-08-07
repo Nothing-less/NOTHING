@@ -18,7 +18,7 @@
     <!-- 当文件到达多大就自动新建一个文件继续存放数据 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOG_HOME}/log.%d{yyyy-MM-dd}.%i.log </fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
+            <maxFileSize>1MB</maxFileSize>
             <MaxHistory>60</MaxHistory>
         </rollingPolicy>
         <!-- 刷新时间 -->

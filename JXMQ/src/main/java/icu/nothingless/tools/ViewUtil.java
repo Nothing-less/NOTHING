@@ -30,6 +30,27 @@ public class ViewUtil {
     }
 
     public static void render(HttpServletRequest req, HttpServletResponse resp,
+            String view_full_path, String view_name, Map<String, Object> data) throws ServletException, IOException {
+        if(data != null) {
+            HttpSession session = req.getSession();
+            data.forEach(session::setAttribute);
+        }
+        if("".equals(view_full_path)){
+            view_full_path = "/";
+        }
+        req.getRequestDispatcher(view_full_path+view_name+viewSuffix).forward(req, resp);
+    }
+
+
+    /**
+     * 渲染视图
+     * 
+     * @param req      HttpServletRequest
+     * @param resp     HttpServletResponse
+     * @param viewName 视图名称
+     * @param data     数据，存放到 Session 中
+     */
+    public static void render(HttpServletRequest req, HttpServletResponse resp,
             String viewName, Map<String, Object> data) throws ServletException, IOException {
 
         if (viewName == null || viewName.trim().isEmpty()) {

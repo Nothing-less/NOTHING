@@ -1,4 +1,4 @@
-package icu.nothingless.controller.config;
+package icu.nothingless.config;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.websocket.HandshakeResponse;

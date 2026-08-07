@@ -5,8 +5,8 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import icu.nothingless.controller.config.GlobalConfig;
-import icu.nothingless.controller.server.ChatWebSocketServer;
+import icu.nothingless.config.GlobalConfig;
+import icu.nothingless.controller.chat.ChatWebSocketServer;
 import icu.nothingless.service.impl.UserServiceImpl;
 import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.ChatJedisUtil;
@@ -44,8 +44,8 @@ public class InfrastructureInitializer implements ServletContextListener {
             initChatJedisUtil(sce);
             logger.info("Infrastructure initialized successfully.");
 
-        } catch (IOException e) {
-            logger.error("Failed to initialize infrastructure: ", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Failed to initialize infrastructure", e);
             switch_flag = false;
         }
 
@@ -67,7 +67,7 @@ public class InfrastructureInitializer implements ServletContextListener {
             logger.error("Error logging out all users: ", e);
         }
 
-        // 先关闭 ChatRedisBus（需要在线程池关闭前取消订阅）
+        // 关闭 ChatRedisBus（需要在线程池关闭前取消订阅）
         try {
             ChatRedisBus redisBus = (ChatRedisBus) sce.getServletContext().getAttribute("chatRedisBus");
             if (redisBus != null) {
@@ -77,14 +77,14 @@ public class InfrastructureInitializer implements ServletContextListener {
         } catch (Exception e) {
             logger.error("Error shutting down ChatRedisBus: ", e);
         }
-        // 2. 关闭 WebSocket
+        // 关闭 WebSocket
         try {
             ChatWebSocketServer.shutdown();
             logger.info("WebSocket server shutdown.");
         } catch (Exception e) {
             logger.error("Error shutting down WebSocket server: ", e);
         }
-        // 3. 关闭连接池
+        // 关闭连接池
         try {
             PDBPoolManager.close();
             logger.info("PostgreSQL pool closed.");

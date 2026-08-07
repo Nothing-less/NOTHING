@@ -4,11 +4,12 @@
 <%@ page import="icu.nothingless.commons.RespEntity" %>
 <%@ page import="icu.nothingless.pojo.dto.User" %>
 <%@ page import="icu.nothingless.tools.RedirectUtil" %>
+<%@ page import="icu.nothingless.config.GlobalParams" %>
 
 <link rel="stylesheet" href="<c:url value='/static/css/file_repository.css' />">
 
 <%
-    User currentUser = (User) RedirectUtil.getFlash(request, "CURRENT_USER");
+    User currentUser = (User) RedirectUtil.getFlash(request, GlobalParams.CURRENT_USER);
     String contextPath = request.getContextPath();
 %>
 

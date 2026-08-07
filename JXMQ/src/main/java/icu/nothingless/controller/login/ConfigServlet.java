@@ -1,4 +1,4 @@
-package icu.nothingless.controller.config;
+package icu.nothingless.controller.login;
 
 import java.io.IOException;
 import java.util.HashMap;

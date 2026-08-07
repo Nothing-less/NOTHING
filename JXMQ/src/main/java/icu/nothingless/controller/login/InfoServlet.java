@@ -3,6 +3,7 @@ package icu.nothingless.controller.login;
 import java.io.IOException;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.tools.JsonUtil;
 import icu.nothingless.tools.RedirectUtil;
@@ -22,7 +23,7 @@ public class InfoServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        User user = RedirectUtil.getFlash(req, "CURRENT_USER") instanceof User u ? u : null;
+        User user = RedirectUtil.getFlash(req, GlobalParams.CURRENT_USER) instanceof User u ? u : null;
         if (user == null) {
             resp.setStatus(401);
             resp.getWriter().write(JsonUtil.toJson(RespEntity.error("You didn't logon")));

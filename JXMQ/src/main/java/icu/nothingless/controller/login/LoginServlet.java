@@ -3,9 +3,13 @@ package icu.nothingless.controller.login;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.swing.text.View;
+
 import org.slf4j.Logger;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
+import icu.nothingless.listener.SessionListener;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.RedirectUtil;
@@ -15,7 +19,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 public class LoginServlet extends HttpServlet {
 
@@ -26,19 +29,27 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        ViewUtil.render(req, resp, "error_page", Map.of("respEntity", RespEntity.error("Request is not allowed")));
+        ViewUtil.render(req, resp, "", "index", null);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        jakarta.servlet.http.HttpSession session = req.getSession(false);
-        if(session != null){
-            session.invalidate();
-        }
         String username = req.getParameter("username");
         String password = req.getParameter("pwd_entrypted");
+
         // logger.debug(Fmt.of("User({})====PWD({})", username, password));
+        // 检查当前会话是否已登录第二账号
+        // 严禁登录第二账号
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session != null) {
+            User loggedInUser = (User) session.getAttribute(RedirectUtil.PREFIX + GlobalParams.CURRENT_USER);
+            if (loggedInUser != null && !loggedInUser.userAccount().equalsIgnoreCase(username)) {
+                ViewUtil.render(req, resp, "error_page", Map.of("respEntity", RespEntity.error("当前设备已登录其他账号，请先退出登录")));
+                return;
+            }
+        }
+        // 登录第二账号后踢掉前账号: SessionCheckFilter 未启用
 
         User bean = User.builder()
                 .userAccount(username).userPasswd(password).loginNow(getClientIP(req))
@@ -49,10 +60,9 @@ public class LoginServlet extends HttpServlet {
         if (respEntity.isSuccess()) {
             session = req.getSession();
             User _user = (User) respEntity.getData();
-            // 绑定用户和 Session，踢掉旧的
-            icu.nothingless.listener.SessionListener.bindUserSession(_user.userId(), session);
-            RedirectUtil.redirect(req, resp, "/home",
-                    Map.of("CURRENT_USER", _user));
+            // 绑定用户和 Session 未启用
+            // SessionListener.bindUserSession(_user.userId(), session);
+            RedirectUtil.redirect(req, resp, "/home", Map.of(GlobalParams.CURRENT_USER, _user));
         } else {
             ViewUtil.render(req, resp, "error_page", Map.of("respEntity", respEntity));
         }
@@ -77,7 +87,7 @@ public class LoginServlet extends HttpServlet {
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
-        
+
         // 多级代理，取第一个 IP
         if (ip != null && ip.contains(",")) {
             ip = ip.split(",")[0].trim();

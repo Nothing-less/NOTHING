@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.JsonUtil;
@@ -37,7 +38,7 @@ public class UserUpdateServlet extends HttpServlet {
             return;
         }
         
-        User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(req, "CURRENT_USER");
+        User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(req, GlobalParams.CURRENT_USER);
         if (currentUser == null) {
             writeJson(resp, RespEntity.unauthorized("未登录"));
             return;
@@ -69,7 +70,7 @@ public class UserUpdateServlet extends HttpServlet {
             var result = userService.doUpdate(updateUser);
             
             if (result.isSuccess() && result.getData() != null) {
-                session.setAttribute(RedirectUtil.PREFIX + "CURRENT_USER", result.getData());
+                session.setAttribute(RedirectUtil.PREFIX + GlobalParams.CURRENT_USER, result.getData());
             }
             
             writeJson(resp, result);

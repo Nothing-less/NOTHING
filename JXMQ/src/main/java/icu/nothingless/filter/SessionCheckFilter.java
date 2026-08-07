@@ -10,12 +10,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.annotation.WebFilter;
+// import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebFilter(urlPatterns = {"/home", "/page/*", "/api/*"})
+// @WebFilter(urlPatterns = {"/home", "/page/*", "/api/*"})
 public class SessionCheckFilter implements Filter {
     
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -30,11 +30,10 @@ public class SessionCheckFilter implements Filter {
             if (kicked != null && kicked) {
                 session.invalidate();
                 ViewUtil.render(request, response, "error_page", 
-                    Map.of("respEntity", RespEntity.error("您的账号已在其他地方登录，请重新登录")));
+                    Map.of("respEntity", RespEntity.error("其他账号已登录，您已被踢出，请重新登录")));
                 return;
             }
         }
-        
         chain.doFilter(req, resp);
     }
 }

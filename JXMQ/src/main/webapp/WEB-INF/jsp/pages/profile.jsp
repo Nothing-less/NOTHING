@@ -3,9 +3,10 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="icu.nothingless.pojo.dto.User" %>
 <%@ page import="icu.nothingless.tools.RedirectUtil" %>
+<%@ page import="icu.nothingless.config.GlobalParams" %>
 
 <%
-    User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(request, "CURRENT_USER");
+    User currentUser = (User) icu.nothingless.tools.RedirectUtil.getFlash(request, GlobalParams.CURRENT_USER);
     String avatarUrl = currentUser.userKey2();
     if (avatarUrl == null || avatarUrl.trim().isEmpty()) {
         avatarUrl = request.getContextPath() + "/static/images/default-avatar.png";

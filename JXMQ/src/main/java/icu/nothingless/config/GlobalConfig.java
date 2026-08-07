@@ -1,4 +1,4 @@
-package icu.nothingless.controller.config;
+package icu.nothingless.config;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,4 +87,8 @@ class PlaceholderResolver {
         }
         return result.toString();
     }
+}
+
+class TemplateString{
+
 }

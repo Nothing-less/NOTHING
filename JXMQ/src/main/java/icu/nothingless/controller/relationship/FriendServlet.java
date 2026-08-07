@@ -1,4 +1,4 @@
-package icu.nothingless.controller.server;
+package icu.nothingless.controller.relationship;
 
 import java.io.IOException;
 import java.util.List;

@@ -8,6 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.pojo.bean.MessageBean;
 import icu.nothingless.pojo.dto.Message;
 import icu.nothingless.service.impl.MessageServiceImpl;
@@ -29,7 +30,6 @@ public class ChatPollServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        prepareResponse(resp);
         Long userId = getCurrentUserId(req);
         if (userId == null) {
             writeJson(resp, RespEntity.error("会话已过期"));
@@ -80,7 +80,7 @@ public class ChatPollServlet extends HttpServlet {
         if (session == null) {
             return null;
         }
-        Object userId = session.getAttribute("CURRENT_USER_ID");
+        Object userId = session.getAttribute(GlobalParams.CURRENT_USER_ID);
         if (userId instanceof Long) {
             return (Long) userId;
         }

@@ -51,16 +51,16 @@ public class UserAuthFilter implements Filter {
         Object obj = RedirectUtil.getFlash(req, GlobalParams.CURRENT_USER);
         if (obj == null) {
             // 未登录的请求
-            ViewUtil.render(req, resp, "error_page",
-                    java.util.Map.of("respEntity", RespEntity.unauthorized("未登录")));
+            ViewUtil.render(req, resp, GlobalParams.Pages.ERROR_PAGE,
+                    java.util.Map.of("respEntity", RespEntity.unauthorized("未登录!")));
             return;
         }
         // 已登录的请求，继续处理
         User user = (User) obj;
         String userID = user.userId();
         String username = user.nickname();
-        req.getSession(false).setAttribute("CURRENT_USER_ID", userID);
-        req.getSession(false).setAttribute("CURRENT_USER_NICKNAME", username);
+        req.getSession(false).setAttribute(GlobalParams.CURRENT_USER_ID, userID);
+        req.getSession(false).setAttribute(GlobalParams.CURRENT_USER_NICKNAME, username);
         // 已登录则放行
         chain.doFilter(request, response);
     }

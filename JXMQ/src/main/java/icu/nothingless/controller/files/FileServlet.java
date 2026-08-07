@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalConfig;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.dao.interfaces.FileShareDao;
 import icu.nothingless.pojo.bean.FileShareBean;
 import icu.nothingless.pojo.bean.FileUserBean;
@@ -82,7 +84,7 @@ public class FileServlet extends HttpServlet {
             }
         } catch (IOException e) {
             logger.error("Error occurred: {}", e);
-            ViewUtil.render(req, resp, "error_page",
+            ViewUtil.render(req, resp, GlobalParams.Pages.ERROR_PAGE,
                     Map.of("respEntity", RespEntity.internalError("There's some internal error occurred")));
         }
     }
@@ -115,14 +117,14 @@ public class FileServlet extends HttpServlet {
             }
         } catch (ServletException | IOException e) {
             logger.error("Error occurred: {}", e);
-            ViewUtil.render(req, resp, "error_page",
+            ViewUtil.render(req, resp, GlobalParams.Pages.ERROR_PAGE,
                     Map.of("respEntity", RespEntity.internalError("There's some internal error occurred!")));
         }
     }
 
     private void renderError(HttpServletRequest req, HttpServletResponse resp, RespEntity<?> respEntity) {
         try {
-            ViewUtil.render(req, resp, "error_page", Map.of("respEntity", respEntity));
+            ViewUtil.render(req, resp, GlobalParams.Pages.ERROR_PAGE, Map.of("respEntity", respEntity));
         } catch (ServletException | IOException e) {
             logger.error("Render error page failed", e);
         }

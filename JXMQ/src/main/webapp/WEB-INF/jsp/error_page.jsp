@@ -19,6 +19,13 @@
         <div class="failed-icon"> ❌ </div>
         <h1><%= respEntity.getMessage() %></h1>
 
+        <div class="message">
+            时间: <%= respEntity.getTimestamp() %>
+            <br>
+            相关信息: <%= respEntity.getPath() %>
+            <br>
+        </div>
+
         <% if (respEntity.getData() != null) { %>
             <div class="message">
                 出现问题: <%= respEntity.getData() != null ? "，相关数据如下" : "" %>

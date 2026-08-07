@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -23,7 +24,7 @@ public class Turn2ErrorServlet extends HttpServlet {
     @Override
     protected void doPost( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException {
         logger.error("Error occurred !");
-        logger.error("Error message:",req.getAttribute("respEntity"));
-        ViewUtil.render(req, resp, "error_page",Map.of("respEntity",RespEntity.error("错误！失败！系统无法正常运行！系统网络异常！")));
+        logger.error("Error message: {}",req.getAttribute("respEntity"));
+        ViewUtil.render(req, resp, GlobalParams.Pages.ERROR_PAGE,Map.of("respEntity",RespEntity.error("错误！失败！系统无法正常运行！系统网络异常！")));
     }
 }

@@ -3,6 +3,7 @@ package icu.nothingless.controller.chat;
 import java.io.IOException;
 import java.util.Map;
 
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -23,7 +24,7 @@ public class ChatPageServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "未登录");
             return;
         }
-        Object userIdObj = session.getAttribute("CURRENT_USER_ID");
+        Object userIdObj = session.getAttribute(GlobalParams.CURRENT_USER_ID);
         if (userIdObj == null) {
             resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "未登录");
             return;

@@ -27,7 +27,7 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        ViewUtil.render(req, resp, "", "index", null);
+        ViewUtil.render(req, resp,"", GlobalParams.Pages.INDEX, null);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class LoginServlet extends HttpServlet {
         if (session != null) {
             User loggedInUser = (User) session.getAttribute(RedirectUtil.PREFIX + GlobalParams.CURRENT_USER);
             if (loggedInUser != null && !loggedInUser.userAccount().equalsIgnoreCase(username)) {
-                ViewUtil.render(req, resp, "error_page", Map.of("respEntity", RespEntity.error("当前设备已登录其他账号，请先退出登录")));
+                ViewUtil.render(req, resp, GlobalParams.Pages.ERROR_PAGE, Map.of("respEntity", RespEntity.error("当前设备已登录其他账号，请先退出登录")));
                 return;
             }
         }
@@ -62,7 +62,7 @@ public class LoginServlet extends HttpServlet {
             // SessionListener.bindUserSession(_user.userId(), session);
             RedirectUtil.redirect(req, resp, "/home", Map.of(GlobalParams.CURRENT_USER, _user));
         } else {
-            ViewUtil.render(req, resp, "error_page", Map.of("respEntity", respEntity));
+            ViewUtil.render(req, resp, GlobalParams.Pages.ERROR_PAGE, Map.of("respEntity", respEntity));
         }
 
     }

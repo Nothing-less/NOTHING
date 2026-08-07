@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
@@ -17,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet("/home")
 public class HomePageServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(HomePageServlet.class);
-    private static final String HOME_PAGE = "home";
+    private static final String HOME_PAGE = GlobalParams.Pages.HOME;
      @Override
     protected void doGet( HttpServletRequest req,  HttpServletResponse resp) throws ServletException, IOException {
         this.doPost(req, resp);

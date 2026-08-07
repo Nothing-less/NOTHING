@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalConfig;
 import icu.nothingless.tools.JsonUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @WebServlet(name = "ConfigServlet", urlPatterns = "/api/config")
 public class ConfigServlet extends HttpServlet {
-    private static final String DEFAULT_PAGE = "friend_list"; // 进入主页后默认显示的页面
+    private static final String DEFAULT_PAGE = GlobalConfig.CONFIG_MAP.get("page.vanilla"); // 进入主页后默认显示的页面
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

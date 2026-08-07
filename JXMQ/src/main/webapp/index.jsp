@@ -52,6 +52,7 @@
                             <input id="username" name="username" type="text" 
                                     value="${fn:escapeXml(param.username)}" 
                                     required autofocus 
+                                    autocomplete="username"
                                     pattern="[a-zA-Z0-9]+"
                                     title="Only letters and numbers are allowed"
                                     placeholder="your username"/>
@@ -65,8 +66,10 @@
                     <div class="form-row">
                         <label for="password">Password</label>
                         <div class="input-wrapper">
-                            <input id="password" name="password" type="password" autocomplete="current-password"
-                                   required  placeholder="your password"/>
+                            <input id="password" name="password" type="password" 
+                                    autocomplete="current-password"
+                                    required  
+                                    placeholder="your password"/>
                             <input type="hidden" id="pwd_entrypted" name="pwd_entrypted" type="pwd_entrypted" />
                         </div>
                     </div>

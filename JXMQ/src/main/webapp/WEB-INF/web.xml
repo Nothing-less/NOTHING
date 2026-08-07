@@ -58,14 +58,14 @@
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
 
-    <servlet>
+    <!-- <servlet>
     <servlet-name>Turn2ErrorServlet</servlet-name>
         <servlet-class>icu.nothingless.controller.pages.Turn2ErrorServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>Turn2ErrorServlet</servlet-name>
         <url-pattern>/error</url-pattern>
-    </servlet-mapping>
+    </servlet-mapping> -->
 
     <servlet>
     <servlet-name>LogoutServlet</servlet-name>

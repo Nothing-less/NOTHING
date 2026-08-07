@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import icu.nothingless.commons.RespEntity;
+import icu.nothingless.config.GlobalParams;
 import icu.nothingless.tools.ViewUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -26,9 +27,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public class PageToServlet extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(PageToServlet.class);
-
-    // 默认页面
-    private static final String DEFAULT_PAGE = "dashboard";
     
     // 模板目录前缀
     private static final String TEMPLATE_PREFIX = "pages/";
@@ -54,7 +52,7 @@ public class PageToServlet extends HttpServlet {
             ViewUtil.render(req, resp, templatePath);
         } catch (Exception e) {
             logger.error("Error rendering page: {} \n Error details: {}", pageName, e);
-            ViewUtil.render(req, resp, "error_page",Map.of("respEntity",RespEntity.error("页面加载异常！")));
+            ViewUtil.render(req, resp, GlobalParams.Pages.ERROR_PAGE, Map.of("respEntity", RespEntity.error("页面加载异常！")));
         }
     }
     
@@ -63,7 +61,7 @@ public class PageToServlet extends HttpServlet {
      */
     private String extractPageName(String pathInfo) {
         if (pathInfo == null || pathInfo.equals("/") || pathInfo.isEmpty()) {
-            return DEFAULT_PAGE;
+            return GlobalParams.Pages.INDEX; // 默认页面
         }
         
         // 移除开头的斜杠

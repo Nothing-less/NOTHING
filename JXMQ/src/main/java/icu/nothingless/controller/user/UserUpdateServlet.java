@@ -71,6 +71,7 @@ public class UserUpdateServlet extends HttpServlet {
             
             if (result.isSuccess() && result.getData() != null) {
                 session.setAttribute(RedirectUtil.PREFIX + GlobalParams.CURRENT_USER, result.getData());
+                session.setAttribute(GlobalParams.CURRENT_USER_NICKNAME, result.getData().nickname());
             }
             
             writeJson(resp, result);

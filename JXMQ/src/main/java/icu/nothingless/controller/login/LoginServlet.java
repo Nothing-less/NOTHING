@@ -3,18 +3,16 @@ package icu.nothingless.controller.login;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.swing.text.View;
-
 import org.slf4j.Logger;
 
 import icu.nothingless.commons.RespEntity;
 import icu.nothingless.config.GlobalParams;
-import icu.nothingless.listener.SessionListener;
 import icu.nothingless.pojo.dto.User;
 import icu.nothingless.service.interfaces.IUserService;
 import icu.nothingless.tools.RedirectUtil;
 import icu.nothingless.tools.ServiceFactory;
 import icu.nothingless.tools.ViewUtil;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
